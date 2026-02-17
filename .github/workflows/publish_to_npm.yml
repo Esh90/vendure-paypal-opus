@@ -53,7 +53,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          ref: ${{ matrix.type == 'minor-nightly' && 'minor' || matrix.type == 'master-nightly' && 'master' || '' }}
+          ref: ${{ matrix.type == 'minor-nightly' && 'minor' || matrix.type == 'master-nightly' && 'master' || matrix.type == 'release' && github.event.release.target_commitish || '' }}
           fetch-depth: ${{ matrix.type == 'release' && 1 || 0 }}
 
       # For nightly builds: check if there were commits in the last 24 hours
@@ -71,7 +71,7 @@ jobs:
 
       - name: Setup Node.js
         if: matrix.type == 'release' || steps.commit_check.outputs.should_publish == 'true'
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v4
         with:
           node-version: '24.x'
           registry-url: 'https://registry.npmjs.org'
@@ -82,7 +82,7 @@ jobs:
 
       - name: Install dependencies
         if: matrix.type == 'release' || steps.commit_check.outputs.should_publish == 'true'
-        run: npm install --no-save
+        run: npm ci
 
       - name: Build
         if: matrix.type == 'release' || steps.commit_check.outputs.should_publish == 'true'
@@ -125,24 +125,30 @@ jobs:
           git commit -m "chore: Bump version for ${{ matrix.type }} pre-release"
 
       # Publish to npm with appropriate dist-tag
-      # Note: we do not use `lerna publish` because at the time of writing, it fails to publish
-      # using the Trusted Publishing workflow for some reason.
-      # We use a custom script to handle publishConfig.directory for packages like @vendure/admin-ui
-      # that need to publish from a nested directory.
+      # Using lerna publish from-package which handles:
+      # - Topological ordering (dependencies published first)
+      # - publishConfig.directory from package.json
+      # - Skipping already published packages
       - name: Publish to NPM (release)
         if: matrix.type == 'release'
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
-          npx lerna exec --no-private -- 'publish_dir=$(node -p "require(\"./package.json\").publishConfig?.directory || \".\"") && cd "$publish_dir" && npm publish --access public'
+          npx lerna publish from-package --yes --no-git-tag-version --no-push
 
       - name: Publish to NPM (master-nightly)
         if: matrix.type == 'master-nightly' && steps.commit_check.outputs.should_publish == 'true'
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
-          npx lerna exec --no-private -- 'publish_dir=$(node -p "require(\"./package.json\").publishConfig?.directory || \".\"") && cd "$publish_dir" && npm publish --access public --tag master'
+          npx lerna publish from-package --yes --no-git-tag-version --no-push --dist-tag master
 
       - name: Publish to NPM (minor-nightly)
         if: matrix.type == 'minor-nightly' && steps.commit_check.outputs.should_publish == 'true'
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
-          npx lerna exec --no-private -- 'publish_dir=$(node -p "require(\"./package.json\").publishConfig?.directory || \".\"") && cd "$publish_dir" && npm publish --access public --tag minor'
+          npx lerna publish from-package --yes --no-git-tag-version --no-push --dist-tag minor
 
       - name: Skip publish (no new commits)
         if: matrix.type != 'release' && steps.commit_check.outputs.should_publish == 'false'

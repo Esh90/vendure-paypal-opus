@@ -1,4 +1,4 @@
-import { Module, OnApplicationBootstrap, OnApplicationShutdown } from '@nestjs/common';
+import { Module, OnApplicationBootstrap, OnApplicationShutdown, Optional } from '@nestjs/common';
 import { ModuleRef } from '@nestjs/core';
 
 import { ConfigurableOperationDef } from '../common/configurable-operation';
@@ -15,7 +15,7 @@ import { ConfigService } from './config.service';
 export class ConfigModule implements OnApplicationBootstrap, OnApplicationShutdown {
     constructor(
         private configService: ConfigService,
-        private moduleRef: ModuleRef,
+        @Optional() private moduleRef: ModuleRef,
     ) {}
 
     async onApplicationBootstrap() {

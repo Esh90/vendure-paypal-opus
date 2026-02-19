@@ -76,15 +76,28 @@
     "resolutions": {
         "@apollo/server": "^5.0.0"
     },
-    "workspaces": {
-        "packages": [
-            "packages/*"
-        ],
-        "nohoist": [
-            "**/@types/jasmine",
-            "**/@types/jasminewd2"
-        ]
-    },
+    "workspaces": [
+        "packages/admin-ui",
+        "packages/admin-ui-plugin",
+        "packages/asset-server-plugin",
+        "packages/cli",
+        "packages/common",
+        "packages/core",
+        "packages/create",
+        "packages/dashboard",
+        "packages/dev-server",
+        "packages/elasticsearch-plugin",
+        "packages/email-plugin",
+        "packages/graphiql-plugin",
+        "packages/harden-plugin",
+        "packages/job-queue-plugin",
+        "packages/payments-plugin",
+        "packages/sentry-plugin",
+        "packages/stellate-plugin",
+        "packages/telemetry-plugin",
+        "packages/testing",
+        "packages/ui-devkit"
+    ],
     "commitlint": {
         "extends": [
             "@commitlint/config-conventional"

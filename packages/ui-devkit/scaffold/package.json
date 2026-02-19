@@ -1,8 +1,9 @@
 {
-  "name": "vendure-admin-ui",
+  "name": "vendure-admin-ui-scaffold",
+  "version": "0.0.1",
+  "private": true,
   "dependencies": {},
   "license": "UNLICENSED",
-  "private": true,
   "scripts": {
     "ng": "ng",
     "start": "ng serve",

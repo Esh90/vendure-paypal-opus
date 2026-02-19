@@ -28,7 +28,7 @@
         "@apollo/server": "^4.12.2"
     },
     "devDependencies": {
-        "@vendure/common": "3.5.4",
-        "@vendure/core": "3.5.4"
+        "@vendure/common": "^3.5.4",
+        "@vendure/core": "^3.5.4"
     }
 }

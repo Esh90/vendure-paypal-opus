@@ -103,19 +103,25 @@ jobs:
       - name: Version packages (master-nightly)
         if: matrix.type == 'master-nightly' && steps.commit_check.outputs.should_publish == 'true'
         run: |
-          CURRENT_VERSION=$(node -p "require('./lerna.json').version")
-          IFS='.' read -r -a VERSION_PARTS <<< "$CURRENT_VERSION"
-          PATCH=$((VERSION_PARTS[2] + 1))
-          NEW_VERSION="${VERSION_PARTS[0]}.${VERSION_PARTS[1]}.${PATCH}-master-${{ steps.date.outputs.date }}"
+          NEW_VERSION=$(node -e "
+            const fs = require('fs');
+            const lerna = JSON.parse(fs.readFileSync('./lerna.json', 'utf8'));
+            const [major, minor, patch] = lerna.version.split('.').map(v => parseInt(v, 10));
+            const date = '${{ steps.date.outputs.date }}';
+            console.log(\`\${major}.\${minor}.\${patch + 1}-master-\${date}\`);
+          ")
           npx lerna version $NEW_VERSION --no-git-tag-version --yes --no-push --force-publish
 
       - name: Version packages (minor-nightly)
         if: matrix.type == 'minor-nightly' && steps.commit_check.outputs.should_publish == 'true'
         run: |
-          CURRENT_VERSION=$(node -p "require('./lerna.json').version")
-          IFS='.' read -r -a VERSION_PARTS <<< "$CURRENT_VERSION"
-          MINOR=$((VERSION_PARTS[1] + 1))
-          NEW_VERSION="${VERSION_PARTS[0]}.${MINOR}.0-minor-${{ steps.date.outputs.date }}"
+          NEW_VERSION=$(node -e "
+            const fs = require('fs');
+            const lerna = JSON.parse(fs.readFileSync('./lerna.json', 'utf8'));
+            const [major, minor, patch] = lerna.version.split('.').map(v => parseInt(v, 10));
+            const date = '${{ steps.date.outputs.date }}';
+            console.log(\`\${major}.\${minor + 1}.0-minor-\${date}\`);
+          ")
           npx lerna version $NEW_VERSION --no-git-tag-version --yes --no-push --force-publish
 
       - name: Commit version changes

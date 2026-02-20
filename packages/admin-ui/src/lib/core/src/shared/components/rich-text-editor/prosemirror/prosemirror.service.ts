@@ -38,11 +38,11 @@ export class ProsemirrorService {
     // Mix the nodes from prosemirror-schema-list into the basic schema to
     // create a schema with list support.
     private mySchema = new Schema({
-        nodes: addListNodes(schema.spec.nodes, 'paragraph block*', 'block')
+        nodes: addListNodes(schema.spec.nodes as any, 'paragraph block*', 'block')
             .append(getTableNodes() as any)
-            .update('image', imageNode)
-            .addToEnd('iframe', iframeNode),
-        marks: schema.spec.marks.update('link', linkMark),
+            .update('image', imageNode as any)
+            .addToEnd('iframe', iframeNode as any),
+        marks: (schema.spec.marks as any).update('link', linkMark as any),
     });
     private enabled = true;
     /**
@@ -92,9 +92,9 @@ export class ProsemirrorService {
             if (text !== currentText) {
                 let state = this.getStateFromText(text);
                 if (document.body.contains(this.editorView.dom)) {
-                    const fix = fixTables(state);
+                    const fix = fixTables(state as any);
                     if (fix) {
-                        state = state.apply(fix.setMeta('addToHistory', false));
+                        state = state.apply(fix.setMeta('addToHistory', false) as any);
                     }
                     this.editorView.updateState(state);
                 }
@@ -146,8 +146,8 @@ export class ProsemirrorService {
             dropCursor(),
             gapCursor(),
             linkSelectPlugin,
-            columnResizing({}),
-            tableEditing({ allowTableNodeSelection: true }),
+            columnResizing({}) as any,
+            tableEditing({ allowTableNodeSelection: true }) as any,
             tableContextMenuPlugin(this.contextMenuService),
             imageContextMenuPlugin(this.contextMenuService, this.injector.get(ModalService)),
             rawEditorPlugin(this.contextMenuService, this.injector.get(ModalService)),

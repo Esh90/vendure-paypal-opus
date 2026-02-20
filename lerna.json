@@ -1,6 +1,9 @@
 {
   "version": "3.5.4",
   "npmClient": "npm",
+  "packages": [
+    "packages/*"
+  ],
   "command": {
     "version": {
       "push": false

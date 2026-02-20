@@ -1,6 +1,6 @@
 {
     "name": "vendure",
-    "version": "0.0.0",
+    "version": "3.5.4",
     "private": true,
     "engines": {
         "node": ">= 18"

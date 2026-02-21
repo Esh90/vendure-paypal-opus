@@ -10,6 +10,7 @@
         "ng": "ng",
         "dev": "node scripts/set-version.js && ng serve",
         "build:app": "ng build vendure-admin --configuration production",
+        "prebuild": "node -e \"const fs=require('fs'); const nm=require('path').join('node_modules'); if(fs.existsSync(nm)) fs.readdirSync(nm).filter(f=>f.startsWith('prosemirror-')).forEach(f=>fs.rmSync(require('path').join(nm, f), {recursive:true, force:true}))\"",
         "build": "node scripts/copy-package-json.js && node scripts/set-version.js && node scripts/build-public-api.js && ng build vendure-admin-lib --configuration production && node scripts/compile-styles.js",
         "watch": "ng build --watch=true",
         "test": "ng test --watch=false --browsers=ChromeHeadlessCI --progress=false",

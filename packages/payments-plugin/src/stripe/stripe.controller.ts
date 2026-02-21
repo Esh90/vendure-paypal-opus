@@ -7,11 +7,11 @@ import {
     Logger,
     Order,
     OrderService,
+    OrderStateTransitionError,
     PaymentMethodService,
     RequestContextService,
     TransactionalConnection,
 } from '@vendure/core';
-import { OrderStateTransitionError } from '@vendure/core/dist/common/error/generated-graphql-shop-errors';
 import type { Response } from 'express';
 import type Stripe from 'stripe';
 
@@ -143,7 +143,7 @@ export class StripeController {
                 // If the order is still not in the ArrangingPayment state, log an error
                 if (transitionToStateResult instanceof OrderStateTransitionError) {
                     Logger.error(
-                        `Error transitioning order ${orderCode} to ArrangingPayment state: ${transitionToStateResult.message}`,
+                        `Error transitioning order ${orderCode} to ArrangingPayment state: ${String((transitionToStateResult as any).message)}`,
                         loggerCtx,
                     );
                     return;
@@ -162,7 +162,7 @@ export class StripeController {
 
             if (!(addPaymentToOrderResult instanceof Order)) {
                 Logger.error(
-                    `Error adding payment to order ${orderCode}: ${addPaymentToOrderResult.message}`,
+                    `Error adding payment to order ${orderCode}: ${String((addPaymentToOrderResult as any).message)}`,
                     loggerCtx,
                 );
                 return;

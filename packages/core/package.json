@@ -44,6 +44,10 @@
             "types": "./cli/index.d.ts",
             "default": "./cli/index.js"
         },
+        "./cli/populate": {
+            "types": "./cli/populate.d.ts",
+            "default": "./cli/populate.js"
+        },
         "./dist/*": "./dist/*"
     },
     "files": [

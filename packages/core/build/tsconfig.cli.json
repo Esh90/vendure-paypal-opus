@@ -2,7 +2,7 @@
   "extends": "../tsconfig.json",
   "compilerOptions": {
     "outDir": "../cli",
-    "rootDir": "..",
+    "rootDir": "../src/cli",
     "noEmit": false,
     "esModuleInterop": true,
     "skipLibCheck": true

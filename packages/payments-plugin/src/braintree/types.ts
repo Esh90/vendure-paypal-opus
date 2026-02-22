@@ -1,4 +1,5 @@
 import { PaymentMetadata } from '@vendure/core';
+import type { ConfigArgValues } from '@vendure/core/dist/common/configurable-operation';
 import { Environment, Transaction } from 'braintree';
 
 export type PaymentMethodArgsHash = {

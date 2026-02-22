@@ -3,7 +3,9 @@
   "compilerOptions": {
     "outDir": "../cli",
     "rootDir": "..",
-    "noEmit": false
+    "noEmit": false,
+    "esModuleInterop": true,
+    "skipLibCheck": true
   },
   "files": [
     "../src/cli/index.ts",

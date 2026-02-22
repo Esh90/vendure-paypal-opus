@@ -1,4 +1,5 @@
-import { ConfigArgValues, PaymentMetadata } from '@vendure/core';
+import { ConfigArgValues } from '@vendure/core/common/configurable-operation';
+import { PaymentMetadata } from '@vendure/core/common/types/common-types';
 import { Environment, Transaction } from 'braintree';
 
 import { braintreePaymentMethodHandler } from './braintree.handler';

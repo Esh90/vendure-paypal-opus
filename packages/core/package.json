@@ -37,16 +37,24 @@
     "types": "dist/index.d.ts",
     "exports": {
         ".": {
-            "types": "./dist/index.d.ts",
-            "default": "./dist/index.js"
+            "import": "./dist/index.js",
+            "require": "./dist/index.js",
+            "types": "./dist/index.d.ts"
         },
         "./cli": {
-            "types": "./cli/index.d.ts",
-            "default": "./cli/index.js"
+            "import": "./cli/index.js",
+            "require": "./cli/index.js",
+            "types": "./cli/index.d.ts"
         },
         "./cli/populate": {
-            "types": "./cli/populate.d.ts",
-            "default": "./cli/populate.js"
+            "import": "./cli/populate.js",
+            "require": "./cli/populate.js",
+            "types": "./cli/populate.d.ts"
+        },
+        "./cli/*": {
+            "import": "./cli/*.js",
+            "require": "./cli/*.js",
+            "types": "./cli/*.d.ts"
         },
         "./dist/*": "./dist/*"
     },

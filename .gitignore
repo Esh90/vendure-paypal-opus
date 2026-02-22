@@ -12,6 +12,7 @@
 .gemini/
 error.txt.txt
 nul
+packages/core/*.backup
 lerna-debug.log
 dist
 e2e/__data__/*

@@ -5,12 +5,11 @@ import path from 'path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import { initialData } from '../../../e2e-common/e2e-initial-data';
-import { testConfig, TEST_SETUP_TIMEOUT_MS } from '../../../e2e-common/test-config';
-import { DefaultLogger, LogLevel } from '../src/config';
+import { TEST_SETUP_TIMEOUT_MS, testConfig } from '../../../e2e-common/test-config';
 
 import { ASSET_FRAGMENT } from './graphql/fragments';
-import { CurrencyCode, LanguageCode } from './graphql/generated-e2e-admin-types';
 import * as Codegen from './graphql/generated-e2e-admin-types';
+import { CurrencyCode, LanguageCode } from './graphql/generated-e2e-admin-types';
 import { DeletionResult } from './graphql/generated-e2e-shop-types';
 import {
     ASSIGN_COLLECTIONS_TO_CHANNEL,
@@ -287,6 +286,22 @@ describe('Product related assets', () => {
             },
         });
         expect(updateProduct.assets.map(a => a.id)).toContain('T_3');
+    });
+
+    it('Updating product with asset IDs not in channel does not crash', async () => {
+        adminClient.setChannelToken(SECOND_CHANNEL_TOKEN);
+        // T_3 is not assigned to channel2, so findByIdsInChannel returns empty.
+        // This should not crash and should clear the product's assets.
+        const { updateProduct } = await adminClient.query<
+            Codegen.UpdateProductMutation,
+            Codegen.UpdateProductMutationVariables
+        >(UPDATE_PRODUCT, {
+            input: {
+                id: 'T_2',
+                assetIds: ['T_3'],
+            },
+        });
+        expect(updateProduct.assets).toEqual([]);
     });
 
     it('Channel2 does not have asset A', async () => {

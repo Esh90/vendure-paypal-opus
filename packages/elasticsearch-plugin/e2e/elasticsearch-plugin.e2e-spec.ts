@@ -1472,10 +1472,7 @@ describe('Elasticsearch plugin', () => {
             await adminClient.asSuperAdmin();
 
             // Create a second channel for testing stock isolation
-            const { createChannel } = await adminClient.query<
-                Codegen.CreateChannelMutation,
-                Codegen.CreateChannelMutationVariables
-            >(CREATE_CHANNEL, {
+            const { createChannel } = await adminClient.query(createChannelDocument, {
                 input: {
                     code: 'stock-test-channel',
                     token: STOCK_CHANNEL_TOKEN,
@@ -1486,13 +1483,10 @@ describe('Elasticsearch plugin', () => {
                     defaultShippingZoneId: 'T_1',
                 },
             });
-            stockTestChannelId = (createChannel as Codegen.ChannelFragment).id;
+            stockTestChannelId = (createChannel as ChannelFragment).id;
 
             // Create a product with a variant that has stock in the default channel
-            const { createProduct } = await adminClient.query<
-                Codegen.CreateProductMutation,
-                Codegen.CreateProductMutationVariables
-            >(CREATE_PRODUCT, {
+            const { createProduct } = await adminClient.query(createProductDocument, {
                 input: {
                     translations: [
                         {
@@ -1506,10 +1500,7 @@ describe('Elasticsearch plugin', () => {
             });
             testProductId = createProduct.id;
 
-            await adminClient.query<
-                Codegen.CreateProductVariantsMutation,
-                Codegen.CreateProductVariantsMutationVariables
-            >(CREATE_PRODUCT_VARIANTS, {
+            await adminClient.query(createProductVariantsDocument, {
                 input: [
                     {
                         productId: testProductId,
@@ -1524,22 +1515,19 @@ describe('Elasticsearch plugin', () => {
             await awaitRunningJobs(adminClient);
 
             // Assign the product to the second channel (no stock location there)
-            await adminClient.query<
-                Codegen.AssignProductsToChannelMutation,
-                Codegen.AssignProductsToChannelMutationVariables
-            >(ASSIGN_PRODUCT_TO_CHANNEL, {
+            await adminClient.query(assignProductToChannelDocument, {
                 input: { channelId: stockTestChannelId, productIds: [testProductId] },
             });
             await awaitRunningJobs(adminClient);
 
             // Reindex default channel first
             adminClient.setChannelToken(E2E_DEFAULT_CHANNEL_TOKEN);
-            await adminClient.query<Codegen.ReindexMutation>(REINDEX);
+            await adminClient.query(reindexDocument);
             await awaitRunningJobs(adminClient);
 
             // Reindex the second channel
             adminClient.setChannelToken(STOCK_CHANNEL_TOKEN);
-            await adminClient.query<Codegen.ReindexMutation>(REINDEX);
+            await adminClient.query(reindexDocument);
             await awaitRunningJobs(adminClient);
 
             // Reset admin token after reindexing second channel
@@ -1548,46 +1536,37 @@ describe('Elasticsearch plugin', () => {
 
         it('product is inStock in default channel', async () => {
             shopClient.setChannelToken(E2E_DEFAULT_CHANNEL_TOKEN);
-            const result = await shopClient.query<SearchProductsShopQuery, SearchProductShopVariables>(
-                SEARCH_PRODUCTS_SHOP,
-                {
-                    input: {
-                        term: 'Stock Test Product',
-                        groupByProduct: true,
-                        inStock: true,
-                    },
+            const result = await shopClient.query(searchProductsShopDocument, {
+                input: {
+                    term: 'Stock Test Product',
+                    groupByProduct: true,
+                    inStock: true,
                 },
-            );
+            });
             expect(result.search.items.map(i => i.productName)).toContain('Stock Test Product');
         });
 
         it('product is NOT inStock in second channel (no stock location)', async () => {
             shopClient.setChannelToken(STOCK_CHANNEL_TOKEN);
-            const result = await shopClient.query<SearchProductsShopQuery, SearchProductShopVariables>(
-                SEARCH_PRODUCTS_SHOP,
-                {
-                    input: {
-                        term: 'Stock Test Product',
-                        groupByProduct: true,
-                        inStock: true,
-                    },
+            const result = await shopClient.query(searchProductsShopDocument, {
+                input: {
+                    term: 'Stock Test Product',
+                    groupByProduct: true,
+                    inStock: true,
                 },
-            );
+            });
             expect(result.search.items.map(i => i.productName)).not.toContain('Stock Test Product');
         });
 
         it('product appears when filtering inStock: false in second channel', async () => {
             shopClient.setChannelToken(STOCK_CHANNEL_TOKEN);
-            const result = await shopClient.query<SearchProductsShopQuery, SearchProductShopVariables>(
-                SEARCH_PRODUCTS_SHOP,
-                {
-                    input: {
-                        term: 'Stock Test Product',
-                        groupByProduct: true,
-                        inStock: false,
-                    },
+            const result = await shopClient.query(searchProductsShopDocument, {
+                input: {
+                    term: 'Stock Test Product',
+                    groupByProduct: true,
+                    inStock: false,
                 },
-            );
+            });
             expect(result.search.items.map(i => i.productName)).toContain('Stock Test Product');
         });
 

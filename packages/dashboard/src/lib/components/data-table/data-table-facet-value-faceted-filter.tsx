@@ -12,72 +12,17 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from '@/vdb/components/ui/popover.js';
 import { Separator } from '@/vdb/components/ui/separator.js';
 import { api } from '@/vdb/graphql/api.js';
-import { graphql } from '@/vdb/graphql/graphql.js';
+import {
+    type FacetValue,
+    getFacetValueListDocument,
+    useFacetValueBrowser,
+} from '@/vdb/hooks/use-facet-value-browser.js';
 import { cn } from '@/vdb/lib/utils.js';
 import { Trans, useLingui } from '@lingui/react/macro';
-import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
-import { useDebounce } from '@uidotdev/usehooks';
+import { useQuery } from '@tanstack/react-query';
 import { Check, ChevronRight, FilterIcon, Loader2 } from 'lucide-react';
 import React, { useState } from 'react';
 import { DataTableFacetedFilterProps } from './data-table-faceted-filter.js';
-
-interface FacetValue {
-    id: string;
-    name: string;
-    code: string;
-    facet: { id: string; name: string; code: string };
-}
-
-const getFacetValueListDocument = graphql(`
-    query GetFacetValueListForFilter($options: FacetValueListOptions) {
-        facetValues(options: $options) {
-            items {
-                id
-                name
-                code
-                facet {
-                    id
-                    name
-                    code
-                }
-            }
-            totalItems
-        }
-    }
-`);
-
-const getFacetListDocument = graphql(`
-    query GetFacetListForFilter($options: FacetListOptions) {
-        facets(options: $options) {
-            items {
-                id
-                name
-                code
-            }
-            totalItems
-        }
-    }
-`);
-
-const getFacetValuesForFacetDocument = graphql(`
-    query GetFacetValuesForFacetFilter($options: FacetValueListOptions) {
-        facetValues(options: $options) {
-            items {
-                id
-                name
-                code
-                facet {
-                    id
-                    name
-                    code
-                }
-            }
-            totalItems
-        }
-    }
-`);
-
-const PAGE_SIZE = 10;
 
 /**
  * @description
@@ -110,23 +55,41 @@ const PAGE_SIZE = 10;
  * ```
  *
  * @docsCategory components
- * @since 3.5.0
+ * @since 3.6.0
  */
 export function FacetValueFacetedFilter<TData, TValue>({
     column,
     title,
 }: DataTableFacetedFilterProps<TData, TValue>) {
-    const [searchTerm, setSearchTerm] = useState('');
-    const [expandedFacetId, setExpandedFacetId] = useState<string | null>(null);
-    const [browseMode, setBrowseMode] = useState(true);
-    const debouncedSearch = useDebounce(searchTerm, 200);
     const { t } = useLingui();
-    const minSearchLength = 1;
+
+    const {
+        searchTerm,
+        setSearchTerm,
+        debouncedSearch,
+        minSearchLength,
+        browseMode,
+        setBrowseMode,
+        expandedFacetId,
+        setExpandedFacetId,
+        facetValues,
+        facets,
+        expandedFacetValues,
+        expandedFacetName,
+        facetGroups,
+        isLoading,
+        isFetchingNextPage,
+        isFetchingNextFacetsPage,
+        isLoadingExpandedFacet,
+        handleScroll,
+    } = useFacetValueBrowser({ initialBrowseMode: true, queryKeyPrefix: 'facetValuesFilter' });
 
     // Track known facet values so we can display names for selected IDs
     const [knownValues, setKnownValues] = useState<Map<string, FacetValue>>(new Map());
 
-    // Current selection from column filter state
+    // Current selection from column filter state.
+    // Filter value is stored as an array, but Object.values() works on arrays too,
+    // which is consistent with how DataTableFacetedFilter reads filter state.
     const filterValue = column?.getFilterValue();
     const selectedIds = filterValue
         ? new Set(Object.values(filterValue as Record<string, string>))
@@ -144,7 +107,7 @@ export function FacetValueFacetedFilter<TData, TValue>({
             setKnownValues(prev => {
                 const next = new Map(prev);
                 for (const fv of items) {
-                    next.set(fv.id, fv);
+                    next.set(fv.id, fv as FacetValue);
                 }
                 return next;
             });
@@ -152,132 +115,6 @@ export function FacetValueFacetedFilter<TData, TValue>({
         },
         enabled: unknownSelectedIds.length > 0,
     });
-
-    // Search facet values by name
-    const { data: facetValueData, isLoading: isLoadingFacetValues } = useQuery({
-        queryKey: ['facetValuesFilter', debouncedSearch],
-        queryFn: () => {
-            if (debouncedSearch.length < minSearchLength) {
-                return { facetValues: { items: [], totalItems: 0 } };
-            }
-            return api.query(getFacetValueListDocument, {
-                options: {
-                    filter: { name: { contains: debouncedSearch } },
-                    take: 100,
-                },
-            });
-        },
-        enabled: debouncedSearch.length >= minSearchLength && !expandedFacetId,
-    });
-
-    // Search facets by name
-    const { data: facetSearchData, isLoading: isLoadingFacetSearch } = useQuery({
-        queryKey: ['facetsFilter', debouncedSearch],
-        queryFn: () => {
-            if (debouncedSearch.length < minSearchLength) {
-                return { facets: { items: [], totalItems: 0 } };
-            }
-            return api.query(getFacetListDocument, {
-                options: {
-                    filter: { name: { contains: debouncedSearch } },
-                    take: 100,
-                },
-            });
-        },
-        enabled: !browseMode && debouncedSearch.length >= minSearchLength && !expandedFacetId,
-    });
-
-    // Browse facets with pagination
-    const {
-        data: facetBrowseData,
-        isLoading: isLoadingFacetBrowse,
-        fetchNextPage: fetchNextFacetsPage,
-        hasNextPage: hasNextFacetsPage,
-        isFetchingNextPage: isFetchingNextFacetsPage,
-    } = useInfiniteQuery({
-        queryKey: ['facetsFilter', 'browse'],
-        queryFn: async ({ pageParam = 0 }) => {
-            const response = await api.query(getFacetListDocument, {
-                options: {
-                    filter: {},
-                    sort: { name: 'ASC' },
-                    skip: pageParam * PAGE_SIZE,
-                    take: PAGE_SIZE,
-                },
-            });
-            return response.facets;
-        },
-        getNextPageParam: (lastPage, allPages) => {
-            if (!lastPage) return undefined;
-            const totalFetched = allPages.length * PAGE_SIZE;
-            return totalFetched < lastPage.totalItems ? allPages.length : undefined;
-        },
-        enabled: browseMode && !expandedFacetId,
-        initialPageParam: 0,
-    });
-
-    // Browse facet values within a specific facet
-    const {
-        data: expandedFacetData,
-        isLoading: isLoadingExpandedFacet,
-        fetchNextPage,
-        hasNextPage,
-        isFetchingNextPage,
-    } = useInfiniteQuery({
-        queryKey: ['facetValuesFilter', expandedFacetId, 'infinite'],
-        queryFn: async ({ pageParam = 0 }) => {
-            if (!expandedFacetId) return null;
-            const response = await api.query(getFacetValuesForFacetDocument, {
-                options: {
-                    filter: { facetId: { eq: expandedFacetId } },
-                    sort: { code: 'ASC' },
-                    skip: pageParam * PAGE_SIZE,
-                    take: PAGE_SIZE,
-                },
-            });
-            return response.facetValues;
-        },
-        getNextPageParam: (lastPage, allPages) => {
-            if (!lastPage) return undefined;
-            const totalFetched = allPages.length * PAGE_SIZE;
-            return totalFetched < lastPage.totalItems ? allPages.length : undefined;
-        },
-        enabled: !!expandedFacetId,
-        initialPageParam: 0,
-    });
-
-    const facetValues = facetValueData?.facetValues.items ?? [];
-    const facets = browseMode
-        ? (facetBrowseData?.pages.flatMap(page => page?.items ?? []) ?? [])
-        : (facetSearchData?.facets.items ?? []);
-    const expandedFacetValues = expandedFacetData?.pages.flatMap(page => page?.items ?? []) ?? [];
-    const expandedFacetName = expandedFacetValues[0]?.facet.name;
-
-    // Group search results by facet
-    const facetGroups = facetValues.reduce<Record<string, FacetValue[]>>((groups, fv) => {
-        const facetId = fv.facet.id;
-        if (!groups[facetId]) {
-            groups[facetId] = [];
-        }
-        groups[facetId].push(fv);
-        return groups;
-    }, {});
-
-    const isLoading =
-        isLoadingFacetValues || isLoadingFacetSearch || isLoadingFacetBrowse || isLoadingExpandedFacet;
-
-    const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
-        const target = e.currentTarget;
-        const scrolledToBottom = Math.abs(target.scrollHeight - target.clientHeight - target.scrollTop) < 1;
-        if (scrolledToBottom && !isFetchingNextPage) {
-            if (expandedFacetId && hasNextPage) {
-                void fetchNextPage();
-            }
-            if (browseMode && !expandedFacetId && hasNextFacetsPage) {
-                void fetchNextFacetsPage();
-            }
-        }
-    };
 
     const toggleValue = (fv: FacetValue) => {
         const next = new Set(selectedIds);
@@ -291,11 +128,10 @@ export function FacetValueFacetedFilter<TData, TValue>({
         column?.setFilterValue(arr.length > 0 ? arr : undefined);
     };
 
-    const selectedLabels = Array.from(selectedIds)
-        .map(id => {
-            const fv = knownValues.get(id);
-            return fv ? `${fv.facet.name}: ${fv.name}` : id;
-        });
+    const selectedLabels = Array.from(selectedIds).map(id => {
+        const fv = knownValues.get(id);
+        return fv ? `${fv.facet.name}: ${fv.name}` : id;
+    });
 
     return (
         <Popover>
@@ -351,12 +187,6 @@ export function FacetValueFacetedFilter<TData, TValue>({
                                 <div className="flex items-center justify-center py-4">
                                     <Loader2 className="h-4 w-4 animate-spin" />
                                 </div>
-                            ) : debouncedSearch.length < minSearchLength && !browseMode ? (
-                                <div className="flex flex-col items-center gap-2 py-4">
-                                    <div className="text-sm text-muted-foreground">
-                                        <Trans>Type to search or browse below</Trans>
-                                    </div>
-                                </div>
                             ) : (
                                 <div className="text-sm text-muted-foreground">
                                     <Trans>No results found</Trans>
@@ -386,16 +216,7 @@ export function FacetValueFacetedFilter<TData, TValue>({
                                                 value={fv.id}
                                                 onSelect={() => toggleValue(fv)}
                                             >
-                                                <div
-                                                    className={cn(
-                                                        'mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary',
-                                                        isSelected
-                                                            ? 'bg-primary text-primary-foreground'
-                                                            : 'opacity-50 [&_svg]:invisible',
-                                                    )}
-                                                >
-                                                    <Check />
-                                                </div>
+                                                <FacetValueCheckbox isSelected={isSelected} />
                                                 {fv.name}
                                             </CommandItem>
                                         );
@@ -442,16 +263,7 @@ export function FacetValueFacetedFilter<TData, TValue>({
                                                     value={fv.id}
                                                     onSelect={() => toggleValue(fv)}
                                                 >
-                                                    <div
-                                                        className={cn(
-                                                            'mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary',
-                                                            isSelected
-                                                                ? 'bg-primary text-primary-foreground'
-                                                                : 'opacity-50 [&_svg]:invisible',
-                                                        )}
-                                                    >
-                                                        <Check />
-                                                    </div>
+                                                    <FacetValueCheckbox isSelected={isSelected} />
                                                     {fv.name}
                                                 </CommandItem>
                                             );
@@ -477,5 +289,20 @@ export function FacetValueFacetedFilter<TData, TValue>({
                 </Command>
             </PopoverContent>
         </Popover>
+    );
+}
+
+function FacetValueCheckbox({ isSelected }: { isSelected: boolean }) {
+    return (
+        <div
+            className={cn(
+                'mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary',
+                isSelected
+                    ? 'bg-primary text-primary-foreground'
+                    : 'opacity-50 [&_svg]:invisible',
+            )}
+        >
+            <Check />
+        </div>
     );
 }

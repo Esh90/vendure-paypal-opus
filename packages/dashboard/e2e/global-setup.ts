@@ -5,7 +5,7 @@ import {
     registerInitializer,
     SqljsInitializer,
 } from '@vendure/testing';
-import { copyFileSync, mkdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
@@ -39,20 +39,6 @@ async function importWithSwc<T>(fixturePath: string): Promise<T> {
 }
 
 export default async function globalSetup() {
-    // Copy E2E-only test page into the dashboard routes directory so that
-    // TanStack Router's Vite plugin picks it up when the dev server starts.
-    const testPageSrc = path.join(__dirname, 'fixtures', 'form-inputs-test-page.tsx');
-    const testPageDest = path.join(
-        __dirname,
-        '..',
-        'src',
-        'app',
-        'routes',
-        '_authenticated',
-        'form-inputs-test.tsx',
-    );
-    copyFileSync(testPageSrc, testPageDest);
-
     const { CustomHistoryEntryPlugin } = await importWithSwc<{
         CustomHistoryEntryPlugin: new () => unknown;
     }>(path.join(__dirname, 'fixtures', 'custom-history-entry-plugin.ts'));

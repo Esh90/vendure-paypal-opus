@@ -2,32 +2,25 @@
  * Test page for verifying that all built-in form input components
  * correctly handle the `disabled` prop.
  *
- * This page is used by E2E tests (issue #4424). It is copied into the
- * dashboard routes directory by globalSetup and removed by globalTeardown.
+ * This page is registered as a dashboard extension route by
+ * FormInputsTestPlugin and used by E2E tests (issue #4424).
  */
-import { Button } from '@/vdb/components/ui/button.js';
 import {
+    Button,
+    ConfigurableFieldDef,
     Form,
     FormControl,
+    FormControlAdapter,
     FormField,
     FormItem,
     FormLabel,
-} from '@/vdb/components/ui/form.js';
-import { FormControlAdapter } from '@/vdb/framework/form-engine/form-control-adapter.js';
-import { ConfigurableFieldDef } from '@/vdb/framework/form-engine/form-engine-types.js';
-import {
     FullWidthPageBlock,
     Page,
     PageLayout,
     PageTitle,
-} from '@/vdb/framework/layout-engine/page-layout.js';
-import { createFileRoute } from '@tanstack/react-router';
+} from '@vendure/dashboard';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-
-export const Route = createFileRoute('/_authenticated/form-inputs-test')({
-    component: FormInputsTestPage,
-});
 
 // Simulated custom field definitions. They must have a `readonly` property
 // so that `isCustomFieldConfig()` recognises them.
@@ -103,7 +96,7 @@ const fieldDefs: Record<string, ConfigurableFieldDef> = {
     } as unknown as ConfigurableFieldDef,
 };
 
-function FormInputsTestPage() {
+export function FormInputsTestPage() {
     const [disabled, setDisabled] = useState(false);
     const form = useForm({
         defaultValues: {

@@ -2,8 +2,8 @@
  * Test page for verifying that all built-in form input components
  * correctly handle the `disabled` prop.
  *
- * This page is used by E2E tests (issue #4424) and is not linked
- * from the navigation. It only renders in dev/test mode.
+ * This page is used by E2E tests (issue #4424). It is copied into the
+ * dashboard routes directory by globalSetup and removed by globalTeardown.
  */
 import { Button } from '@/vdb/components/ui/button.js';
 import {
@@ -104,15 +104,6 @@ const fieldDefs: Record<string, ConfigurableFieldDef> = {
 };
 
 function FormInputsTestPage() {
-    // Only render in dev/test mode — return nothing in production builds
-    if (!import.meta.env.DEV) {
-        return null;
-    }
-
-    return <FormInputsTestPageContent />;
-}
-
-function FormInputsTestPageContent() {
     const [disabled, setDisabled] = useState(false);
     const form = useForm({
         defaultValues: {

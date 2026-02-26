@@ -116,6 +116,15 @@ describe('transformRelationFields', () => {
         expect(nullResult.customFields).not.toHaveProperty('featuredProducts');
     });
 
+    it('should set null explicitly when single relation is cleared', () => {
+        const result = transformRelationFields(createFieldsWithSingleRelation(), {
+            customFields: { featuredProduct: null },
+        });
+
+        expect(result.customFields.featuredProductId).toBeNull();
+        expect(result.customFields).not.toHaveProperty('featuredProduct');
+    });
+
     it('should extract ID from single relation and delete original field', () => {
         const entity = { customFields: { featuredProduct: { id: '1', name: 'Product 1' } } };
         const result = transformRelationFields(createFieldsWithSingleRelation(), entity);
@@ -165,6 +174,118 @@ describe('transformRelationFields', () => {
         const result = transformRelationFields(fields, entity);
 
         expect(result.customFields).toEqual({ featuredProductsIds: ['1'], notes: 'Some notes' });
+    });
+
+    // #4380 - Custom fields not saving correctly on draft orders
+    it('should handle nested customFields (e.g., draft orders with input.customFields)', () => {
+        const fields: FieldInfo[] = [
+            {
+                name: 'orderId',
+                type: 'ID',
+                nullable: false,
+                list: false,
+                isPaginatedList: false,
+                isScalar: true,
+            },
+            {
+                name: 'input',
+                type: 'UpdateOrderInput',
+                nullable: false,
+                list: false,
+                isPaginatedList: false,
+                isScalar: false,
+                typeInfo: [
+                    {
+                        name: 'id',
+                        type: 'ID',
+                        nullable: false,
+                        list: false,
+                        isPaginatedList: false,
+                        isScalar: true,
+                    },
+                    {
+                        name: 'customFields',
+                        type: 'UpdateOrderCustomFieldsInput',
+                        nullable: true,
+                        list: false,
+                        isPaginatedList: false,
+                        isScalar: false,
+                        typeInfo: [
+                            {
+                                name: 'relatedEntityId',
+                                type: 'ID',
+                                nullable: true,
+                                list: false,
+                                isPaginatedList: false,
+                                isScalar: true,
+                            },
+                        ],
+                    },
+                ],
+            },
+        ];
+
+        const entity = {
+            orderId: '123',
+            input: {
+                id: '123',
+                customFields: {
+                    relatedEntity: { id: '456', name: 'Related Entity' },
+                },
+            },
+        };
+
+        const result = transformRelationFields(fields, entity);
+
+        expect(result.input.customFields).toEqual({ relatedEntityId: '456' });
+        expect(result.input.customFields).not.toHaveProperty('relatedEntity');
+        expect(result.orderId).toBe('123');
+    });
+
+    it('should handle nested list relation customFields', () => {
+        const fields: FieldInfo[] = [
+            {
+                name: 'input',
+                type: 'UpdateOrderInput',
+                nullable: false,
+                list: false,
+                isPaginatedList: false,
+                isScalar: false,
+                typeInfo: [
+                    {
+                        name: 'customFields',
+                        type: 'UpdateOrderCustomFieldsInput',
+                        nullable: true,
+                        list: false,
+                        isPaginatedList: false,
+                        isScalar: false,
+                        typeInfo: [
+                            {
+                                name: 'relatedEntitiesIds',
+                                type: 'ID',
+                                nullable: true,
+                                list: true,
+                                isPaginatedList: false,
+                                isScalar: true,
+                            },
+                        ],
+                    },
+                ],
+            },
+        ];
+
+        const entity = {
+            input: {
+                customFields: {
+                    relatedEntities: [{ id: '1' }, { id: '2' }],
+                },
+            },
+        };
+
+        const result = transformRelationFields(fields, entity);
+
+        expect(result.input.customFields).toEqual({ relatedEntitiesIds: ['1', '2'] });
+        expect(result.input.customFields).not.toHaveProperty('relatedEntities');
     });
 });
 

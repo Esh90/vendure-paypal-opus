@@ -4,14 +4,15 @@ import { e2eCustomFields, e2ePaymentMethodHandlers } from './e2e-shared-config';
 import { FormInputsTestPlugin } from './form-inputs-test-plugin';
 
 /**
- * Vendure config used by the Vite plugin during E2E tests.
+ * Vendure config for the Vite plugin during E2E tests.
  *
- * This is NOT used to start the backend server (that's handled by
- * global-setup.ts). It is only used by the dashboard's Vite plugin
- * to discover dashboard extensions via config introspection.
+ * This is NOT used to start a Vendure server. The dashboard's Vite plugin
+ * compiles this file to discover @VendurePlugin decorators with `dashboard`
+ * entry points (e.g. FormInputsTestPlugin). The dbConnectionOptions and
+ * authOptions are dummy placeholders required by the VendureConfig type.
  *
- * Custom fields and payment handlers are imported from e2e-shared-config.ts
- * (the single source of truth shared with global-setup.ts).
+ * Shared config (custom fields, payment handlers) is imported from
+ * e2e-shared-config.ts — see that file for why the config is split.
  */
 export const config: VendureConfig = {
     apiOptions: {

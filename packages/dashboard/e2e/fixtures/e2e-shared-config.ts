@@ -1,10 +1,32 @@
 import { CustomFields, dummyPaymentHandler, LanguageCode } from '@vendure/core';
 
 /**
- * Custom fields and payment handlers shared between the Vite plugin config
- * (e2e-vendure-config.ts) and the backend server setup (global-setup.ts).
+ * Custom fields and payment handlers shared between:
+ *   - e2e-vendure-config.ts  (Vite plugin — dashboard extension discovery)
+ *   - global-setup.ts        (Vendure backend server for E2E tests)
  *
- * Defined here once to avoid duplication. Both files import from this module.
+ * WHY THREE FILES?
+ * These two consumers cannot share a single config file because they have
+ * incompatible constraints:
+ *
+ *   1. e2e-vendure-config.ts imports FormInputsTestPlugin (@VendurePlugin
+ *      decorator). This file is compiled by the dashboard Vite plugin's own
+ *      TypeScript compiler — that works fine for simple decorators.
+ *
+ *   2. global-setup.ts additionally needs CustomHistoryEntryPlugin, which
+ *      uses NestJS constructor injection (emitDecoratorMetadata). That
+ *      requires SWC compilation — the Vite plugin's TS compiler cannot
+ *      handle it. So CustomHistoryEntryPlugin is loaded via importWithSwc()
+ *      and must NOT appear in any static import chain that the Vite plugin
+ *      would try to compile.
+ *
+ *   3. The backend server uses defaultTestConfig (sqljs DB, test auth),
+ *      while the Vite config uses dummy placeholder values for DB/auth
+ *      that are never actually used.
+ *
+ * This file contains only the parts that are genuinely shared (custom fields
+ * and payment handlers) with no plugin imports, so both consumers can safely
+ * import it without side effects.
  */
 
 export const e2eCustomFields: CustomFields = {

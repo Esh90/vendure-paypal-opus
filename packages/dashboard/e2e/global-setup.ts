@@ -40,9 +40,12 @@ async function importWithSwc<T>(fixturePath: string): Promise<T> {
 }
 
 export default async function globalSetup() {
-    // CustomHistoryEntryPlugin uses NestJS constructor injection which needs
-    // SWC compilation — it cannot live in e2e-vendure-config.ts because the
-    // Vite plugin's TypeScript compiler would fail to load it.
+    // CustomHistoryEntryPlugin uses NestJS constructor injection which requires
+    // SWC compilation (emitDecoratorMetadata). It is loaded dynamically here
+    // rather than statically imported because e2e-vendure-config.ts is also
+    // compiled by the Vite plugin's TypeScript compiler, which cannot handle
+    // NestJS-style parameter decorators. See e2e-shared-config.ts for the
+    // full explanation of the three-file split.
     const { CustomHistoryEntryPlugin } = await importWithSwc<{
         CustomHistoryEntryPlugin: new () => unknown;
     }>(path.join(__dirname, 'fixtures', 'custom-history-entry-plugin.ts'));

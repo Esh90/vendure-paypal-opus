@@ -1,6 +1,5 @@
 import { VendureConfig } from '@vendure/core';
 
-import { e2eCustomFields, e2ePaymentMethodHandlers } from './e2e-shared-config';
 import { FormInputsTestPlugin } from './form-inputs-test-plugin';
 
 /**
@@ -11,8 +10,11 @@ import { FormInputsTestPlugin } from './form-inputs-test-plugin';
  * entry points (e.g. FormInputsTestPlugin). The dbConnectionOptions and
  * authOptions are dummy placeholders required by the VendureConfig type.
  *
- * Shared config (custom fields, payment handlers) is imported from
- * e2e-shared-config.ts — see that file for why the config is split.
+ * DO NOT add customFields here. The Vite plugin generates the dashboard's
+ * GraphQL schema from this config (via adminApiSchemaPlugin), and including
+ * struct custom fields causes product creation mutations to fail. The
+ * dashboard discovers custom fields at runtime from the backend API. Custom
+ * fields belong only in global-setup.ts (via e2e-shared-config.ts).
  */
 export const config: VendureConfig = {
     apiOptions: {
@@ -25,8 +27,7 @@ export const config: VendureConfig = {
         type: 'postgres',
     },
     paymentOptions: {
-        paymentMethodHandlers: e2ePaymentMethodHandlers,
+        paymentMethodHandlers: [],
     },
     plugins: [FormInputsTestPlugin],
-    customFields: e2eCustomFields,
 };

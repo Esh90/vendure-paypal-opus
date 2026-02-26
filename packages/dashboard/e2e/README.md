@@ -28,25 +28,21 @@ These two servers use separate configurations:
 
 | Server | Config | Purpose |
 |--------|--------|---------|
-| Vendure backend | `global-setup.ts` (`mergeConfig`) | Starts the Vendure server with test DB, CORS, and server-only plugins |
+| Vendure backend | `global-setup.ts` (imports `e2e-shared-config.ts`) | Starts the Vendure server with test DB, CORS, custom fields, and server-only plugins |
 | Vite dev server | `fixtures/e2e-vendure-config.ts` (via `VENDURE_CONFIG_PATH`) | Tells the Vite plugin which dashboard extensions to load |
 
-Shared configuration (custom fields, payment handlers) is defined once in
-`fixtures/e2e-shared-config.ts` and imported by both files. This avoids
-duplication while keeping the two configs separate — necessary because:
-
-- The backend server needs `defaultTestConfig` (sqljs DB, test auth tokens)
-- `CustomHistoryEntryPlugin` requires SWC compilation (NestJS constructor
-  injection) and cannot be loaded by the Vite plugin's TypeScript compiler
-- The Vite config's `dbConnectionOptions` / `authOptions` values are
-  placeholders that are never used to start a server
+**Important:** Custom fields belong only in `global-setup.ts` (via
+`e2e-shared-config.ts`), NOT in `e2e-vendure-config.ts`. The Vite plugin
+generates the dashboard's GraphQL schema from its config, and struct custom
+fields there cause product creation mutations to fail. The dashboard
+discovers custom fields at runtime from the backend API.
 
 ## Test file organisation
 
 ```
 e2e/
 ├── fixtures/                        # Test data and plugins
-│   ├── e2e-shared-config.ts          # Custom fields & payment handlers (shared)
+│   ├── e2e-shared-config.ts          # Custom fields & payment handlers (backend only)
 │   ├── e2e-vendure-config.ts        # Vendure config for Vite plugin discovery
 │   ├── form-inputs-test-plugin.ts   # Example: E2E-only dashboard plugin
 │   ├── form-inputs-test-dashboard/  # Dashboard extension for the plugin above

@@ -539,10 +539,11 @@ export interface AuthOptions {
     verificationTokenStrategy?: VerificationTokenStrategy;
     /**
      * @description
-     * Allows you to define row-level access control for entity queries. When set,
-     * the strategy's `applyAccessControl()` method will be invoked for every entity
-     * query that goes through Vendure's data access layer, allowing you to restrict
-     * which entities are visible to the current user.
+     * Allows you to define access control for entity queries at three levels:
+     *
+     * - `canAccess()` — gate-level permission check (once per request)
+     * - `prepareAccessControl()` — async pre-loading for row-level filtering (once per request)
+     * - `applyAccessControl()` — synchronous row-level QB filtering (every entity query)
      *
      * @default DefaultEntityAccessControlStrategy
      * @since 3.6.0

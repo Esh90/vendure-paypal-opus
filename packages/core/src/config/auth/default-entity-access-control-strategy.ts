@@ -10,16 +10,21 @@ import { EntityAccessControlStrategy } from './entity-access-control-strategy';
  * Vendure permission evaluation logic. It checks the `@Allow()` decorator
  * permissions against the current user's channel permissions.
  *
- * Custom strategies should extend this class and override `evaluateAccess()`
- * to customize gate-level permissions, and/or implement `applyAccessControl()`
+ * Custom strategies should extend this class and override `canAccess()`
+ * to customize gate-level permissions, implement `prepareAccessControl()`
+ * for async pre-loading, and/or implement `applyAccessControl()`
  * to add row-level filtering.
  *
  * @example
  * ```ts
  * class MyStrategy extends DefaultEntityAccessControlStrategy {
- *     async evaluateAccess(ctx: RequestContext, permissions: Permission[]) {
+ *     async canAccess(ctx: RequestContext, permissions: Permission[]) {
  *         // Custom gate-level logic, falling back to default
- *         return super.evaluateAccess(ctx, permissions);
+ *         return super.canAccess(ctx, permissions);
+ *     }
+ *
+ *     async prepareAccessControl(ctx: RequestContext) {
+ *         // Pre-load data for row-level filtering
  *     }
  *
  *     applyAccessControl(qb, entityType, ctx) {
@@ -39,7 +44,7 @@ export class DefaultEntityAccessControlStrategy implements EntityAccessControlSt
      * - `Permission.Public` → allow
      * - Otherwise, check `ctx.userHasPermissions()` or `ctx.authorizedAsOwnerOnly`
      */
-    async evaluateAccess(ctx: RequestContext, permissions: Permission[]): Promise<boolean> {
+    async canAccess(ctx: RequestContext, permissions: Permission[]): Promise<boolean> {
         if (permissions.length === 0) {
             return true;
         }
@@ -49,5 +54,6 @@ export class DefaultEntityAccessControlStrategy implements EntityAccessControlSt
         return ctx.userHasPermissions(permissions) || ctx.authorizedAsOwnerOnly;
     }
 
+    // No prepareAccessControl — no pre-loading needed
     // No applyAccessControl — no row-level filtering, no Proxy overhead
 }

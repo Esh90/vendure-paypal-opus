@@ -7,13 +7,18 @@ import { VendureEntity } from '../../entity/base/base.entity';
 
 /**
  * @description
- * An EntityAccessControlStrategy provides two layers of access control:
+ * An EntityAccessControlStrategy provides three layers of access control:
  *
- * 1. **Gate-level** (`evaluateAccess`): Determines whether a request should be
+ * 1. **Gate-level** (`canAccess`): Determines whether a request should be
  *    allowed at all, replacing the default Vendure permission evaluation logic.
  *    This runs once per request in the AuthGuard.
  *
- * 2. **Row-level** (`applyAccessControl`): Filters which entities a user can see
+ * 2. **Pre-loading** (`prepareAccessControl`): Optional async phase that runs
+ *    once per request after `canAccess` passes. Use this to pre-load data
+ *    (e.g. seller IDs, category assignments) for use in the synchronous
+ *    `applyAccessControl()` method.
+ *
+ * 3. **Row-level** (`applyAccessControl`): Filters which entities a user can see
  *    by modifying query builders. This runs for every entity query.
  *
  * The default implementation ({@link DefaultEntityAccessControlStrategy}) preserves
@@ -31,12 +36,12 @@ import { VendureEntity } from '../../entity/base/base.entity';
  * ```ts
  * // Override gate-level permissions per channel (#2051 use case)
  * class B2BAccessControlStrategy extends DefaultEntityAccessControlStrategy {
- *     async evaluateAccess(ctx: RequestContext, permissions: Permission[]) {
+ *     async canAccess(ctx: RequestContext, permissions: Permission[]) {
  *         if (permissions.includes(Permission.Public)
  *             && ctx.channel.customFields.requireAuthentication) {
  *             return ctx.activeUserId != null;
  *         }
- *         return super.evaluateAccess(ctx, permissions);
+ *         return super.canAccess(ctx, permissions);
  *     }
  * }
  * ```
@@ -52,16 +57,12 @@ import { VendureEntity } from '../../entity/base/base.entity';
  *         this.connection = injector.get(TransactionalConnection);
  *     }
  *
- *     async evaluateAccess(ctx: RequestContext, permissions: Permission[]) {
- *         const allowed = await super.evaluateAccess(ctx, permissions);
- *         if (!allowed) return false;
- *
+ *     async prepareAccessControl(ctx: RequestContext) {
  *         // Pre-load seller data (use rawConnection to avoid Proxy recursion)
  *         if (ctx.activeUserId && !ctx.userHasPermissions([Permission.SuperAdmin])) {
  *             const ids = await this.lookupSellerIds(ctx);
  *             this.sellerIds.set(ctx, ids);
  *         }
- *         return true;
  *     }
  *
  *     applyAccessControl(qb, entityType, ctx) {
@@ -94,12 +95,25 @@ export interface EntityAccessControlStrategy extends InjectableStrategy {
      * should be allowed. This replaces the default Vendure permission evaluation
      * logic, giving full control over gate-level access.
      *
-     * This method can also be used to pre-load data (via `WeakMap<RequestContext>`)
-     * for use in the synchronous `applyAccessControl()` method.
-     *
      * The {@link DefaultEntityAccessControlStrategy} implements the standard
      * Vendure permission logic. Custom strategies should extend it and call
-     * `super.evaluateAccess()` to preserve the default behavior.
+     * `super.canAccess()` to preserve the default behavior.
+     *
+     * @param ctx - The current RequestContext
+     * @param permissions - The permissions required by the `@Allow()` decorator
+     * @returns `true` to allow the request, `false` to deny with ForbiddenError
+     */
+    canAccess(ctx: RequestContext, permissions: Permission[]): Promise<boolean>;
+
+    /**
+     * @description
+     * Optional async phase that runs once per request in the AuthGuard, after
+     * `canAccess()` has passed. Use this to pre-load data needed by the
+     * synchronous `applyAccessControl()` method.
+     *
+     * For example, you can look up which seller IDs or category assignments
+     * the current user has, and stash the results in a `WeakMap<RequestContext>`
+     * for later use in `applyAccessControl()`.
      *
      * **Important:** Any database queries in this method should use
      * `rawConnection.getRepository()` rather than the RequestContext-aware
@@ -107,10 +121,8 @@ export interface EntityAccessControlStrategy extends InjectableStrategy {
      * control Proxy and can cause infinite recursion.
      *
      * @param ctx - The current RequestContext
-     * @param permissions - The permissions required by the `@Allow()` decorator
-     * @returns `true` to allow the request, `false` to deny with ForbiddenError
      */
-    evaluateAccess(ctx: RequestContext, permissions: Permission[]): Promise<boolean>;
+    prepareAccessControl?(ctx: RequestContext): Promise<void>;
 
     /**
      * @description
@@ -123,7 +135,7 @@ export interface EntityAccessControlStrategy extends InjectableStrategy {
      * the default case.
      *
      * If your access control logic requires async lookups, perform them in
-     * `evaluateAccess()` and read the cached results here.
+     * `prepareAccessControl()` and read the cached results here.
      *
      * @param qb - The TypeORM SelectQueryBuilder to modify
      * @param entityType - The entity class being queried

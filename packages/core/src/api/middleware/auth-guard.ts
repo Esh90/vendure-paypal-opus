@@ -81,10 +81,11 @@ export class AuthGuard implements CanActivate {
             return true;
         }
         const strategy = this.configService.authOptions.entityAccessControlStrategy;
-        const isAllowed = await strategy.evaluateAccess(requestContext, permissions ?? []);
+        const isAllowed = await strategy.canAccess(requestContext, permissions ?? []);
         if (!isAllowed) {
             throw new ForbiddenError(LogLevel.Verbose);
         }
+        await strategy.prepareAccessControl?.(requestContext);
         return true;
     }
 

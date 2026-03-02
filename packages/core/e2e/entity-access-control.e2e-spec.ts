@@ -21,20 +21,10 @@ import { TEST_SETUP_TIMEOUT_MS, testConfig } from '../../../e2e-common/test-conf
 
 import { EntityAccessControlTestPlugin } from './fixtures/test-plugins/entity-access-control-test-plugin';
 import {
-    CreateAdministratorMutation,
-    CreateAdministratorMutationVariables,
-    CreateRoleMutation,
-    CreateRoleMutationVariables,
-    GetProductListQuery,
-    GetProductListQueryVariables,
-    GetProductSimpleQuery,
-    GetProductSimpleQueryVariables,
-} from './graphql/generated-e2e-admin-types';
-import {
-    CREATE_ADMINISTRATOR,
-    CREATE_ROLE,
-    GET_PRODUCT_LIST,
-    GET_PRODUCT_SIMPLE,
+    createAdministratorDocument,
+    createRoleDocument,
+    getProductListDocument,
+    getProductSimpleDocument,
 } from './graphql/shared-definitions';
 
 const RAW_REPOSITORY_PRODUCT_IDS = gql`
@@ -116,10 +106,11 @@ const QB_PRODUCT_RAW_AND_ENTITIES = gql`
 `;
 
 /**
- * Test strategy demonstrating the full pattern:
+ * Test strategy demonstrating the full three-method pattern:
  *
  * - Extends `DefaultEntityAccessControlStrategy` to preserve standard permission logic.
- * - Overrides `evaluateAccess()` to pre-load allowed product IDs after calling super.
+ * - Overrides `canAccess()` for gate-level permission checks.
+ * - Implements `prepareAccessControl()` to pre-load allowed product IDs.
  * - Implements `applyAccessControl()` for row-level filtering.
  *
  * Uses a WeakMap<RequestContext, ID[]> so that per-request data is automatically
@@ -132,41 +123,40 @@ class TestEntityAccessControlStrategy extends DefaultEntityAccessControlStrategy
      */
     private allowedProductIds = new WeakMap<RequestContext, ID[]>();
     private connection: TransactionalConnection;
-    evaluateAccessCallCount = 0;
+    canAccessCallCount = 0;
 
     init(injector: Injector) {
         this.connection = injector.get(TransactionalConnection);
     }
 
     /**
-     * Gate-level + pre-loading phase: runs once per request in the AuthGuard.
-     *
-     * 1. Delegates to super for standard Vendure permission evaluation.
-     * 2. If allowed, performs an async DB lookup to determine which products
-     *    this user may access and stashes the result in the WeakMap.
+     * Gate-level phase: runs once per request in the AuthGuard.
+     * Delegates to super for standard Vendure permission evaluation.
+     */
+    async canAccess(ctx: RequestContext, permissions: Permission[]): Promise<boolean> {
+        this.canAccessCallCount++;
+        return super.canAccess(ctx, permissions);
+    }
+
+    /**
+     * Pre-loading phase: runs once per request in the AuthGuard, after
+     * `canAccess()` has passed. Performs an async DB lookup to determine
+     * which products this user may access and stashes the result in the WeakMap.
      *
      * IMPORTANT: Uses `rawConnection.getRepository()` (NOT the ctx-aware
      * `getRepository(ctx, ...)`) to avoid triggering the access-control
      * Proxy and causing infinite recursion.
      */
-    async evaluateAccess(ctx: RequestContext, permissions: Permission[]): Promise<boolean> {
-        this.evaluateAccessCallCount++;
-
-        // Delegate to DefaultEntityAccessControlStrategy for standard permission checks
-        const allowed = await super.evaluateAccess(ctx, permissions);
-        if (!allowed) {
-            return false;
-        }
-
+    async prepareAccessControl(ctx: RequestContext): Promise<void> {
         // SuperAdmin bypasses row-level access control — no cache entry means "no restrictions"
         const user = ctx.session?.user;
         if (!user || user.identifier === SUPER_ADMIN_USER_IDENTIFIER) {
-            return true;
+            return;
         }
 
         // Only pre-load once per request (WeakMap deduplication)
         if (this.allowedProductIds.has(ctx)) {
-            return true;
+            return;
         }
 
         // Simulate an async lookup: query the DB for allowed product IDs.
@@ -180,8 +170,6 @@ class TestEntityAccessControlStrategy extends DefaultEntityAccessControlStrategy
             ctx,
             products.map(p => p.id),
         );
-
-        return true;
     }
 
     /**
@@ -200,7 +188,7 @@ class TestEntityAccessControlStrategy extends DefaultEntityAccessControlStrategy
 
         const allowedIds = this.allowedProductIds.get(ctx);
         if (!allowedIds) {
-            // No cache entry = no restrictions (SuperAdmin, or no evaluate phase)
+            // No cache entry = no restrictions (SuperAdmin, or no prepare phase)
             return;
         }
 
@@ -235,10 +223,7 @@ describe('EntityAccessControlStrategy', () => {
     describe('SuperAdmin (unrestricted)', () => {
         it('sees all products via list query', async () => {
             await adminClient.asSuperAdmin();
-            const { products } = await adminClient.query<GetProductListQuery, GetProductListQueryVariables>(
-                GET_PRODUCT_LIST,
-                { options: { take: 100 } },
-            );
+            const { products } = await adminClient.query(getProductListDocument, { options: { take: 100 } });
 
             // SuperAdmin should see all 20 products
             expect(products.totalItems).toBe(20);
@@ -247,10 +232,7 @@ describe('EntityAccessControlStrategy', () => {
         it('can access any product by ID, including those with id > 5', async () => {
             await adminClient.asSuperAdmin();
             // T_10 has id > 5 — restricted admin can't see it, but superadmin can
-            const { product } = await adminClient.query<
-                GetProductSimpleQuery,
-                GetProductSimpleQueryVariables
-            >(GET_PRODUCT_SIMPLE, { id: 'T_10' });
+            const { product } = await adminClient.query(getProductSimpleDocument, { id: 'T_10' });
             expect(product).not.toBeNull();
             expect(product?.id).toBe('T_10');
         });
@@ -273,41 +255,32 @@ describe('EntityAccessControlStrategy', () => {
             await adminClient.asSuperAdmin();
 
             // Create a role with read permissions for catalog
-            const { createRole } = await adminClient.query<CreateRoleMutation, CreateRoleMutationVariables>(
-                CREATE_ROLE,
-                {
-                    input: {
-                        channelIds: ['T_1'],
-                        code: 'restricted-role',
-                        description: 'A restricted role for testing entity access control',
-                        permissions: [Permission.ReadCatalog, Permission.ReadProduct],
-                    },
+            const { createRole } = await adminClient.query(createRoleDocument, {
+                input: {
+                    channelIds: ['T_1'],
+                    code: 'restricted-role',
+                    description: 'A restricted role for testing entity access control',
+                    permissions: [Permission.ReadCatalog, Permission.ReadProduct],
                 },
-            );
+            });
 
             // Create a restricted admin
-            await adminClient.query<CreateAdministratorMutation, CreateAdministratorMutationVariables>(
-                CREATE_ADMINISTRATOR,
-                {
-                    input: {
-                        firstName: 'Restricted',
-                        lastName: 'Admin',
-                        emailAddress: 'restricted@admin.com',
-                        password: 'restricted',
-                        roleIds: [createRole.id],
-                    },
+            await adminClient.query(createAdministratorDocument, {
+                input: {
+                    firstName: 'Restricted',
+                    lastName: 'Admin',
+                    emailAddress: 'restricted@admin.com',
+                    password: 'restricted',
+                    roleIds: [createRole.id],
                 },
-            );
+            });
 
             // Log in as the restricted admin
             await adminClient.asUserWithCredentials('restricted@admin.com', 'restricted');
         });
 
         it('sees filtered products via list query (ListQueryBuilder path)', async () => {
-            const { products } = await adminClient.query<GetProductListQuery, GetProductListQueryVariables>(
-                GET_PRODUCT_LIST,
-                { options: { take: 100 } },
-            );
+            const { products } = await adminClient.query(getProductListDocument, { options: { take: 100 } });
 
             // Should only see products with id <= 5
             expect(products.totalItems).toBe(5);
@@ -317,30 +290,21 @@ describe('EntityAccessControlStrategy', () => {
 
         it('cannot access a product outside the filter by ID (findOneInChannel path)', async () => {
             // T_10 has id > 5 so should be filtered out
-            const { product } = await adminClient.query<
-                GetProductSimpleQuery,
-                GetProductSimpleQueryVariables
-            >(GET_PRODUCT_SIMPLE, { id: 'T_10' });
+            const { product } = await adminClient.query(getProductSimpleDocument, { id: 'T_10' });
 
             expect(product).toBeNull();
         });
 
         it('can access a product inside the filter by ID (findOneInChannel path)', async () => {
             // T_1 has id <= 5 so should be visible
-            const { product } = await adminClient.query<
-                GetProductSimpleQuery,
-                GetProductSimpleQueryVariables
-            >(GET_PRODUCT_SIMPLE, { id: 'T_1' });
+            const { product } = await adminClient.query(getProductSimpleDocument, { id: 'T_1' });
 
             expect(product).not.toBeNull();
             expect(product?.slug).toBe('laptop');
         });
 
         it('list query totalItems reflects the filtered count', async () => {
-            const { products } = await adminClient.query<GetProductListQuery, GetProductListQueryVariables>(
-                GET_PRODUCT_LIST,
-                {},
-            );
+            const { products } = await adminClient.query(getProductListDocument, {});
 
             // totalItems should reflect only the filtered products
             expect(products.totalItems).toBe(5);
@@ -464,44 +428,38 @@ describe('EntityAccessControlStrategy', () => {
         });
     });
 
-    describe('evaluateAccess denial', () => {
+    describe('canAccess denial', () => {
         it('returns ForbiddenError when user lacks required permissions', async () => {
             await adminClient.asSuperAdmin();
 
             // Create a role with NO catalog permissions
-            const { createRole } = await adminClient.query<CreateRoleMutation, CreateRoleMutationVariables>(
-                CREATE_ROLE,
-                {
-                    input: {
-                        channelIds: ['T_1'],
-                        code: 'no-catalog-role',
-                        description: 'A role with no catalog permissions',
-                        permissions: [],
-                    },
+            const { createRole } = await adminClient.query(createRoleDocument, {
+                input: {
+                    channelIds: ['T_1'],
+                    code: 'no-catalog-role',
+                    description: 'A role with no catalog permissions',
+                    permissions: [],
                 },
-            );
+            });
 
             // Create an admin with that role
-            await adminClient.query<CreateAdministratorMutation, CreateAdministratorMutationVariables>(
-                CREATE_ADMINISTRATOR,
-                {
-                    input: {
-                        firstName: 'NoCatalog',
-                        lastName: 'Admin',
-                        emailAddress: 'nocatalog@admin.com',
-                        password: 'nocatalog',
-                        roleIds: [createRole.id],
-                    },
+            await adminClient.query(createAdministratorDocument, {
+                input: {
+                    firstName: 'NoCatalog',
+                    lastName: 'Admin',
+                    emailAddress: 'nocatalog@admin.com',
+                    password: 'nocatalog',
+                    roleIds: [createRole.id],
                 },
-            );
+            });
 
             // Log in as the no-catalog admin
             await adminClient.asUserWithCredentials('nocatalog@admin.com', 'nocatalog');
 
-            // This should fail with FORBIDDEN because evaluateAccess returns false
+            // This should fail with FORBIDDEN because canAccess returns false
             // (the admin has no ReadCatalog/ReadProduct permission)
             try {
-                await adminClient.query<GetProductListQuery, GetProductListQueryVariables>(GET_PRODUCT_LIST, {
+                await adminClient.query(getProductListDocument, {
                     options: { take: 10 },
                 });
                 expect.unreachable('Should have thrown');
@@ -511,23 +469,23 @@ describe('EntityAccessControlStrategy', () => {
         });
     });
 
-    describe('evaluateAccess behavior', () => {
-        it('evaluateAccess is called once per request (AuthGuard hook)', async () => {
-            const countBefore = testStrategy.evaluateAccessCallCount;
+    describe('canAccess behavior', () => {
+        it('canAccess is called once per request (AuthGuard hook)', async () => {
+            const countBefore = testStrategy.canAccessCallCount;
             await adminClient.asSuperAdmin();
 
-            // Each GraphQL query triggers the AuthGuard, which calls evaluateAccess
-            await adminClient.query<GetProductListQuery, GetProductListQueryVariables>(GET_PRODUCT_LIST, {
+            // Each GraphQL query triggers the AuthGuard, which calls canAccess
+            await adminClient.query(getProductListDocument, {
                 options: { take: 5 },
             });
-            const countAfterFirst = testStrategy.evaluateAccessCallCount;
+            const countAfterFirst = testStrategy.canAccessCallCount;
             expect(countAfterFirst).toBeGreaterThan(countBefore);
 
             // A second request should increment the counter again
-            await adminClient.query<GetProductListQuery, GetProductListQueryVariables>(GET_PRODUCT_LIST, {
+            await adminClient.query(getProductListDocument, {
                 options: { take: 5 },
             });
-            const countAfterSecond = testStrategy.evaluateAccessCallCount;
+            const countAfterSecond = testStrategy.canAccessCallCount;
             expect(countAfterSecond).toBeGreaterThan(countAfterFirst);
         });
 
@@ -537,16 +495,14 @@ describe('EntityAccessControlStrategy', () => {
 
             // Two consecutive requests should both be filtered correctly,
             // proving that each request gets its own WeakMap entry
-            const { products: result1 } = await adminClient.query<
-                GetProductListQuery,
-                GetProductListQueryVariables
-            >(GET_PRODUCT_LIST, { options: { take: 100 } });
+            const { products: result1 } = await adminClient.query(getProductListDocument, {
+                options: { take: 100 },
+            });
             expect(result1.totalItems).toBe(5);
 
-            const { products: result2 } = await adminClient.query<
-                GetProductListQuery,
-                GetProductListQueryVariables
-            >(GET_PRODUCT_LIST, { options: { take: 100 } });
+            const { products: result2 } = await adminClient.query(getProductListDocument, {
+                options: { take: 100 },
+            });
             expect(result2.totalItems).toBe(5);
         });
     });

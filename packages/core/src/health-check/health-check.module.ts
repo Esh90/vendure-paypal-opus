@@ -17,15 +17,8 @@ import { CustomHttpHealthIndicator } from './http-health-check-strategy';
     exports: [HealthCheckRegistryService],
 })
 export class HealthCheckModule {
-    constructor(
-        private configService: ConfigService,
-        private healthCheckRegistryService: HealthCheckRegistryService,
-    ) {
+    constructor(private configService: ConfigService) {
         const healthChecks = this.configService.systemOptions.healthChecks;
-        // Register all configured health checks
-        for (const strategy of healthChecks) {
-            this.healthCheckRegistryService.registerIndicatorFunction(strategy.getHealthIndicator());
-        }
         if (healthChecks.length > 0) {
             Logger.warn(
                 'The built-in health check features are deprecated and will be removed in v4.0.0. ' +

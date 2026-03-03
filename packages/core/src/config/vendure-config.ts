@@ -545,6 +545,8 @@ export interface AuthOptions {
      * - `prepareAccessControl()` — async pre-loading for row-level filtering (once per request)
      * - `applyAccessControl()` — synchronous row-level QB filtering (every entity query)
      *
+     * **Developer preview:** this API is subject to change in future releases.
+     *
      * @default DefaultEntityAccessControlStrategy
      * @since 3.6.0
      * @experimental

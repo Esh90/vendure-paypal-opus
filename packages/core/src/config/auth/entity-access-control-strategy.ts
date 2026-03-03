@@ -94,6 +94,13 @@ import { VendureEntity } from '../../entity/base/base.entity';
  *
  * :::
  *
+ * :::caution
+ *
+ * This API is currently in **developer preview** and is subject to change in
+ * future releases. Feedback welcome.
+ *
+ * :::
+ *
  * @docsCategory auth
  * @since 3.6.0
  * @experimental

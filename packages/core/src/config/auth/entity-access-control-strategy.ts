@@ -27,10 +27,19 @@ import { VendureEntity } from '../../entity/base/base.entity';
  * they need.
  *
  * **Row-level interception points** (only active when `applyAccessControl` is implemented):
- * - `ListQueryBuilder.build()` — all paginated list queries
- * - `TransactionalConnection.findOneInChannel()` / `findByIdsInChannel()`
- * - `TransactionalConnection.getRepository()` — Proxy intercepts `find`, `findOne`,
- *   `findOneOrFail`, `findAndCount`, and `count`
+ *
+ * All interception is handled via `TransactionalConnection.getRepository()`, which returns
+ * a Proxy when a strategy with `applyAccessControl` is configured:
+ *
+ * - **Repository methods**: `find`, `findOne`, `findOneOrFail`, `findAndCount`, `count`
+ *   are converted to QueryBuilder operations with ACL applied before execution.
+ * - **QueryBuilder terminal methods**: `createQueryBuilder()` returns a Proxy-wrapped QB
+ *   that applies ACL before `getMany`, `getOne`, `getOneOrFail`, `getManyAndCount`,
+ *   `getCount`, `getExists`, `getRawMany`, `getRawOne`, `getRawAndEntities`, and `stream`.
+ *
+ * This covers all standard data access paths including `ListQueryBuilder.build()`,
+ * `findOneInChannel()`, and `findByIdsInChannel()`, which all use `getRepository(ctx, ...)`
+ * internally.
  *
  * @example
  * ```ts

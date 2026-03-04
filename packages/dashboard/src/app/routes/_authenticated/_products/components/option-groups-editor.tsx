@@ -39,21 +39,6 @@ export interface OptionGroupConfiguration {
     optionGroups: SingleOptionGroup[];
 }
 
-function validateOptionGroup(group: any): SingleOptionGroup | null {
-    if (!group || typeof group.name !== 'string' || !group.name.trim() || !Array.isArray(group.values)) {
-        return null;
-    }
-
-    const validValues = group.values
-        .filter((v: any): v is NonNullable<typeof v> => !!v)
-        .filter((v: any) => typeof v.value === 'string' && typeof v.id === 'string')
-        .map((v: any) => ({
-            value: v.value,
-            id: v.id,
-        }));
-
-    return validValues.length > 0 ? { name: group.name, values: validValues } : null;
-}
 
 interface SingleOptionGroupEditorProps {
     control: Control<any>;
@@ -132,15 +117,17 @@ export function OptionGroupsEditor({ onChange, initialGroups = [] }: Readonly<Op
     useEffect(() => {
         const subscription = form.watch(value => {
             if (value?.optionGroups) {
-                const validOptionGroups = value.optionGroups
-                    .map(validateOptionGroup)
-                    .filter((group): group is SingleOptionGroup => group !== null);
+                const allOptionGroups: SingleOptionGroup[] = value.optionGroups
+                    .filter((g): g is NonNullable<typeof g> => !!g)
+                    .map(g => ({
+                        name: g.name ?? '',
+                        values: (g.values ?? [])
+                            .filter((v): v is NonNullable<typeof v> => !!v)
+                            .filter(v => typeof v.value === 'string' && typeof v.id === 'string')
+                            .map(v => ({ value: v.value!, id: v.id! })),
+                    }));
 
-                const filteredData: OptionGroupConfiguration = {
-                    optionGroups: validOptionGroups,
-                };
-
-                onChange?.(filteredData);
+                onChange?.({ optionGroups: allOptionGroups });
             }
         });
 

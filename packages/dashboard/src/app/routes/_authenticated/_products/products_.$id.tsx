@@ -192,7 +192,6 @@ function ProductDetailPage() {
                         <CreateProductVariantsDialog
                             productId={entity.id}
                             productName={entity.name}
-                            existingOptionGroups={entity.optionGroups}
                             onSuccess={() => {
                                 refreshEntity();
                                 refreshRef.current?.();

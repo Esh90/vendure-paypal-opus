@@ -82,13 +82,11 @@ type VariantForm = z.infer<typeof variantSchema>;
 interface CreateProductVariantsProps {
     currencyCode?: string;
     onChange?: ({ data }: { data: VariantConfiguration }) => void;
-    initialGroups?: OptionGroupConfiguration['optionGroups'];
 }
 
 export function CreateProductVariants({
                                           currencyCode = 'USD',
                                           onChange,
-                                          initialGroups,
                                       }: Readonly<CreateProductVariantsProps>) {
     const { data: stockLocationsResult } = useQuery({
         queryKey: ['stockLocations'],
@@ -97,7 +95,7 @@ export function CreateProductVariants({
     const { activeChannel } = useChannel();
     const stockLocations = stockLocationsResult?.stockLocations.items ?? [];
 
-    const [optionGroups, setOptionGroups] = useState<OptionGroupConfiguration['optionGroups']>(initialGroups ?? []);
+    const [optionGroups, setOptionGroups] = useState<OptionGroupConfiguration['optionGroups']>([]);
 
     const form = useForm<{ variants: Record<string, VariantForm> }>({
         resolver: zodResolver(z.object({ variants: z.record(variantSchema) })),
@@ -168,7 +166,6 @@ export function CreateProductVariants({
         <FormProvider {...form}>
             <div className="mb-6">
                 <OptionGroupsEditor
-                    initialGroups={initialGroups}
                     onChange={data => setOptionGroups(data.optionGroups)}
                 />
             </div>

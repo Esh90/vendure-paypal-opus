@@ -39,7 +39,6 @@ import { toast } from 'sonner';
 import * as z from 'zod';
 import { AddOptionGroupDialog } from './components/add-option-group-dialog.js';
 import { AddProductVariantDialog } from './components/add-product-variant-dialog.js';
-import { CreateProductVariantsDialog } from './components/create-product-variants-dialog.js';
 import {
     createProductOptionDocument,
     deleteProductVariantDocument,
@@ -466,22 +465,12 @@ function ManageProductVariants() {
                         </Table>
                     </div>
 
-                    <div className="flex gap-2">
-                        <AddProductVariantDialog
-                            productId={id}
-                            onSuccess={() => {
-                                refetch();
-                            }}
-                        />
-                        <CreateProductVariantsDialog
-                            productId={id}
-                            productName={productData.product?.name ?? ''}
-                            existingOptionGroups={productData.product?.optionGroups ?? []}
-                            onSuccess={() => {
-                                refetch();
-                            }}
-                        />
-                    </div>
+                    <AddProductVariantDialog
+                        productId={id}
+                        onSuccess={() => {
+                            refetch();
+                        }}
+                    />
                 </PageBlock>
             </PageLayout>
             <AlertDialog open={!!forceRemoveGroupId} onOpenChange={(open) => { if (!open) setForceRemoveGroupId(null); }}>

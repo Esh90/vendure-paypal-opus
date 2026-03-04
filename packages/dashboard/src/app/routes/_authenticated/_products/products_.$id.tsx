@@ -187,7 +187,7 @@ function ProductDetailPage() {
                         </div>
                     </PageBlock>
                 )}
-                {entity && entity.variantList.totalItems === 0 && (
+                {entity && entity.variantList.totalItems === 0 && entity.optionGroups.length === 0 && (
                     <PageBlock column="main" blockId="create-product-variants-dialog">
                         <CreateProductVariantsDialog
                             productId={entity.id}

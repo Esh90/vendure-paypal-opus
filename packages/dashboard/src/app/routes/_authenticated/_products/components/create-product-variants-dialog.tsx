@@ -10,11 +10,10 @@ import {
 } from '@/vdb/components/ui/dialog.js';
 import { api } from '@/vdb/graphql/api.js';
 import { useChannel } from '@/vdb/hooks/use-channel.js';
-import { Trans, useLingui } from '@lingui/react/macro';
+import { Trans } from '@lingui/react/macro';
 import { normalizeString } from '@/vdb/lib/utils.js';
 import { useMutation } from '@tanstack/react-query';
 import { Plus } from 'lucide-react';
-import { toast } from 'sonner';
 import { useCallback, useState } from 'react';
 import {
     addOptionGroupToProductDocument,
@@ -32,7 +31,6 @@ export function CreateProductVariantsDialog({
     productName: string;
     onSuccess?: () => void;
 }) {
-    const { t } = useLingui();
     const { activeChannel } = useChannel();
     const [variantData, setVariantData] = useState<VariantConfiguration | null>(null);
     const [open, setOpen] = useState(false);
@@ -54,11 +52,8 @@ export function CreateProductVariantsDialog({
 
         try {
             // 1. Create option groups and their options
-            const validOptionGroups = variantData.optionGroups.filter(
-                g => g.name.trim() && g.values.length > 0,
-            );
             const createdOptionGroups = await Promise.all(
-                validOptionGroups.map(async optionGroup => {
+                variantData.optionGroups.map(async optionGroup => {
                     const result = await createOptionGroupMutation.mutateAsync({
                         input: {
                             code: normalizeString(optionGroup.name, '-'),
@@ -107,17 +102,11 @@ export function CreateProductVariantsDialog({
                         price: Number(variant.price),
                         stockOnHand: Number(variant.stock),
                         optionIds: variant.options.map(option => {
-                            const optionGroup = createdOptionGroups.find(
-                                g => g.name === option.name,
-                            );
+                            const optionGroup = createdOptionGroups.find(g => g.name === option.name);
                             if (!optionGroup) {
-                                throw new Error(
-                                    `Could not find option group ${option.name}`,
-                                );
+                                throw new Error(`Could not find option group ${option.name}`);
                             }
-                            const createdOption = optionGroup.options.find(
-                                o => o.name === option.value,
-                            );
+                            const createdOption = optionGroup.options.find(o => o.name === option.value);
                             if (!createdOption) {
                                 throw new Error(
                                     `Could not find option ${option.value} in group ${option.name}`,
@@ -139,7 +128,7 @@ export function CreateProductVariantsDialog({
             onSuccess?.();
         } catch (error) {
             console.error('Error creating variants:', error);
-            toast.error(t`Failed to create variants`);
+            // Handle error (show toast notification, etc.)
         }
     }
 

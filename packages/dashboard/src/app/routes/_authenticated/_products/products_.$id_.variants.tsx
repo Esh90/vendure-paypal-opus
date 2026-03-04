@@ -260,7 +260,9 @@ function ManageProductVariants() {
     };
 
     const deleteVariant = async (variant: Variant) => {
-        await deleteVariantMutation.mutateAsync({ id: variant.id });
+        if (confirm(t`Are you sure you want to delete this variant?`)) {
+            await deleteVariantMutation.mutateAsync({ id: variant.id });
+        }
     };
 
     const getOption = (variant: Variant, groupId: string) => {
@@ -446,18 +448,13 @@ function ManageProductVariants() {
                                             );
                                         })}
                                         <TableCell>
-                                            <ConfirmationDialog
-                                                title={t`Delete variant`}
-                                                description={t`Are you sure you want to delete this variant?`}
-                                                onConfirm={() => deleteVariant(variant)}
+                                            <Button
+                                                size="sm"
+                                                variant="ghost"
+                                                onClick={() => deleteVariant(variant)}
                                             >
-                                                <Button
-                                                    size="sm"
-                                                    variant="ghost"
-                                                >
-                                                    <Trash2 className="h-4 w-4 text-destructive" />
-                                                </Button>
-                                            </ConfirmationDialog>
+                                                <Trash2 className="h-4 w-4 text-destructive" />
+                                            </Button>
                                         </TableCell>
                                     </TableRow>
                                 ))}

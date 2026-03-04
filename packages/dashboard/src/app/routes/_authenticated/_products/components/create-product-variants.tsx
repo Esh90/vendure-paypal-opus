@@ -165,9 +165,7 @@ export function CreateProductVariants({
     return (
         <FormProvider {...form}>
             <div className="mb-6">
-                <OptionGroupsEditor
-                    onChange={data => setOptionGroups(data.optionGroups)}
-                />
+                <OptionGroupsEditor onChange={data => setOptionGroups(data.optionGroups)} />
             </div>
 
             {stockLocations.length === 0 ? (

@@ -187,14 +187,13 @@ function ProductDetailPage() {
                         </div>
                     </PageBlock>
                 )}
-                {entity && !entity.optionGroups.length && (
+                {entity && entity.variantList.totalItems === 0 && (
                     <PageBlock column="main" blockId="create-product-variants-dialog">
                         <CreateProductVariantsDialog
                             productId={entity.id}
                             productName={entity.name}
                             onSuccess={() => {
                                 refreshEntity();
-                                refreshRef.current?.();
                             }}
                         />
                     </PageBlock>

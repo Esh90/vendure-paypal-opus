@@ -52,8 +52,9 @@ export function CreateProductVariantsDialog({
 
         try {
             // 1. Create option groups and their options
+            const validOptionGroups = variantData.optionGroups.filter(g => g.name.trim() && g.values.length > 0);
             const createdOptionGroups = await Promise.all(
-                variantData.optionGroups.map(async optionGroup => {
+                validOptionGroups.map(async optionGroup => {
                     const result = await createOptionGroupMutation.mutateAsync({
                         input: {
                             code: normalizeString(optionGroup.name, '-'),

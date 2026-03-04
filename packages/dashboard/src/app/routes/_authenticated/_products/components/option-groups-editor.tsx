@@ -40,7 +40,7 @@ export interface OptionGroupConfiguration {
 }
 
 function validateOptionGroup(group: any): SingleOptionGroup | null {
-    if (!group || typeof group.name !== 'string' || !Array.isArray(group.values)) {
+    if (!group || typeof group.name !== 'string' || !group.name.trim() || !Array.isArray(group.values)) {
         return null;
     }
 

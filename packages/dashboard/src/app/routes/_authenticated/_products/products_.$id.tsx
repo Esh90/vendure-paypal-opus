@@ -187,7 +187,7 @@ function ProductDetailPage() {
                         </div>
                     </PageBlock>
                 )}
-                {entity && (
+                {entity && !entity.optionGroups.length && (
                     <PageBlock column="main" blockId="create-product-variants-dialog">
                         <CreateProductVariantsDialog
                             productId={entity.id}

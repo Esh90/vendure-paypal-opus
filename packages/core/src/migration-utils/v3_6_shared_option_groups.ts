@@ -46,45 +46,58 @@ export async function migrateProductOptionGroupData(queryRunner: QueryRunner): P
         return;
     }
 
-    const e = (name: string) => queryRunner.connection.driver.escape(name);
+    const esc = (name: string) => queryRunner.connection.driver.escape(name);
 
     // 1. Populate Product <-> ProductOptionGroup join table from existing FK
     await queryRunner.query(
-        `INSERT INTO ${e('product_option_groups_product_option_group')} (${e('productId')}, ${e('productOptionGroupId')})
-         SELECT ${e('productId')}, ${e('id')} FROM ${e('product_option_group')} WHERE ${e('productId')} IS NOT NULL`,
+        `INSERT INTO ${esc('product_option_groups_product_option_group')} (${esc('productId')}, ${esc('productOptionGroupId')})
+         SELECT ${esc('productId')}, ${esc('id')} FROM ${esc('product_option_group')} pog
+         WHERE pog.${esc('productId')} IS NOT NULL
+         AND NOT EXISTS (
+             SELECT 1 FROM ${esc('product_option_groups_product_option_group')} j
+             WHERE j.${esc('productId')} = pog.${esc('productId')} AND j.${esc('productOptionGroupId')} = pog.${esc('id')}
+         )`,
     );
 
     // 2. Populate ProductOptionGroup channel assignments (inherit from parent product's channels)
     await queryRunner.query(
-        `INSERT INTO ${e('product_option_group_channels_channel')} (${e('productOptionGroupId')}, ${e('channelId')})
-         SELECT DISTINCT pog.${e('id')}, pc.${e('channelId')}
-         FROM ${e('product_option_group')} pog
-         INNER JOIN ${e('product_channels_channel')} pc ON pc.${e('productId')} = pog.${e('productId')}
-         WHERE pog.${e('productId')} IS NOT NULL`,
+        `INSERT INTO ${esc('product_option_group_channels_channel')} (${esc('productOptionGroupId')}, ${esc('channelId')})
+         SELECT DISTINCT pog.${esc('id')}, pc.${esc('channelId')}
+         FROM ${esc('product_option_group')} pog
+         INNER JOIN ${esc('product_channels_channel')} pc ON pc.${esc('productId')} = pog.${esc('productId')}
+         WHERE pog.${esc('productId')} IS NOT NULL
+         AND NOT EXISTS (
+             SELECT 1 FROM ${esc('product_option_group_channels_channel')} j
+             WHERE j.${esc('productOptionGroupId')} = pog.${esc('id')} AND j.${esc('channelId')} = pc.${esc('channelId')}
+         )`,
     );
 
     // 3. Populate ProductOption channel assignments (inherit from parent group's channels)
     await queryRunner.query(
-        `INSERT INTO ${e('product_option_channels_channel')} (${e('productOptionId')}, ${e('channelId')})
-         SELECT DISTINCT po.${e('id')}, pogc.${e('channelId')}
-         FROM ${e('product_option')} po
-         INNER JOIN ${e('product_option_group_channels_channel')} pogc ON pogc.${e('productOptionGroupId')} = po.${e('groupId')}`,
+        `INSERT INTO ${esc('product_option_channels_channel')} (${esc('productOptionId')}, ${esc('channelId')})
+         SELECT DISTINCT po.${esc('id')}, pogc.${esc('channelId')}
+         FROM ${esc('product_option')} po
+         INNER JOIN ${esc('product_option_group_channels_channel')} pogc ON pogc.${esc('productOptionGroupId')} = po.${esc('groupId')}
+         WHERE NOT EXISTS (
+             SELECT 1 FROM ${esc('product_option_channels_channel')} j
+             WHERE j.${esc('productOptionId')} = po.${esc('id')} AND j.${esc('channelId')} = pogc.${esc('channelId')}
+         )`,
     );
 
     // 4. Handle orphaned option groups (NULL productId) — assign to default channel
     await queryRunner.query(
-        `INSERT INTO ${e('product_option_group_channels_channel')} (${e('productOptionGroupId')}, ${e('channelId')})
-         SELECT pog.${e('id')}, (SELECT ${e('id')} FROM ${e('channel')} WHERE ${e('code')} = '__default_channel__')
-         FROM ${e('product_option_group')} pog
-         WHERE pog.${e('id')} NOT IN (SELECT ${e('productOptionGroupId')} FROM ${e('product_option_group_channels_channel')})`,
+        `INSERT INTO ${esc('product_option_group_channels_channel')} (${esc('productOptionGroupId')}, ${esc('channelId')})
+         SELECT pog.${esc('id')}, (SELECT ${esc('id')} FROM ${esc('channel')} WHERE ${esc('code')} = '__default_channel__')
+         FROM ${esc('product_option_group')} pog
+         WHERE pog.${esc('id')} NOT IN (SELECT ${esc('productOptionGroupId')} FROM ${esc('product_option_group_channels_channel')})`,
     );
 
     // 5. Handle orphaned options — assign to default channel
     await queryRunner.query(
-        `INSERT INTO ${e('product_option_channels_channel')} (${e('productOptionId')}, ${e('channelId')})
-         SELECT po.${e('id')}, (SELECT ${e('id')} FROM ${e('channel')} WHERE ${e('code')} = '__default_channel__')
-         FROM ${e('product_option')} po
-         WHERE po.${e('id')} NOT IN (SELECT ${e('productOptionId')} FROM ${e('product_option_channels_channel')})`,
+        `INSERT INTO ${esc('product_option_channels_channel')} (${esc('productOptionId')}, ${esc('channelId')})
+         SELECT po.${esc('id')}, (SELECT ${esc('id')} FROM ${esc('channel')} WHERE ${esc('code')} = '__default_channel__')
+         FROM ${esc('product_option')} po
+         WHERE po.${esc('id')} NOT IN (SELECT ${esc('productOptionId')} FROM ${esc('product_option_channels_channel')})`,
     );
 
     console.log('Successfully migrated ProductOptionGroup data to new join tables.');

@@ -26,7 +26,7 @@ export class SettingsStoreAdminResolver {
     constructor(private readonly settingsStoreService: SettingsStoreService) {}
 
     @Query()
-    @Allow(Permission.Authenticated)
+    @Allow(Permission.ReadSystem)
     async settingsStoreFieldDefinitions(@Ctx() ctx: RequestContext) {
         const allFields = this.settingsStoreService.getAllFieldDefinitions();
 

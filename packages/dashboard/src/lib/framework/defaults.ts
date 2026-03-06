@@ -151,9 +151,7 @@ export function registerDefaults() {
                         title: /* i18n*/ 'Settings Store',
                         url: '/settings-store',
                         order: 400,
-                        // Uses Authenticated (not ReadSystem) because the query
-                        // filters fields by per-field read permissions
-                        requiresPermission: ['Authenticated'],
+                        requiresPermission: ['ReadSystem'],
                     },
                 ],
             },

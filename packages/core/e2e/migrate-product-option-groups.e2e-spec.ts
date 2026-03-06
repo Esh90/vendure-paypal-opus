@@ -8,6 +8,10 @@ import { initialData } from '../../../e2e-common/e2e-initial-data';
 import { TEST_SETUP_TIMEOUT_MS, testConfig } from '../../../e2e-common/test-config';
 import { migrateProductOptionGroupData } from '../src/migration-utils/v3_6_shared_option_groups';
 
+// TODO: Remove this test file (and the migration helper it tests) once v3.6 has been stable
+// for a while. The migration is a one-time operation from the old productId FK to the new
+// ManyToMany join table. Once all users have upgraded past v3.6, nobody will ever run this
+// migration again, and the test will only add maintenance overhead as the schema evolves.
 describe('migrateProductOptionGroupData()', () => {
     const { server } = createTestEnvironment(testConfig());
     let queryRunner: QueryRunner;

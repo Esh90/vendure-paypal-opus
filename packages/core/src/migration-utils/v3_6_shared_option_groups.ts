@@ -1,4 +1,6 @@
 /* eslint-disable no-console */
+// TODO: Remove this file once v3.6 has been stable for a while. It is a one-time
+// migration helper and will not be needed after all users have upgraded past v3.6.
 import { QueryRunner } from 'typeorm';
 
 /**

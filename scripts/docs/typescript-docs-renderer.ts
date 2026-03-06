@@ -475,7 +475,7 @@ export class TypescriptDocsRenderer {
         const typeText = type
             .trim()
             // encode HTML entities
-            .replace(/[\u00A0-\u9999&]/gim, i => '&#' + i.charCodeAt(0) + ';')
+            .replace(/[\u00A0-\u9999\&]/gim, i => '&#' + i.charCodeAt(0) + ';')
             // remove newlines
             .replace(/\n/g, ' ');
 

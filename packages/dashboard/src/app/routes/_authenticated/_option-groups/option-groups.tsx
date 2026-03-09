@@ -26,12 +26,16 @@ function OptionGroupListPage() {
             defaultVisibility={{
                 name: true,
                 code: true,
+                productCount: true,
             }}
             customizeColumns={{
                 name: {
                     cell: ({ row }) => (
                         <DetailPageButton id={row.original.id} label={row.original.name} />
                     ),
+                },
+                productCount: {
+                    header: () => <Trans>Products</Trans>,
                 },
             }}
             onSearchTermChange={searchTerm => {

@@ -8,6 +8,7 @@ export const productOptionGroupDetailDocument = graphql(`
             updatedAt
             name
             code
+            productCount
             languageCode
             translations {
                 id

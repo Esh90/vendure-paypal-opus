@@ -2,6 +2,7 @@ import { SlugInput } from '@/vdb/components/data-input/index.js';
 import { ErrorPage } from '@/vdb/components/shared/error-page.js';
 import { FormFieldWrapper } from '@/vdb/components/shared/form-field-wrapper.js';
 import { TranslatableFormFieldWrapper } from '@/vdb/components/shared/translatable-form-field.js';
+import { Alert, AlertDescription } from '@/vdb/components/ui/alert.js';
 import { Button } from '@/vdb/components/ui/button.js';
 import { Input } from '@/vdb/components/ui/input.js';
 import { NEW_ENTITY_PATH } from '@/vdb/constants.js';
@@ -17,8 +18,9 @@ import {
 import { ActionBarItem } from '@/vdb/framework/layout-engine/action-bar-item-wrapper.js';
 import { detailPageRouteLoader } from '@/vdb/framework/page/detail-page-route-loader.js';
 import { useDetailPage } from '@/vdb/framework/page/use-detail-page.js';
-import { Trans, useLingui } from '@lingui/react/macro';
+import { Plural, Trans, useLingui } from '@lingui/react/macro';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { TriangleAlert } from 'lucide-react';
 import { toast } from 'sonner';
 import { ProductOptionsTable } from '../_products/components/product-options-table.js';
 import {
@@ -117,6 +119,19 @@ function OptionGroupDetailPage() {
                 </ActionBarItem>
             </PageActionBar>
             <PageLayout>
+                {entity && entity.productCount > 1 && (
+                    <PageBlock column="main" blockId="shared-warning">
+                        <Alert>
+                            <TriangleAlert className="h-4 w-4" />
+                            <AlertDescription>
+                                <Plural
+                                    value={entity.productCount}
+                                    other="This option group is shared across # products. Changes will affect all of them."
+                                />
+                            </AlertDescription>
+                        </Alert>
+                    </PageBlock>
+                )}
                 <PageBlock column="main" blockId="main-form">
                     <DetailFormGrid>
                         <TranslatableFormFieldWrapper

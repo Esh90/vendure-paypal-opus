@@ -29,6 +29,12 @@ export class ProductOptionGroupEntityResolver {
 
     @ResolveField()
     @Allow(Permission.ReadCatalog, Permission.Public, Permission.ReadProduct)
+    productCount(@Ctx() ctx: RequestContext, @Parent() optionGroup: ProductOptionGroup): Promise<number> {
+        return this.productOptionGroupService.getProductCount(ctx, optionGroup.id);
+    }
+
+    @ResolveField()
+    @Allow(Permission.ReadCatalog, Permission.Public, Permission.ReadProduct)
     async options(
         @Ctx() ctx: RequestContext,
         @Parent() optionGroup: Translated<ProductOptionGroup>,

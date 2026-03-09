@@ -114,6 +114,21 @@ export class ProductOptionGroupService {
             .then(groups => groups.map(group => this.translator.translate(group, ctx, ['options'])));
     }
 
+    /**
+     * @description
+     * Returns the number of non-deleted Products that use the given ProductOptionGroup.
+     */
+    getProductCount(ctx: RequestContext, optionGroupId: ID): Promise<number> {
+        return this.connection
+            .getRepository(ctx, Product)
+            .createQueryBuilder('product')
+            .innerJoin('product.optionGroups', 'optionGroup', 'optionGroup.id = :optionGroupId', {
+                optionGroupId,
+            })
+            .where('product.deletedAt IS NULL')
+            .getCount();
+    }
+
     async create(
         ctx: RequestContext,
         input: Omit<CreateProductOptionGroupInput, 'options'>,

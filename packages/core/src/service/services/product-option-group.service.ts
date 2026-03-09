@@ -116,7 +116,8 @@ export class ProductOptionGroupService {
 
     /**
      * @description
-     * Returns the number of non-deleted Products that use the given ProductOptionGroup.
+     * Returns the number of non-deleted Products in the current channel
+     * that use the given ProductOptionGroup.
      */
     getProductCount(ctx: RequestContext, optionGroupId: ID): Promise<number> {
         return this.connection
@@ -124,6 +125,9 @@ export class ProductOptionGroupService {
             .createQueryBuilder('product')
             .innerJoin('product.optionGroups', 'optionGroup', 'optionGroup.id = :optionGroupId', {
                 optionGroupId,
+            })
+            .innerJoin('product.channels', 'channel', 'channel.id = :channelId', {
+                channelId: ctx.channelId,
             })
             .where('product.deletedAt IS NULL')
             .getCount();

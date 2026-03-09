@@ -336,7 +336,11 @@ function ManageProductVariants() {
                             ))
                         )}
                     </div>
-                    <AddOptionGroupDialog productId={id} onSuccess={() => refetch()} />
+                    <AddOptionGroupDialog
+                        productId={id}
+                        existingGroupIds={productData.product.optionGroups.map(g => g.id)}
+                        onSuccess={() => refetch()}
+                    />
                 </PageBlock>
 
                 <PageBlock column="main" blockId="product-variants" title={<Trans>Variants</Trans>}>

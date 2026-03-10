@@ -37,10 +37,10 @@ test.describe('product variant generation', () => {
         await page.goto(`/products/${productId}`);
         await expect(page.getByRole('heading', { name: 'E2E Variant Test Product' })).toBeVisible();
 
-        // The empty state should show a message about adding option groups
-        await expect(page.getByText('Add option groups using the Product Options panel')).toBeVisible();
+        // The empty state card should have an inline "Add option group" button
+        await expect(page.getByRole('button', { name: 'Add option group' })).toBeVisible();
 
-        // Click "Add option group" in the sidebar
+        // Click the "Add option group" button
         await page.getByRole('button', { name: 'Add option group' }).click();
 
         // The dialog should open with "Assign existing" and "Create new" tabs

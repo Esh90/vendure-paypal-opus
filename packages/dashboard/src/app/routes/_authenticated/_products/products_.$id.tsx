@@ -193,12 +193,18 @@ function ProductDetailPage() {
                         title={<Trans>Product variants</Trans>}
                     >
                         {entity.optionGroups.length === 0 ? (
-                            <p className="text-sm text-muted-foreground">
-                                <Trans>
-                                    Add option groups using the Product Options panel to get started
-                                    with variants.
-                                </Trans>
-                            </p>
+                            <div className="flex flex-col items-start gap-3">
+                                <p className="text-sm text-muted-foreground">
+                                    <Trans>
+                                        Add an option group to get started with variants.
+                                    </Trans>
+                                </p>
+                                <AddOptionGroupDialog
+                                    productId={entity.id}
+                                    existingGroupIds={entity.optionGroups.map(g => g.id)}
+                                    onSuccess={() => refreshEntity()}
+                                />
+                            </div>
                         ) : (
                             <GenerateVariantsPanel
                                 productId={entity.id}
@@ -209,20 +215,18 @@ function ProductDetailPage() {
                         )}
                     </PageBlock>
                 )}
-                {entity && (
+                {entity && entity.optionGroups.length > 0 && (
                     <PageBlock column="side" blockId="option-groups" title={<Trans>Product Options</Trans>}>
-                        {entity.optionGroups.length > 0 && (
-                            <div className="flex flex-wrap gap-1.5 mb-3">
-                                {entity.optionGroups.map(g => (
-                                    <ProductOptionGroupBadge
-                                        key={g.id}
-                                        id={g.id}
-                                        name={g.name}
-                                        productId={entity.id}
-                                    />
-                                ))}
-                            </div>
-                        )}
+                        <div className="flex flex-wrap gap-1.5 mb-3">
+                            {entity.optionGroups.map(g => (
+                                <ProductOptionGroupBadge
+                                    key={g.id}
+                                    id={g.id}
+                                    name={g.name}
+                                    productId={entity.id}
+                                />
+                            ))}
+                        </div>
                         <AddOptionGroupDialog
                             productId={entity.id}
                             existingGroupIds={entity.optionGroups.map(g => g.id)}

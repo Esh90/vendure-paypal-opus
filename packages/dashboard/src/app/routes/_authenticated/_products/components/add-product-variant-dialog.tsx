@@ -22,7 +22,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import * as z from 'zod';
-import { createProductOptionDocument } from '../products.graphql.js';
+import { createProductOptionDocument, createProductVariantsDocument } from '../products.graphql.js';
 import { ProductOptionSelect } from './product-option-select.js';
 
 const getProductOptionGroupsDocument = graphql(`
@@ -51,14 +51,6 @@ const getProductOptionGroupsDocument = graphql(`
                     groupId
                 }
             }
-        }
-    }
-`);
-
-const createProductVariantDocument = graphql(`
-    mutation CreateProductVariant($input: CreateProductVariantInput!) {
-        createProductVariants(input: [$input]) {
-            id
         }
     }
 `);
@@ -163,8 +155,8 @@ export function AddProductVariantDialog({
     }, [open, productData?.product, checkForDuplicateVariant, form]);
 
     const createProductVariantMutation = useMutation({
-        mutationFn: api.mutate(createProductVariantDocument),
-        onSuccess: (result: ResultOf<typeof createProductVariantDocument>) => {
+        mutationFn: api.mutate(createProductVariantsDocument),
+        onSuccess: () => {
             toast.success(t`Successfully created product variant`);
             setOpen(false);
             onSuccess?.();
@@ -201,19 +193,21 @@ export function AddProductVariantDialog({
             if (duplicateVariantError) return;
 
             createProductVariantMutation.mutate({
-                input: {
-                    productId,
-                    sku: values.sku,
-                    price: Number(values.price),
-                    stockOnHand: Number(values.stockOnHand),
-                    optionIds: Object.values(values.options),
-                    translations: [
-                        {
-                            languageCode: 'en',
-                            name: values.name,
-                        },
-                    ],
-                },
+                input: [
+                    {
+                        productId,
+                        sku: values.sku,
+                        price: Number(values.price),
+                        stockOnHand: Number(values.stockOnHand),
+                        optionIds: Object.values(values.options),
+                        translations: [
+                            {
+                                languageCode: activeChannel?.defaultLanguageCode ?? 'en',
+                                name: values.name,
+                            },
+                        ],
+                    },
+                ],
             });
         },
         [createProductVariantMutation, productData?.product, duplicateVariantError, productId],
@@ -274,7 +268,8 @@ export function AddProductVariantDialog({
                                                 code: name.toLowerCase().replace(/\s+/g, '-'),
                                                 translations: [
                                                     {
-                                                        languageCode: 'en',
+                                                        languageCode:
+                                                            activeChannel?.defaultLanguageCode ?? 'en',
                                                         name,
                                                     },
                                                 ],

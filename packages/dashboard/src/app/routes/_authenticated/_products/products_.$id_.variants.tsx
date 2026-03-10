@@ -28,6 +28,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Page, PageBlock, PageLayout, PageTitle } from '@/vdb/framework/layout-engine/page-layout.js';
 import { api } from '@/vdb/graphql/api.js';
 import { ResultOf } from '@/vdb/graphql/graphql.js';
+import { useChannel } from '@/vdb/hooks/use-channel.js';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Trans, useLingui } from '@lingui/react/macro';
 import { useMutation, useQuery } from '@tanstack/react-query';
@@ -71,11 +72,6 @@ export const Route = createFileRoute('/_authenticated/_products/products_/$id_/v
     errorComponent: ({ error }) => <ErrorPage message={error.message} />,
 });
 
-const optionGroupSchema = z.object({
-    name: z.string().min(1, 'Option group name is required'),
-    values: z.array(z.string()).min(1, 'At least one option value is required'),
-});
-
 const addOptionValueSchema = z.object({
     name: z.string().min(1, 'Option value name is required'),
 });
@@ -94,6 +90,7 @@ function AddOptionValueDialog({
 }>) {
     const [open, setOpen] = useState(false);
     const { t } = useLingui();
+    const { activeChannel } = useChannel();
 
     const form = useForm<AddOptionValueFormValues>({
         resolver: zodResolver(addOptionValueSchema),
@@ -124,7 +121,7 @@ function AddOptionValueDialog({
                 code: values.name.toLowerCase().replace(/\s+/g, '-'),
                 translations: [
                     {
-                        languageCode: 'en',
+                        languageCode: activeChannel?.defaultLanguageCode ?? 'en',
                         name: values.name,
                     },
                 ],

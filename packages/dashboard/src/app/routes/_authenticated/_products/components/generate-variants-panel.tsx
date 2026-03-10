@@ -1,34 +1,21 @@
-import { MoneyInput } from '@/vdb/components/data-input/index.js';
+import { MoneyInput } from '@/vdb/components/data-input/money-input.js';
 import { Alert, AlertDescription } from '@/vdb/components/ui/alert.js';
 import { Button } from '@/vdb/components/ui/button.js';
 import { Checkbox } from '@/vdb/components/ui/checkbox.js';
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/vdb/components/ui/form.js';
+import { FormControl, FormField, FormItem, FormMessage } from '@/vdb/components/ui/form.js';
 import { Input } from '@/vdb/components/ui/input.js';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/vdb/components/ui/table.js';
 import { api } from '@/vdb/graphql/api.js';
-import { graphql } from '@/vdb/graphql/graphql.js';
 import { useChannel } from '@/vdb/hooks/use-channel.js';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Trans, useLingui } from '@lingui/react/macro';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 import { Save } from 'lucide-react';
 import { useMemo } from 'react';
-import { FormProvider, useForm } from 'react-hook-form';
+import { FormProvider, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
 import { createProductVariantsDocument } from '../products.graphql.js';
-
-const getStockLocationsDocument = graphql(`
-    query GetStockLocationsForVariants($options: StockLocationListOptions) {
-        stockLocations(options: $options) {
-            items {
-                id
-                name
-            }
-            totalItems
-        }
-    }
-`);
 
 interface OptionGroup {
     id: string;
@@ -110,12 +97,6 @@ export function GenerateVariantsPanel({
 
     const variants = useMemo(() => generateVariantCombinations(optionGroups), [optionGroups]);
 
-    const { data: stockLocationsResult } = useQuery({
-        queryKey: ['stockLocations'],
-        queryFn: () => api.query(getStockLocationsDocument, { options: { take: 100 } }),
-    });
-    const stockLocations = stockLocationsResult?.stockLocations.items ?? [];
-
     const form = useForm<VariantFormValues>({
         resolver: zodResolver(formSchema),
         defaultValues: {
@@ -172,7 +153,8 @@ export function GenerateVariantsPanel({
         }
     });
 
-    const enabledCount = variants.filter(v => form.watch(`variants.${v.id}.enabled`)).length;
+    const watchedVariants = useWatch({ control: form.control, name: 'variants' });
+    const enabledCount = variants.filter(v => watchedVariants?.[v.id]?.enabled).length;
 
     if (variants.length === 0) {
         return (
@@ -187,34 +169,9 @@ export function GenerateVariantsPanel({
         );
     }
 
-    if (stockLocations.length === 0) {
-        return (
-            <Alert variant="destructive">
-                <AlertDescription>
-                    <Trans>No stock locations available on current channel</Trans>
-                </AlertDescription>
-            </Alert>
-        );
-    }
-
     return (
         <FormProvider {...form}>
             <div className="space-y-4">
-                {stockLocations.length > 1 && (
-                    <div>
-                        <FormLabel>
-                            <Trans>Add Stock to Location</Trans>
-                        </FormLabel>
-                        <select className="w-full rounded-md border border-input bg-background px-3 py-2">
-                            {stockLocations.map(location => (
-                                <option key={location.id} value={location.id}>
-                                    {location.name}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-                )}
-
                 <Table>
                     <TableHeader>
                         <TableRow>

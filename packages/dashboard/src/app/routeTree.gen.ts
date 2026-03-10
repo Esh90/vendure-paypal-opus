@@ -15,6 +15,7 @@ import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedZonesZonesRouteImport } from './routes/_authenticated/_zones/zones'
 import { Route as AuthenticatedTaxRatesTaxRatesRouteImport } from './routes/_authenticated/_tax-rates/tax-rates'
 import { Route as AuthenticatedTaxCategoriesTaxCategoriesRouteImport } from './routes/_authenticated/_tax-categories/tax-categories'
+import { Route as AuthenticatedSystemSettingsStoreRouteImport } from './routes/_authenticated/_system/settings-store'
 import { Route as AuthenticatedSystemScheduledTasksRouteImport } from './routes/_authenticated/_system/scheduled-tasks'
 import { Route as AuthenticatedSystemJobQueueRouteImport } from './routes/_authenticated/_system/job-queue'
 import { Route as AuthenticatedStockLocationsStockLocationsRouteImport } from './routes/_authenticated/_stock-locations/stock-locations'
@@ -93,6 +94,12 @@ const AuthenticatedTaxCategoriesTaxCategoriesRoute =
   AuthenticatedTaxCategoriesTaxCategoriesRouteImport.update({
     id: '/_tax-categories/tax-categories',
     path: '/tax-categories',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedSystemSettingsStoreRoute =
+  AuthenticatedSystemSettingsStoreRouteImport.update({
+    id: '/_system/settings-store',
+    path: '/settings-store',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
 const AuthenticatedSystemScheduledTasksRoute =
@@ -411,6 +418,7 @@ export interface FileRoutesByFullPath {
   '/stock-locations': typeof AuthenticatedStockLocationsStockLocationsRoute
   '/job-queue': typeof AuthenticatedSystemJobQueueRoute
   '/scheduled-tasks': typeof AuthenticatedSystemScheduledTasksRoute
+  '/settings-store': typeof AuthenticatedSystemSettingsStoreRoute
   '/tax-categories': typeof AuthenticatedTaxCategoriesTaxCategoriesRoute
   '/tax-rates': typeof AuthenticatedTaxRatesTaxRatesRoute
   '/zones': typeof AuthenticatedZonesZonesRoute
@@ -466,6 +474,7 @@ export interface FileRoutesByTo {
   '/stock-locations': typeof AuthenticatedStockLocationsStockLocationsRoute
   '/job-queue': typeof AuthenticatedSystemJobQueueRoute
   '/scheduled-tasks': typeof AuthenticatedSystemScheduledTasksRoute
+  '/settings-store': typeof AuthenticatedSystemSettingsStoreRoute
   '/tax-categories': typeof AuthenticatedTaxCategoriesTaxCategoriesRoute
   '/tax-rates': typeof AuthenticatedTaxRatesTaxRatesRoute
   '/zones': typeof AuthenticatedZonesZonesRoute
@@ -523,6 +532,7 @@ export interface FileRoutesById {
   '/_authenticated/_stock-locations/stock-locations': typeof AuthenticatedStockLocationsStockLocationsRoute
   '/_authenticated/_system/job-queue': typeof AuthenticatedSystemJobQueueRoute
   '/_authenticated/_system/scheduled-tasks': typeof AuthenticatedSystemScheduledTasksRoute
+  '/_authenticated/_system/settings-store': typeof AuthenticatedSystemSettingsStoreRoute
   '/_authenticated/_tax-categories/tax-categories': typeof AuthenticatedTaxCategoriesTaxCategoriesRoute
   '/_authenticated/_tax-rates/tax-rates': typeof AuthenticatedTaxRatesTaxRatesRoute
   '/_authenticated/_zones/zones': typeof AuthenticatedZonesZonesRoute
@@ -580,6 +590,7 @@ export interface FileRouteTypes {
     | '/stock-locations'
     | '/job-queue'
     | '/scheduled-tasks'
+    | '/settings-store'
     | '/tax-categories'
     | '/tax-rates'
     | '/zones'
@@ -635,6 +646,7 @@ export interface FileRouteTypes {
     | '/stock-locations'
     | '/job-queue'
     | '/scheduled-tasks'
+    | '/settings-store'
     | '/tax-categories'
     | '/tax-rates'
     | '/zones'
@@ -691,6 +703,7 @@ export interface FileRouteTypes {
     | '/_authenticated/_stock-locations/stock-locations'
     | '/_authenticated/_system/job-queue'
     | '/_authenticated/_system/scheduled-tasks'
+    | '/_authenticated/_system/settings-store'
     | '/_authenticated/_tax-categories/tax-categories'
     | '/_authenticated/_tax-rates/tax-rates'
     | '/_authenticated/_zones/zones'
@@ -770,6 +783,13 @@ declare module '@tanstack/react-router' {
       path: '/tax-categories'
       fullPath: '/tax-categories'
       preLoaderRoute: typeof AuthenticatedTaxCategoriesTaxCategoriesRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/_system/settings-store': {
+      id: '/_authenticated/_system/settings-store'
+      path: '/settings-store'
+      fullPath: '/settings-store'
+      preLoaderRoute: typeof AuthenticatedSystemSettingsStoreRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/_system/scheduled-tasks': {
@@ -1134,6 +1154,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedStockLocationsStockLocationsRoute: typeof AuthenticatedStockLocationsStockLocationsRoute
   AuthenticatedSystemJobQueueRoute: typeof AuthenticatedSystemJobQueueRoute
   AuthenticatedSystemScheduledTasksRoute: typeof AuthenticatedSystemScheduledTasksRoute
+  AuthenticatedSystemSettingsStoreRoute: typeof AuthenticatedSystemSettingsStoreRoute
   AuthenticatedTaxCategoriesTaxCategoriesRoute: typeof AuthenticatedTaxCategoriesTaxCategoriesRoute
   AuthenticatedTaxRatesTaxRatesRoute: typeof AuthenticatedTaxRatesTaxRatesRoute
   AuthenticatedZonesZonesRoute: typeof AuthenticatedZonesZonesRoute
@@ -1199,6 +1220,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedSystemJobQueueRoute: AuthenticatedSystemJobQueueRoute,
   AuthenticatedSystemScheduledTasksRoute:
     AuthenticatedSystemScheduledTasksRoute,
+  AuthenticatedSystemSettingsStoreRoute: AuthenticatedSystemSettingsStoreRoute,
   AuthenticatedTaxCategoriesTaxCategoriesRoute:
     AuthenticatedTaxCategoriesTaxCategoriesRoute,
   AuthenticatedTaxRatesTaxRatesRoute: AuthenticatedTaxRatesTaxRatesRoute,

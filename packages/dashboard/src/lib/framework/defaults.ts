@@ -139,6 +139,13 @@ export function registerDefaults() {
                         order: 300,
                         requiresPermission: ['ReadSystem'],
                     },
+                    {
+                        id: 'settings-store',
+                        title: /* i18n*/ 'Settings Store',
+                        url: '/settings-store',
+                        order: 400,
+                        requiresPermission: ['ReadSystem'],
+                    },
                 ],
             },
             {

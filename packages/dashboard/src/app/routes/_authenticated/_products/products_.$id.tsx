@@ -27,7 +27,7 @@ import { PlusIcon } from 'lucide-react';
 import { useRef } from 'react';
 import { toast } from 'sonner';
 import { AddOptionGroupDialog } from './components/add-option-group-dialog.js';
-import { CreateProductVariantsDialog } from './components/create-product-variants-dialog.js';
+import { GenerateVariantsPanel } from './components/generate-variants-panel.js';
 import { ProductOptionGroupBadge } from './components/product-option-group-badge.js';
 import { ProductVariantsTable } from './components/product-variants-table.js';
 import {
@@ -187,14 +187,26 @@ function ProductDetailPage() {
                     </PageBlock>
                 )}
                 {entity && entity.variantList.totalItems === 0 && (
-                    <PageBlock column="main" blockId="create-product-variants-dialog">
-                        <CreateProductVariantsDialog
-                            productId={entity.id}
-                            productName={entity.name}
-                            onSuccess={() => {
-                                refreshEntity();
-                            }}
-                        />
+                    <PageBlock
+                        column="main"
+                        blockId="generate-variants"
+                        title={<Trans>Product variants</Trans>}
+                    >
+                        {entity.optionGroups.length === 0 ? (
+                            <p className="text-sm text-muted-foreground">
+                                <Trans>
+                                    Add option groups using the Product Options panel to get started
+                                    with variants.
+                                </Trans>
+                            </p>
+                        ) : (
+                            <GenerateVariantsPanel
+                                productId={entity.id}
+                                productName={entity.name}
+                                optionGroups={entity.optionGroups}
+                                onSuccess={() => refreshEntity()}
+                            />
+                        )}
                     </PageBlock>
                 )}
                 {entity && (

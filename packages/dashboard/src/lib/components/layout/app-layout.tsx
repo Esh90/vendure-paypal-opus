@@ -46,14 +46,14 @@ function mergeToolbarItems(
         const matchingExtensions = extensionItems.filter(ext => ext.position?.itemId === builtinItem.id);
 
         // Sort by order priority: before=1, replace=2, after=3
-        const sortedExtensions = matchingExtensions.sort((a, b) => {
-            const orderPriority: Record<ToolbarItemPosition['order'], number> = {
-                before: 1,
-                replace: 2,
-                after: 3,
-            };
-            return orderPriority[a.position!.order] - orderPriority[b.position!.order];
-        });
+        const orderPriority: Record<ToolbarItemPosition['order'], number> = {
+            before: 1,
+            replace: 2,
+            after: 3,
+        };
+        const sortedExtensions = matchingExtensions.toSorted(
+            (a, b) => orderPriority[a.position!.order] - orderPriority[b.position!.order],
+        );
 
         const hasReplacement = sortedExtensions.some(ext => ext.position?.order === 'replace');
 

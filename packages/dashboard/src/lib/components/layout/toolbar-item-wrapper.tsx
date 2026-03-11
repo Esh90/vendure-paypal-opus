@@ -53,6 +53,7 @@ export function DevModeToolbarItemWrapper({
 
     return (
         <div
+            role="presentation"
             className={cn(
                 'ring-1 ring-transparent rounded transition-all delay-50 relative',
                 isHovered || isPopoverOpen ? 'ring-dev-mode ring-offset-1 ring-offset-background' : '',

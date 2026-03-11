@@ -66,7 +66,12 @@ export interface DashboardExtension {
      * })
      * ```
      *
-     * @since 3.3.0
+     * Note: modifier functions should return a **new** config object rather than
+     * mutating the input, to ensure predictable behavior when multiple modifiers
+     * are composed.
+     *
+     * @since 3.3.0 (array form)
+     * @since 3.6.0 (function form)
      */
     navSections?: DashboardNavSectionDefinition[] | ((config: NavMenuConfig) => NavMenuConfig);
     /**

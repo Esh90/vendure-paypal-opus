@@ -24,6 +24,8 @@ export function onExtensionSourceChange(callback: () => void) {
 
 export function executeDashboardExtensionCallbacks() {
     // Phase 1: Register all extensions (array-form navSections, routes, etc.)
+    // Note: Phase 1 callbacks may push function-form modifiers into 'navMenuModifiers'
+    // as a side effect, which Phase 2 then consumes.
     for (const callback of globalRegistry.get('registerDashboardExtensionCallbacks') ?? []) {
         callback();
     }
@@ -34,13 +36,14 @@ export function executeDashboardExtensionCallbacks() {
         let config = getNavMenuConfig();
         for (const modifier of modifiers) {
             const result = modifier(config);
-            if (result && typeof result === 'object' && 'sections' in result) {
+            if (result && typeof result === 'object' && Array.isArray(result.sections)) {
                 config = result;
             } else {
                 // eslint-disable-next-line no-console
                 console.warn(
-                    'A navSections modifier function returned an invalid result. ' +
-                        'Expected an object with a "sections" property. The modifier will be skipped.',
+                    `A navSections modifier function returned an invalid result. ` +
+                        `Expected an object with a "sections" array. The modifier will be skipped. ` +
+                        `Got: ${JSON.stringify(result)}`,
                 );
             }
         }

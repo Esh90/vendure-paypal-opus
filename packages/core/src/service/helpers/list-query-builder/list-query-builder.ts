@@ -475,6 +475,8 @@ export class ListQueryBuilder implements OnApplicationBootstrap {
 
         // Helper to escape identifiers for the current database driver (handles PostgreSQL quoting)
         const escapeId = (name: string) => mainQb.connection.driver.escape(name);
+        const escapeTablePath = (path: string) =>
+            path.split('.').map(segment => mainQb.connection.driver.escape(segment)).join('.');
 
         let existsQuery: string;
 
@@ -507,8 +509,8 @@ export class ListQueryBuilder implements OnApplicationBootstrap {
             //         INNER JOIN related_table rt ON jt.inverseColumn = rt.id
             //         WHERE jt.ownerColumn = main_entity.id AND rt.columnName = :paramValue)
             existsQuery = `EXISTS (
-                SELECT 1 FROM ${escapeId(junctionTableName)} ${escapeId(junctionAlias)}
-                INNER JOIN ${escapeId(inverseTableName)} ${escapeId(relatedAlias)}
+                SELECT 1 FROM ${escapeTablePath(junctionTableName)} ${escapeId(junctionAlias)}
+                INNER JOIN ${escapeTablePath(inverseTableName)} ${escapeId(relatedAlias)}
                     ON ${escapeId(junctionAlias)}.${escapeId(inverseColumn.databaseName)} = ${escapeId(relatedAlias)}.${escapeId('id')}
                     WHERE ${escapeId(junctionAlias)}.${escapeId(ownerColumn.databaseName)} = ${escapeId(mainQb.alias)}.${escapeId('id')} AND ${whereCondition}
             )`;
@@ -544,7 +546,7 @@ export class ListQueryBuilder implements OnApplicationBootstrap {
             // EXISTS (SELECT 1 FROM related_table rt
             //         WHERE rt.foreignKey = main_entity.id AND rt.columnName = :paramValue)
             existsQuery = `EXISTS (
-                SELECT 1 FROM ${escapeId(inverseTableName)} ${escapeId(relatedAlias)}
+                SELECT 1 FROM ${escapeTablePath(inverseTableName)} ${escapeId(relatedAlias)}
                 WHERE ${escapeId(relatedAlias)}.${escapeId(foreignKeyColumn)} = ${escapeId(mainQb.alias)}.${escapeId('id')} AND ${whereCondition}
             )`;
         } else {

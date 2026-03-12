@@ -99,33 +99,31 @@ function CollectionListPage() {
         queries:
             expanded === true
                 ? []
-                : Object.entries(expanded)
-                      .filter(([collectionId]) => !accumulatedChildren[collectionId])
-                      .map(([collectionId]) => {
-                          return {
-                              queryKey: ['childCollections', collectionId, 'page', 0],
-                              queryFn: async () => {
-                                  const result = await api.query(collectionListDocument, {
-                                      options: {
-                                          filter: {
-                                              parentId: { eq: collectionId },
-                                          },
-                                          take: CHILDREN_PAGE_SIZE,
-                                          skip: 0,
+                : Object.entries(expanded).map(([collectionId]) => {
+                      return {
+                          queryKey: ['childCollections', collectionId, 'page', 0],
+                          queryFn: async () => {
+                              const result = await api.query(collectionListDocument, {
+                                  options: {
+                                      filter: {
+                                          parentId: { eq: collectionId },
                                       },
-                                  });
-                                  setAccumulatedChildren(prev => ({
-                                      ...prev,
-                                      [collectionId]: {
-                                          items: result.collections.items,
-                                          totalItems: result.collections.totalItems,
-                                      },
-                                  }));
-                                  return result;
-                              },
-                              staleTime: 1000 * 60 * 5,
-                          } satisfies FetchQueryOptions;
-                      }),
+                                      take: CHILDREN_PAGE_SIZE,
+                                      skip: 0,
+                                  },
+                              });
+                              setAccumulatedChildren(prev => ({
+                                  ...prev,
+                                  [collectionId]: {
+                                      items: result.collections.items,
+                                      totalItems: result.collections.totalItems,
+                                  },
+                              }));
+                              return result;
+                          },
+                          staleTime: 1000 * 60 * 5,
+                      } satisfies FetchQueryOptions;
+                  }),
     });
 
     useQueries({

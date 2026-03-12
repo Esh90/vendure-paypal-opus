@@ -452,7 +452,7 @@ export class ListQueryBuilder implements OnApplicationBootstrap {
 
         // Get the related entity's table and column info
         const inverseEntityMeta = relation.inverseEntityMetadata;
-        const inverseTableName = inverseEntityMeta.tableName;
+        const inverseTableName = inverseEntityMeta.tablePath;
 
         // Generate unique alias using counter
         existsSubqueryCounter++;
@@ -485,7 +485,7 @@ export class ListQueryBuilder implements OnApplicationBootstrap {
                 return null;
             }
 
-            const junctionTableName = junctionMeta.tableName;
+            const junctionTableName = junctionMeta.tablePath;
             const ownerColumn = junctionMeta.ownerColumns[0];
             const inverseColumn = junctionMeta.inverseColumns[0];
 

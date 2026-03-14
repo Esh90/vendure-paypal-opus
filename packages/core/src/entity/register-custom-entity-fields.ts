@@ -46,7 +46,6 @@ function registerCustomFieldsForEntity(
                     const { cascade, onDelete, onUpdate, eager } = customField;
                     if (customField.list) {
                         ManyToMany(type => customField.entity, customField.inverseSide, {
-                            nullable,
                             cascade,
                             onDelete,
                             onUpdate,

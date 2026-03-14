@@ -1138,9 +1138,9 @@ The [onDelete](https://typeorm.io/docs/relations/relations/) behavior for the re
 
 :::note
 
-Setting `onDelete` to `CASCADE` will cause related entities to be deleted when the owning entity is deleted.
-This can have unintended consequences especially if the related entity is a core Vendure entity.
-For example, if you have a relation to `ProductVariant` and you set `onDelete: 'CASCADE'`, then deleting the owning entity will cause the related `ProductVariant` to be deleted.
+Setting `onDelete` to `CASCADE` means that if the referenced entity is deleted, rows owning this relation may also be deleted by the database.
+This can have unintended consequences, especially when referencing core Vendure entities.
+For example, if you have a relation to `ProductVariant` and set `onDelete: 'CASCADE'`, deleting that `ProductVariant` can cascade to rows that reference it.
 Use with caution.
 
 ```ts title="src/vendure-config.ts"

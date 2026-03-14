@@ -41,7 +41,7 @@ function registerCustomFieldsForEntity(
     const dbEngine = config.dbConnectionOptions.type;
     if (customFields) {
         for (const customField of customFields) {
-            const { name, list, defaultValue, nullable } = customField;
+            const { name, list, nullable } = customField;
             const instance = new ctor();
             const registerColumn = () => {
                 if (customField.type === 'relation') {

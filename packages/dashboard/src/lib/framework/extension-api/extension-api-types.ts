@@ -91,7 +91,20 @@ export interface DashboardExtension {
     historyEntries?: DashboardHistoryEntryComponent[];
 
     /**
-     * TODO test
+     * @description
+     * Allows you to provide custom labels for form fields on DetailPages.
+     * The key is the field name of the form field, and the value is the label to be displayed for that form field.
+     *
+     * @example
+     * ```ts
+     * customFormLabels: {
+     *   'orderId': 'Order ID',
+     *   'camelCaseTitle': 'Custom Camel Case Title',
+     *   'description': <Trans>Custom Translatable Description</Trans>,
+     * }
+     * ```
+     *
+     * @since 3.6.0
      */
     customFormLabels?: Record<string, string | React.ReactNode>;
 }

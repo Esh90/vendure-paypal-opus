@@ -7,6 +7,7 @@ const noop = () => {};
 
 import { viteConfigPlugin } from '../vite-plugin-config.js';
 import { dashboardMetadataPlugin } from '../vite-plugin-dashboard-metadata.js';
+import { hmrPlugin } from '../vite-plugin-hmr.js';
 import { dashboardTailwindSourcePlugin } from '../vite-plugin-tailwind-source.js';
 import { themeVariablesPlugin } from '../vite-plugin-theme.js';
 import { transformIndexHtmlPlugin } from '../vite-plugin-transform-index.js';
@@ -366,6 +367,54 @@ describe('dashboardMetadataPlugin', () => {
         const fakeContext = { debug: noop, info: noop };
         // @ts-expect-error
         const result = await plugin.load.call(fakeContext, 'some-other-id');
+        expect(result).toBeUndefined();
+    });
+});
+
+// ─── hmrPlugin ──────────────────────────────────────────────────────────────
+
+describe('hmrPlugin', () => {
+    function setupPlugin(viteRoot: string) {
+        const plugin = hmrPlugin();
+        // @ts-expect-error
+        plugin.configResolved({ root: viteRoot });
+        return plugin;
+    }
+
+    it('triggers full-reload for files outside vite root', () => {
+        const plugin = setupPlugin('/app/src');
+        const sendSpy = { calls: [] as any[] };
+        const ctx = {
+            server: {
+                hot: { send: (payload: any) => sendSpy.calls.push(payload) },
+                moduleGraph: { invalidateModule: noop },
+            },
+            modules: [{ file: '/outside/extensions/plugin.ts' }],
+            timestamp: Date.now(),
+            file: '/outside/extensions/plugin.ts',
+        };
+        // @ts-expect-error
+        const result = plugin.handleHotUpdate(ctx);
+        expect(sendSpy.calls).toHaveLength(1);
+        expect(sendSpy.calls[0]).toEqual({ type: 'full-reload', path: '*' });
+        expect(result).toEqual([]);
+    });
+
+    it('returns undefined for files inside vite root (normal HMR)', () => {
+        const plugin = setupPlugin('/app/src');
+        const sendSpy = { calls: [] as any[] };
+        const ctx = {
+            server: {
+                hot: { send: (payload: any) => sendSpy.calls.push(payload) },
+                moduleGraph: { invalidateModule: noop },
+            },
+            modules: [{ file: '/app/src/components/Button.tsx' }],
+            timestamp: Date.now(),
+            file: '/app/src/components/Button.tsx',
+        };
+        // @ts-expect-error
+        const result = plugin.handleHotUpdate(ctx);
+        expect(sendSpy.calls).toHaveLength(0);
         expect(result).toBeUndefined();
     });
 });

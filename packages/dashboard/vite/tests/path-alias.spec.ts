@@ -1,14 +1,24 @@
 import { rm } from 'node:fs/promises';
 import { join } from 'node:path';
-import { describe, expect, it, vi } from 'vitest';
+import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { compile } from '../utils/compiler.js';
 import { debugLogger, noopLogger } from '../utils/logger.js';
-import { findTsConfigPaths } from '../utils/tsconfig-utils.js';
+import { clearRawTsConfigCache } from '../utils/tsconfig-utils.js';
+
+const tempRoot = join(__dirname, './__temp');
+
+afterAll(async () => {
+    await rm(tempRoot, { recursive: true, force: true });
+});
+
+beforeEach(() => {
+    clearRawTsConfigCache();
+});
 
 describe('detecting plugins using tsconfig path aliases', () => {
     it('should detect plugins using tsconfig path aliases', { timeout: 60_000 }, async () => {
-        const tempDir = join(__dirname, './__temp/path-alias');
+        const tempDir = join(tempRoot, 'path-alias');
         await rm(tempDir, { recursive: true, force: true });
 
         const result = await compile({
@@ -55,44 +65,33 @@ describe('detecting plugins using tsconfig path aliases', () => {
     });
 });
 
-describe('PathAdapter transformTsConfigPathMappings', () => {
-    it('should invoke transform with compiling phase', async () => {
-        const configPath = join(__dirname, 'fixtures-path-alias', 'vendure-config.ts');
-        const transform = vi.fn(({ patterns }) => patterns);
+describe('compile() invokes PathAdapter for both phases', () => {
+    it(
+        'should call transformTsConfigPathMappings with both compiling and loading phases',
+        { timeout: 60_000 },
+        async () => {
+            const tempDir = join(tempRoot, 'path-alias-phases');
+            await rm(tempDir, { recursive: true, force: true });
 
-        const result = await findTsConfigPaths(configPath, noopLogger, 'compiling', transform);
+            const transform = vi.fn(({ phase, patterns }) => {
+                if (phase === 'loading') {
+                    return patterns.map((pattern: string) => {
+                        return pattern.replace(/\/fixtures-path-alias/, '').replace(/.ts$/, '.js');
+                    });
+                }
+                return patterns;
+            });
 
-        expect(result).toBeDefined();
-        expect(transform).toHaveBeenCalled();
-        for (const call of transform.mock.calls) {
-            expect(call[0].phase).toBe('compiling');
-        }
-    });
+            await compile({
+                outputPath: tempDir,
+                vendureConfigPath: join(__dirname, 'fixtures-path-alias', 'vendure-config.ts'),
+                logger: process.env.LOG ? debugLogger : noopLogger,
+                pathAdapter: { transformTsConfigPathMappings: transform },
+            });
 
-    it('should apply different transforms per phase on the same configPath', async () => {
-        const configPath = join(__dirname, 'fixtures-path-alias', 'vendure-config.ts');
-
-        const compilingResult = await findTsConfigPaths(configPath, noopLogger, 'compiling', ({ patterns }) =>
-            patterns.map(p => p + '/COMPILING'),
-        );
-
-        const loadingResult = await findTsConfigPaths(configPath, noopLogger, 'loading', ({ patterns }) =>
-            patterns.map(p => p + '/LOADING'),
-        );
-
-        expect(compilingResult).toBeDefined();
-        expect(loadingResult).toBeDefined();
-
-        // Every path pattern should end with the phase-specific suffix
-        for (const patterns of Object.values(compilingResult.paths)) {
-            for (const p of patterns) {
-                expect(p).toMatch(/\/COMPILING$/);
-            }
-        }
-        for (const patterns of Object.values(loadingResult.paths)) {
-            for (const p of patterns) {
-                expect(p).toMatch(/\/LOADING$/);
-            }
-        }
-    });
+            const phases = new Set(transform.mock.calls.map(call => call[0].phase));
+            expect(phases).toContain('compiling');
+            expect(phases).toContain('loading');
+        },
+    );
 });

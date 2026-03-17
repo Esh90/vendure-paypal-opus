@@ -18,6 +18,11 @@ interface RawTsConfigResult {
 
 const rawTsConfigCache = new Map<string, RawTsConfigResult | undefined>();
 
+/** Clears the internal tsconfig cache. Intended for test isolation. */
+export function clearRawTsConfigCache() {
+    rawTsConfigCache.clear();
+}
+
 /**
  * Finds the raw tsconfig data (directory traversal + file reading) and caches
  * the result so repeated calls with the same configPath skip the filesystem work.

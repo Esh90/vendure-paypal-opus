@@ -183,9 +183,15 @@ test.describe('Orders', () => {
         await page.goto(`/orders/${orderId}/modify`);
         await expect(page.getByRole('heading', { name: 'Modify order' })).toBeVisible({ timeout: 10_000 });
 
-        // Checkbox should be visible but disabled when no modifications made
-        const recalculateCheckbox = page.getByRole('checkbox', { name: /Recalculate shipping/i });
-        await expect(recalculateCheckbox).toBeVisible();
+        // Checkbox should be visible but disabled when no modifications made.
+        // Base UI Checkbox separates the visual span[role="checkbox"] from the hidden
+        // input[id], so getByRole('checkbox', { name }) can't resolve the label association.
+        // Use the label text to find the containing element, then locate the checkbox within.
+        const recalculateCheckbox = page
+            .locator('label[for="recalculate-shipping"]')
+            .locator('..')
+            .getByRole('checkbox');
+        await expect(recalculateCheckbox).toBeVisible({ timeout: 10_000 });
         await expect(recalculateCheckbox).toBeChecked();
         await expect(recalculateCheckbox).toBeDisabled();
 

@@ -52,11 +52,9 @@ function StockLocationListPage() {
         >
             <PageActionBarRight>
                 <PermissionGuard requires={['CreateStockLocation']}>
-                    <Button asChild>
-                        <Link to="./new">
-                            <PlusIcon className="mr-2 h-4 w-4" />
-                            <Trans>New Stock Location</Trans>
-                        </Link>
+                    <Button render={<Link to="./new" />}>
+                        <PlusIcon className="mr-2 h-4 w-4" />
+                        <Trans>New Stock Location</Trans>
                     </Button>
                 </PermissionGuard>
             </PageActionBarRight>

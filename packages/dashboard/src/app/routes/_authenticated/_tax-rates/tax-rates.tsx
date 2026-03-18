@@ -106,11 +106,9 @@ function TaxRateListPage() {
         >
             <PageActionBarRight>
                 <PermissionGuard requires={['CreateTaxRate']}>
-                    <Button asChild>
-                        <Link to="./new">
-                            <PlusIcon />
-                            <Trans>New Tax Rate</Trans>
-                        </Link>
+                    <Button render={<Link to="./new" />}>
+                        <PlusIcon />
+                        <Trans>New Tax Rate</Trans>
                     </Button>
                 </PermissionGuard>
             </PageActionBarRight>

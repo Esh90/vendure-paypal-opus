@@ -2,6 +2,7 @@ import { Button } from '@/vdb/components/ui/button.js';
 import {
     Dialog,
     DialogContent,
+    DialogDescription,
     DialogFooter,
     DialogHeader,
     DialogTitle,
@@ -81,7 +82,6 @@ export function AddOptionGroupDialog({
 
             toast.success(t`Successfully created option group`);
             setOpen(false);
-            form.reset();
             onSuccess?.();
         } catch (error) {
             toast.error(t`Failed to create option group`, {
@@ -91,21 +91,19 @@ export function AddOptionGroupDialog({
     };
 
     return (
-        <Dialog open={open} onOpenChange={(isOpen) => {
-            setOpen(isOpen);
-            if (!isOpen) form.reset();
-        }}>
-            <DialogTrigger asChild>
-                <Button variant="outline">
-                    <Plus className="mr-2 h-4 w-4" />
-                    <Trans>Add option group</Trans>
-                </Button>
+        <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger render={<Button variant="outline" />}>
+                <Plus className="mr-2 h-4 w-4" />
+                <Trans>Add option group</Trans>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl" aria-description={'Add option group'}>
+            <DialogContent className="max-w-2xl">
                 <DialogHeader>
                     <DialogTitle>
                         <Trans>Add option group to product</Trans>
                     </DialogTitle>
+                    <DialogDescription className="sr-only">
+                        <Trans>Create a new option group with values and add it to this product</Trans>
+                    </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4">
                     <Form {...form}>

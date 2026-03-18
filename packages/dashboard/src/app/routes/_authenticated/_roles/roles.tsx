@@ -86,11 +86,9 @@ function RoleListPage() {
         >
             <PageActionBarRight>
                 <PermissionGuard requires={['CreateAdministrator']}>
-                    <Button asChild>
-                        <Link to="./new">
-                            <PlusIcon className="mr-2 h-4 w-4" />
-                            <Trans>New Role</Trans>
-                        </Link>
+                    <Button render={<Link to="./new" />}>
+                        <PlusIcon className="mr-2 h-4 w-4" />
+                        <Trans>New Role</Trans>
                     </Button>
                 </PermissionGuard>
             </PageActionBarRight>

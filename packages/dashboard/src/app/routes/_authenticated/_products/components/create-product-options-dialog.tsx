@@ -3,6 +3,7 @@ import { Button } from '@/vdb/components/ui/button.js';
 import {
     Dialog,
     DialogContent,
+    DialogDescription,
     DialogFooter,
     DialogHeader,
     DialogTitle,
@@ -243,17 +244,18 @@ export function CreateProductOptionsDialog({
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-                <Button variant="outline">
-                    <Plus className="mr-2 h-4 w-4" />
-                    <Trans>Create options</Trans>
-                </Button>
+            <DialogTrigger render={<Button variant="outline" />}>
+                <Plus className="mr-2 h-4 w-4" />
+                <Trans>Create options</Trans>
             </DialogTrigger>
             <DialogContent className="max-w-2xl">
                 <DialogHeader>
                     <DialogTitle>
                         <Trans>Create product options</Trans>
                     </DialogTitle>
+                    <DialogDescription className="sr-only">
+                        <Trans>Define option groups and their values for product variants</Trans>
+                    </DialogDescription>
                 </DialogHeader>
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">

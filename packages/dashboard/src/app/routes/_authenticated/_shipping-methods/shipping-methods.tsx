@@ -63,11 +63,9 @@ function ShippingMethodListPage() {
             <PageActionBarRight>
                 <TestShippingMethodsSheet />
                 <PermissionGuard requires={['CreateShippingMethod']}>
-                    <Button asChild>
-                        <Link to="./new">
-                            <PlusIcon className="mr-2 h-4 w-4" />
-                            <Trans>New Shipping Method</Trans>
-                        </Link>
+                    <Button render={<Link to="./new" />}>
+                        <PlusIcon className="mr-2 h-4 w-4" />
+                        <Trans>New Shipping Method</Trans>
                     </Button>
                 </PermissionGuard>
             </PageActionBarRight>

@@ -81,11 +81,9 @@ function PromotionListPage() {
         >
             <PageActionBarRight>
                 <PermissionGuard requires={['CreatePromotion']}>
-                    <Button asChild>
-                        <Link to="./new">
-                            <PlusIcon className="mr-2 h-4 w-4" />
-                            <Trans>New Promotion</Trans>
-                        </Link>
+                    <Button render={<Link to="./new" />}>
+                        <PlusIcon className="mr-2 h-4 w-4" />
+                        <Trans>New Promotion</Trans>
                     </Button>
                 </PermissionGuard>
             </PageActionBarRight>

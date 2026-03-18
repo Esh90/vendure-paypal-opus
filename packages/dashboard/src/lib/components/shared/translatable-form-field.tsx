@@ -114,7 +114,7 @@ export const TranslatableFormFieldWrapper = <
 >({
     label,
     description,
-    renderFormControl,
+    renderFormControl = true,
     ...controllerProps
 }: TranslatableFormFieldWrapperProps<TFieldValues>) => {
     const { name, render, ...rest } = controllerProps;

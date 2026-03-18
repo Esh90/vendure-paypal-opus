@@ -94,11 +94,9 @@ function CustomerListPage() {
         >
             <PageActionBarRight>
                 <PermissionGuard requires={['CreateCustomer']}>
-                    <Button asChild>
-                        <Link to="./new">
-                            <PlusIcon />
-                            <Trans>New Customer</Trans>
-                        </Link>
+                    <Button render={<Link to="./new" />}>
+                        <PlusIcon />
+                        <Trans>New Customer</Trans>
                     </Button>
                 </PermissionGuard>
             </PageActionBarRight>

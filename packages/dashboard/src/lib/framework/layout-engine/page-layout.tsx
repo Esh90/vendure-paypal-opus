@@ -17,6 +17,7 @@ import { Button } from '@/vdb/components/ui/button.js';
 import {
     DropdownMenu,
     DropdownMenuContent,
+    DropdownMenuGroup,
     DropdownMenuLabel,
     DropdownMenuSeparator,
     DropdownMenuTrigger,
@@ -241,7 +242,7 @@ export function PageLayout({ children, className }: Readonly<PageLayoutProps>) {
             );
 
             // sort the blocks to make sure we have the correct order
-            const arrangedExtensionBlocks = [...matchingExtensionBlocks].sort((a, b) => {
+            const arrangedExtensionBlocks = matchingExtensionBlocks.sort((a, b) => {
                 const orderPriority = { before: 1, replace: 2, after: 3 };
                 return orderPriority[a.location.position.order] - orderPriority[b.location.position.order];
             });
@@ -390,21 +391,21 @@ function EntityInfoDropdown({ entity }: Readonly<{ entity: any }>) {
         return new Date(dateString).toLocaleString();
     };
 
-    if (!entity?.id) {
+    if (!entity || !entity.id) {
         return null;
     }
 
     return (
         <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="text-muted-foreground">
+            <DropdownMenuTrigger render={<Button variant="ghost" size="icon" className="text-muted-foreground" />}>
                     <InfoIcon className="w-4 h-4" />
-                </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-64">
-                <DropdownMenuLabel>
-                    <Trans>Entity Information</Trans>
-                </DropdownMenuLabel>
+                <DropdownMenuGroup>
+                    <DropdownMenuLabel>
+                        <Trans>Entity Information</Trans>
+                    </DropdownMenuLabel>
+                </DropdownMenuGroup>
                 <DropdownMenuSeparator />
                 <div className="px-3 py-2">
                     <div className="flex items-center justify-between">
@@ -513,10 +514,8 @@ function PageActionBarDropdown({
 }: Readonly<{ items: DashboardActionBarItem[]; page: PageContextValue }>) {
     return (
         <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon">
+            <DropdownMenuTrigger render={<Button variant="ghost" size="icon" />}>
                     <EllipsisVerticalIcon className="w-4 h-4" />
-                </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
                 {items.map((item, index) => (

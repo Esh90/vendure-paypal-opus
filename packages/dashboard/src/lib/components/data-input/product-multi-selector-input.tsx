@@ -5,6 +5,7 @@ import { Checkbox } from '@/vdb/components/ui/checkbox.js';
 import {
     Dialog,
     DialogContent,
+    DialogDescription,
     DialogFooter,
     DialogHeader,
     DialogTitle,
@@ -277,6 +278,9 @@ function ProductMultiSelectorDialog({
                     <DialogTitle>
                         <Trans>{mode === 'product' ? 'Select Products' : 'Select Variants'}</Trans>
                     </DialogTitle>
+                    <DialogDescription className="sr-only">
+                        <Trans>{mode === 'product' ? 'Search and select products from the catalog' : 'Search and select product variants from the catalog'}</Trans>
+                    </DialogDescription>
                 </DialogHeader>
 
                 <div className="flex-1 min-h-0 flex flex-col">

@@ -56,11 +56,9 @@ function TaxCategoryListPage() {
         >
             <PageActionBarRight>
                 <PermissionGuard requires={['CreateTaxCategory']}>
-                    <Button asChild>
-                        <Link to="./new">
-                            <PlusIcon />
-                            <Trans>New Tax Category</Trans>
-                        </Link>
+                    <Button render={<Link to="./new" />}>
+                        <PlusIcon />
+                        <Trans>New Tax Category</Trans>
                     </Button>
                 </PermissionGuard>
             </PageActionBarRight>

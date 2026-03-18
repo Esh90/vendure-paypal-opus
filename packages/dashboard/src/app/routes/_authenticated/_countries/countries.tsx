@@ -59,11 +59,9 @@ function CountryListPage() {
         >
             <PageActionBarRight>
                 <PermissionGuard requires={['CreateCountry']}>
-                    <Button asChild>
-                        <Link to="./new">
-                            <PlusIcon />
-                            <Trans>Add Country</Trans>
-                        </Link>
+                    <Button render={<Link to="./new" />}>
+                        <PlusIcon />
+                        <Trans>Add Country</Trans>
                     </Button>
                 </PermissionGuard>
             </PageActionBarRight>

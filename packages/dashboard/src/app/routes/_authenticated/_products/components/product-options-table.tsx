@@ -102,11 +102,9 @@ export function ProductOptionsTable({
                 }}
             />
             <div className="mt-4">
-                <Button asChild variant="outline">
-                    <Link to="./options/new">
-                        <PlusIcon />
-                        <Trans>Add product option</Trans>
-                    </Link>
+                <Button render={<Link to="./options/new" />} variant="outline">
+                    <PlusIcon />
+                    <Trans>Add product option</Trans>
                 </Button>
             </div>
         </>

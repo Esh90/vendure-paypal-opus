@@ -125,11 +125,9 @@ function ProductListPage() {
                     </Button>
                 </PermissionGuard>
                 <PermissionGuard requires={['CreateProduct', 'CreateCatalog']}>
-                    <Button asChild>
-                        <Link to="./new">
-                            <PlusIcon className="mr-2 h-4 w-4" />
-                            <Trans>New Product</Trans>
-                        </Link>
+                    <Button render={<Link to="./new" />}>
+                        <PlusIcon className="mr-2 h-4 w-4" />
+                        <Trans>New Product</Trans>
                     </Button>
                 </PermissionGuard>
             </PageActionBarRight>

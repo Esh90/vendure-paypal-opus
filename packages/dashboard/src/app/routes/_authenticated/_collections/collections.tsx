@@ -444,11 +444,9 @@ function CollectionListPage() {
         >
             <PageActionBarRight>
                 <PermissionGuard requires={['CreateCollection', 'CreateCatalog']}>
-                    <Button asChild>
-                        <Link to="./new">
-                            <PlusIcon className="mr-2 h-4 w-4" />
-                            <Trans>New Collection</Trans>
-                        </Link>
+                    <Button render={<Link to="./new" />}>
+                        <PlusIcon className="mr-2 h-4 w-4" />
+                        <Trans>New Collection</Trans>
                     </Button>
                 </PermissionGuard>
             </PageActionBarRight>

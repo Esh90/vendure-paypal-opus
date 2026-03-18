@@ -108,11 +108,9 @@ function FacetListPage() {
         >
             <PageActionBarRight>
                 <PermissionGuard requires={['CreateFacet', 'CreateCatalog']}>
-                    <Button asChild>
-                        <Link to="./new">
-                            <PlusIcon className="mr-2 h-4 w-4" />
-                            <Trans>New Facet</Trans>
-                        </Link>
+                    <Button render={<Link to="./new" />}>
+                        <PlusIcon className="mr-2 h-4 w-4" />
+                        <Trans>New Facet</Trans>
                     </Button>
                 </PermissionGuard>
             </PageActionBarRight>

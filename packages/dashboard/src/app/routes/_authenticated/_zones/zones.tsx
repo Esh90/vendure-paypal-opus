@@ -51,11 +51,9 @@ function ZoneListPage() {
         >
             <PageActionBarRight>
                 <PermissionGuard requires={['CreateZone']}>
-                    <Button asChild>
-                        <Link to="./new">
-                            <PlusIcon />
-                            <Trans>New Zone</Trans>
-                        </Link>
+                    <Button render={<Link to="./new" />}>
+                        <PlusIcon />
+                        <Trans>New Zone</Trans>
                     </Button>
                 </PermissionGuard>
             </PageActionBarRight>

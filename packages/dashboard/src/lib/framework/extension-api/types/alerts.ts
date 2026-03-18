@@ -1,3 +1,5 @@
+import { ComponentType } from 'react';
+
 export type AlertSeverity = 'info' | 'warning' | 'error';
 
 /**
@@ -54,6 +56,17 @@ export interface DashboardAlertDefinition<TResponse = any> {
      */
     actions?: Array<{
         label: string;
-        onClick: (args: { data: TResponse; dismiss: () => void }) => void | Promise<any>;
+        onClick?: (args: { data: TResponse; dismiss: () => void }) => void | Promise<any>;
+        /**
+         * @description
+         * An optional React component to render as the action. This is useful when
+         * the action needs access to React hooks (e.g. `useNavigate` from TanStack Router).
+         *
+         * The component receives the alert `data` and a `dismiss` function as props.
+         * When provided, the `label` and `onClick` properties are ignored.
+         *
+         * @since 3.3.0
+         */
+        component?: ComponentType<{ data: TResponse; dismiss: () => void }>;
     }>;
 }

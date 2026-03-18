@@ -31,7 +31,8 @@ export class BaseListPage {
         this.heading = page.getByRole('heading', { name: config.title });
         this.searchInput = page.getByPlaceholder('Filter...');
         this.dataTable = page.locator('table');
-        this.newButton = page.getByRole(config.newButtonRole ?? 'link', { name: config.newButtonLabel });
+        // Base UI's Button with render={<Link />} adds role="button" to the element
+        this.newButton = page.getByRole(config.newButtonRole ?? 'button', { name: config.newButtonLabel });
     }
 
     async goto() {
@@ -47,9 +48,9 @@ export class BaseListPage {
         return this.dataTable.locator('tbody tr');
     }
 
-    /** Click the first link in a row matching `name` to navigate to its detail page. */
+    /** Click the first button in the data table matching `name` to navigate to its detail page. */
     async clickEntity(name: string) {
-        await this.page.getByRole('link', { name }).first().click();
+        await this.dataTable.getByRole('button', { name }).first().click();
     }
 
     async clickNewButton() {
@@ -86,8 +87,9 @@ export class BaseListPage {
         await this.selectRows(indices);
         // Open "With selected..." dropdown
         await this.page.getByRole('button', { name: /With selected/i }).click();
-        // Click "Delete" in the dropdown
-        await this.page.getByRole('menuitem').filter({ hasText: 'Delete' }).click();
+        // Click "Delete" in the dropdown. AlertDialogTrigger renders role="button"
+        // instead of role="menuitem", so match by text within the menu.
+        await this.page.locator('[role="menu"]').getByText('Delete', { exact: true }).click();
         // Confirm in the AlertDialog
         await this.page.locator('[role="alertdialog"]').getByRole('button', { name: 'Continue' }).click();
     }
@@ -97,8 +99,8 @@ export class BaseListPage {
         const row = this.getRows().nth(rowIndex);
         // The ellipsis trigger is the last button in the row
         await row.locator('button').last().click();
-        await this.page.getByRole('menuitem').filter({ hasText: 'Delete' }).click();
-        // Confirm in the AlertDialog — the row-level dialog button says "Delete"
+        await this.page.locator('[role="menu"]').getByText('Delete', { exact: true }).click();
+        // Confirm in the AlertDialog
         await this.page.locator('[role="alertdialog"]').getByRole('button', { name: 'Delete' }).click();
     }
 

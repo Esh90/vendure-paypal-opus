@@ -31,8 +31,8 @@ test.describe('Product List', () => {
         await lp.goto();
         await lp.expectLoaded();
 
-        // Click the first product link in the table
-        const firstProductLink = lp.getRows().first().getByRole('link').first();
+        // Click the first product button in the table (Base UI Button renders role="button")
+        const firstProductLink = lp.getRows().first().getByRole('button').first();
         await firstProductLink.click();
 
         await expect(page).toHaveURL(/\/products\/.+/);

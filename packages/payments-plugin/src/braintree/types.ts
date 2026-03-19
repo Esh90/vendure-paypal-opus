@@ -1,15 +1,14 @@
 import { PaymentMetadata } from '@vendure/core';
-import { ConfigArgValues } from '@vendure/core/dist/common/configurable-operation';
-import '@vendure/core/dist/entity/custom-entity-fields';
 import { Environment, Transaction } from 'braintree';
 
-import { braintreePaymentMethodHandler } from './braintree.handler';
+export type PaymentMethodArgsHash = {
+    merchantId: string;
+    publicKey: string;
+    privateKey: string;
+};
 
-export type PaymentMethodArgsHash = ConfigArgValues<(typeof braintreePaymentMethodHandler)['args']>;
-
-// Note: deep import is necessary here because CustomCustomerFields is also extended in the Stripe
-// plugin. Reference: https://github.com/microsoft/TypeScript/issues/46617
-declare module '@vendure/core/dist/entity/custom-entity-fields' {
+// Note: we augment the @vendure/core module to add custom fields.
+declare module '@vendure/core' {
     interface CustomCustomerFields {
         braintreeCustomerId?: string;
     }

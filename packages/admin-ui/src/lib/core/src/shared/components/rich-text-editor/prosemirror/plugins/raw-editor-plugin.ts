@@ -1,6 +1,5 @@
 import { DOMParser, DOMSerializer, Node } from 'prosemirror-model';
 import { Plugin } from 'prosemirror-state';
-import { Protocol } from 'puppeteer';
 
 import { ModalService } from '../../../../../providers/modal/modal.service';
 import { RawHtmlDialogComponent } from '../../raw-html-dialog/raw-html-dialog.component';
@@ -70,7 +69,7 @@ export const rawEditorPlugin = (contextMenuService: ContextMenuService, modalSer
                                                                     topLevelNodePos,
                                                                     topLevelNodePos +
                                                                         (topLevelNode?.nodeSize ?? 0),
-                                                                    parsedNodeSlice,
+                                                                    parsedNodeSlice as any,
                                                                 );
                                                             } catch (err: any) {
                                                                 // eslint-disable-next-line no-console

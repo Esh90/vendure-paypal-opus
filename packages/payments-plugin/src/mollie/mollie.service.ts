@@ -20,13 +20,13 @@ import {
     Order,
     OrderService,
     OrderState,
+    OrderStateMachine,
     OrderStateTransitionError,
     PaymentMethod,
     PaymentMethodService,
     RequestContext,
+    totalCoveredByPayments,
 } from '@vendure/core';
-import { OrderStateMachine } from '@vendure/core/';
-import { totalCoveredByPayments } from '@vendure/core/dist/service/helpers/utils/order-utils';
 
 import { loggerCtx, PLUGIN_INIT_OPTIONS } from './constants';
 import {

@@ -132,7 +132,7 @@ async function getBraintreeCustomerId(
     gateway: BraintreeGateway,
     customer: Customer,
 ): Promise<string | undefined> {
-    if (!customer.customFields.braintreeCustomerId) {
+    if (!(customer.customFields as any).braintreeCustomerId) {
         try {
             const result = await gateway.customer.create({
                 firstName: customer.firstName,
@@ -142,7 +142,7 @@ async function getBraintreeCustomerId(
             if (result.success) {
                 const customerId = result.customer.id;
                 Logger.verbose(`Created Braintree Customer record for customerId ${customer.id}`, loggerCtx);
-                customer.customFields.braintreeCustomerId = customerId;
+                (customer.customFields as any).braintreeCustomerId = customerId;
                 await connection.getRepository(ctx, Customer).save(customer, { reload: false });
                 return customerId;
             } else {
@@ -156,6 +156,6 @@ async function getBraintreeCustomerId(
             Logger.error(e.message, loggerCtx, e.stack);
         }
     } else {
-        return customer.customFields.braintreeCustomerId;
+        return (customer.customFields as any).braintreeCustomerId;
     }
 }

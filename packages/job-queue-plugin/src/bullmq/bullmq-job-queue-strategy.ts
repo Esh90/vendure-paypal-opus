@@ -20,7 +20,7 @@ import Bull, {
     WorkerOptions,
 } from 'bullmq';
 import { EventEmitter } from 'events';
-import { Cluster, Redis, RedisOptions } from 'ioredis';
+import { Redis, RedisOptions } from 'ioredis';
 import { Subject } from 'rxjs';
 import { filter, takeUntil } from 'rxjs/operators';
 
@@ -51,7 +51,7 @@ import { getPrefix } from './utils';
  * @docsCategory core plugins/JobQueuePlugin
  */
 export class BullMQJobQueueStrategy implements InspectableJobQueueStrategy {
-    private redisConnection: Redis | Cluster;
+    private redisConnection: any;
     private connectionOptions: ConnectionOptions;
     private queue: Queue;
     private worker: Worker;
@@ -82,10 +82,11 @@ export class BullMQJobQueueStrategy implements InspectableJobQueueStrategy {
             options.connection ??
             ({ host: 'localhost', port: 6379, maxRetriesPerRequest: null } as RedisOptions);
 
-        this.redisConnection =
+        this.redisConnection = (
             this.connectionOptions instanceof EventEmitter
                 ? this.connectionOptions
-                : new Redis(this.connectionOptions);
+                : new Redis(this.connectionOptions as any)
+        ) as any;
 
         this.defineCustomLuaScripts();
 
@@ -150,8 +151,8 @@ export class BullMQJobQueueStrategy implements InspectableJobQueueStrategy {
             throw new InternalServerError(`No processor defined for the queue "${queueName}"`);
         };
         // Subscription-mode Redis connection for the cancellation messages
-        this.cancellationSub = new Redis(this.connectionOptions as RedisOptions);
-        this.jobListIndexService.register(this.redisConnection, this.queue);
+        this.cancellationSub = new Redis(this.connectionOptions as any);
+        this.jobListIndexService.register(this.redisConnection, this.queue as any);
     }
 
     async destroy() {
@@ -425,7 +426,7 @@ export class BullMQJobQueueStrategy implements InspectableJobQueueStrategy {
     ): Promise<T> {
         return new Promise<T>((resolve, reject) => {
             const prefix = getPrefix(this.options);
-            (this.redisConnection as any)[scriptDef.name](
+            this.redisConnection[scriptDef.name](
                 `${prefix}:${this.queue.name}:`,
                 ...args,
                 (err: any, result: any) => {

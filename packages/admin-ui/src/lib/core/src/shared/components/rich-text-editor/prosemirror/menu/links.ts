@@ -1,5 +1,4 @@
-import { toggleMark } from 'prosemirror-commands';
-import { icons, MenuItem } from 'prosemirror-menu';
+import { MenuItem } from 'prosemirror-menu';
 import { MarkType } from 'prosemirror-model';
 import { EditorState, TextSelection } from 'prosemirror-state';
 
@@ -63,9 +62,9 @@ export function linkItem(linkMark: MarkType, modalService: ModalService) {
                     let tr = state.tr;
                     if (result) {
                         const { $from, $to } = selection.ranges[0];
-                        tr = tr.removeMark($from.pos, $to.pos, linkMark);
+                        tr = tr.removeMark($from.pos, $to.pos, linkMark as any);
                         if (result.href !== '') {
-                            tr = tr.addMark($from.pos, $to.pos, linkMark.create(result));
+                            tr = tr.addMark($from.pos, $to.pos, (linkMark as any).create(result));
                         }
                     }
                     dispatch(tr.scrollIntoView());

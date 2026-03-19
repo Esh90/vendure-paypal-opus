@@ -26,7 +26,7 @@ import {
 } from '@tanstack/react-table';
 import { EllipsisIcon, TrashIcon } from 'lucide-react';
 import { memo, useMemo } from 'react';
-import { toast } from 'sonner';
+import { toast } from '@/vdb/components/ui/sonner.js';
 import {
     AdditionalColumns,
     AllItemFieldKeys,

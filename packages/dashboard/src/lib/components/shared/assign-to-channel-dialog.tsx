@@ -1,6 +1,6 @@
 import { useMutation } from '@tanstack/react-query';
 import { ReactNode, useState } from 'react';
-import { toast } from 'sonner';
+import { toast } from '@/vdb/components/ui/sonner.js';
 
 import { ChannelCodeLabel } from '@/vdb/components/shared/channel-code-label.js';
 import { Button } from '@/vdb/components/ui/button.js';

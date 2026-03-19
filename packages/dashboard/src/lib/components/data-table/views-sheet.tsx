@@ -1,7 +1,7 @@
 import { Trans, useLingui } from '@lingui/react/macro';
 import { Copy, Edit, Globe, MoreHorizontal, Trash2 } from 'lucide-react';
 import React, { useState } from 'react';
-import { toast } from 'sonner';
+import { toast } from '@/vdb/components/ui/sonner.js';
 import { useSavedViews } from '../../hooks/use-saved-views.js';
 import { SavedView } from '../../types/saved-views.js';
 import {

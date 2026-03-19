@@ -53,7 +53,7 @@ import {
 } from './data-table-faceted-filter.js';
 import { DataTableFilterBadgeEditable } from './data-table-filter-badge-editable.js';
 import { useDragAndDrop } from '@/vdb/hooks/use-drag-and-drop.js';
-import { toast } from 'sonner';
+import { toast } from '@/vdb/components/ui/sonner.js';
 
 interface DraggableRowProps<TData> {
     row: Row<TData>;

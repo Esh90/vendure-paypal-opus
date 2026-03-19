@@ -43,11 +43,16 @@ jobs:
               run: npm i -g vercel@latest
 
             - name: Link Vercel project
-              run: vercel link --yes --scope vendure --project=admin-dashboard --token=${{ secrets.VERCEL_TOKEN }}
+              env:
+                  VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+              run: vercel link --yes --scope vendure --project=admin-dashboard --token="$VERCEL_TOKEN"
 
             - name: Pull Vercel environment variables
+              env:
+                  VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+                  VERCEL_ENV: ${{ github.ref_name == 'master' && github.event_name == 'push' && 'production' || 'preview' }}
               run: |
-                  vercel env pull --environment=${{ github.ref_name == 'master' && github.event_name == 'push' && 'production' || 'preview' }} --yes --scope vendure --token=${{ secrets.VERCEL_TOKEN }}
+                  vercel env pull --environment="$VERCEL_ENV" --yes --scope vendure --token="$VERCEL_TOKEN"
                   cp .env.local packages/dashboard/.env.local
 
             - name: Build common and core packages

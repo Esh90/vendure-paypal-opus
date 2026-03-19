@@ -38,17 +38,27 @@ runs:
     steps:
         - name: Link folder to project
           shell: bash
-          run: vercel link --yes --scope ${{ inputs.vercel-scope }} --project=${{ inputs.vercel-project-name }} --token=${{ inputs.vercel-token }}
+          env:
+              VERCEL_TOKEN: ${{ inputs.vercel-token }}
+              VERCEL_SCOPE: ${{ inputs.vercel-scope }}
+              VERCEL_PROJECT: ${{ inputs.vercel-project-name }}
+          run: vercel link --yes --scope "$VERCEL_SCOPE" --project="$VERCEL_PROJECT" --token="$VERCEL_TOKEN"
 
         - name: Pull Vercel Environment Information
           shell: bash
-          run: vercel pull --environment=${{ inputs.environment }} --yes --scope ${{ inputs.vercel-scope }} --token=${{ inputs.vercel-token }}
+          env:
+              VERCEL_TOKEN: ${{ inputs.vercel-token }}
+              VERCEL_SCOPE: ${{ inputs.vercel-scope }}
+              VERCEL_ENV: ${{ inputs.environment }}
+          run: vercel pull --environment="$VERCEL_ENV" --yes --scope "$VERCEL_SCOPE" --token="$VERCEL_TOKEN"
 
         - name: Create Vercel output directory
           shell: bash
+          env:
+              BUILD_OUTPUT: ${{ inputs.build-output-path }}
           run: |
               mkdir -p .vercel/output/static
-              cp -r ${{ inputs.build-output-path }}/* .vercel/output/static/
+              cp -r "$BUILD_OUTPUT"/* .vercel/output/static/
               cat > .vercel/output/config.json << 'JSONEOF'
               {
                 "version": 3,
@@ -62,9 +72,23 @@ runs:
         - name: Deploy to Vercel
           id: deploy
           shell: bash
-          run: vercel deploy --archive=tgz --prebuilt --scope ${{ inputs.vercel-scope }} --token=${{ inputs.vercel-token }}${{ inputs.production == 'true' && ' --prod' || '' }} | awk 'END{print}' | awk '{print "URL="$1}' >> $GITHUB_OUTPUT
+          env:
+              VERCEL_TOKEN: ${{ inputs.vercel-token }}
+              VERCEL_SCOPE: ${{ inputs.vercel-scope }}
+              IS_PROD: ${{ inputs.production }}
+          run: |
+              PROD_FLAG=""
+              if [ "$IS_PROD" = "true" ]; then
+                PROD_FLAG="--prod"
+              fi
+              vercel deploy --archive=tgz --prebuilt --scope "$VERCEL_SCOPE" --token="$VERCEL_TOKEN" $PROD_FLAG | awk 'END{print}' | awk '{print "URL="$1}' >> $GITHUB_OUTPUT
 
         - name: Alias deployment to custom domain
           if: steps.deploy.outputs.URL != '' && inputs.alias-domain != ''
           shell: bash
-          run: vercel alias set ${{ steps.deploy.outputs.URL }} ${{ inputs.alias-domain }} --scope ${{ inputs.vercel-scope }} --token=${{ inputs.vercel-token }}
+          env:
+              VERCEL_TOKEN: ${{ inputs.vercel-token }}
+              VERCEL_SCOPE: ${{ inputs.vercel-scope }}
+              DEPLOY_URL: ${{ steps.deploy.outputs.URL }}
+              ALIAS_DOMAIN: ${{ inputs.alias-domain }}
+          run: vercel alias set "$DEPLOY_URL" "$ALIAS_DOMAIN" --scope "$VERCEL_SCOPE" --token="$VERCEL_TOKEN"

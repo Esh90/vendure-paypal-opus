@@ -142,7 +142,7 @@ interface PaginatedListDataTableProps<T extends TypedDocumentNode<U, V>, U exten
     onColumnVisibilityChange?: (table: Table<any>, columnVisibility: VisibilityState) => void;
     facetedFilters?: FacetedFilterConfig<T>;
     rowActions?: RowAction<PaginatedListItemFields<T>>[];
-    bulkActions?: BulkAction[];
+    bulkActions?: BulkActionsInput;
     disableViewOptions?: boolean;
     transformData?: (data: PaginatedListItemFields<T>[]) => PaginatedListItemFields<T>[];
     setTableOptions?: (table: TableOptions<any>) => TableOptions<any>;
@@ -256,7 +256,7 @@ interface PaginatedListDataTableProps<T extends TypedDocumentNode<U, V>, U exten
 
 ### bulkActions
 
-<MemberInfo kind="property" type={`<a href='/reference/dashboard/list-views/bulk-actions#bulkaction'>BulkAction</a>[]`}   />
+<MemberInfo kind="property" type={`<a href='/reference/dashboard/list-views/bulk-actions#bulkactionsinput'>BulkActionsInput</a>`}   />
 
 
 ### disableViewOptions

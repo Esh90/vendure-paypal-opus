@@ -124,7 +124,7 @@ interface ListPageProps<T extends TypedDocumentNode<U, V>, U extends ListQuerySh
     rowActions?: RowAction<ListQueryFields<T>>[];
     transformData?: (data: any[]) => any[];
     setTableOptions?: (table: TableOptions<any>) => TableOptions<any>;
-    bulkActions?: BulkAction[];
+    bulkActions?: BulkActionsInput;
     registerRefresher?: PaginatedListRefresherRegisterFn;
     onReorder?: (oldIndex: number, newIndex: number, item: any) => void | Promise<void>;
     disableDragAndDrop?: boolean;
@@ -433,7 +433,7 @@ Allows you to directly manipulate the Tanstack Table `TableOptions` object befor
 table is created. And advanced option that is not often required.
 ### bulkActions
 
-<MemberInfo kind="property" type={`<a href='/reference/dashboard/list-views/bulk-actions#bulkaction'>BulkAction</a>[]`}   />
+<MemberInfo kind="property" type={`<a href='/reference/dashboard/list-views/bulk-actions#bulkactionsinput'>BulkActionsInput</a>`}   />
 
 Bulk actions are actions that can be applied to one or more table rows, and include things like
 

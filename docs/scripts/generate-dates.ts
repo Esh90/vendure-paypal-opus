@@ -1,7 +1,7 @@
 import { generateDatesFile } from '@vendure-io/docs-provider';
-import { readFileSync, writeFileSync } from 'fs';
-import { dirname, join } from 'path';
-import { fileURLToPath } from 'url';
+import { readFileSync, writeFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const packageRoot = dirname(dirname(fileURLToPath(import.meta.url)));
 const outputPath = join(packageRoot, 'src/dates.generated.ts');
@@ -14,8 +14,6 @@ const result = await generateDatesFile({
 
 // Post-process to fix Windows backslashes in paths which cause TS errors
 const content = readFileSync(outputPath, 'utf8');
-const fixedContent = content.replace(/'docs\\(.*?MDX|mdx)':/g, (match) => match.replace(/\\/g, '/'));
-// Actually, a simpler replace for all backslashes within the single quotes should work
 const finalContent = content.replace(/'docs\\(.*?\.mdx)':/g, (match) => match.replace(/\\/g, '/'));
 writeFileSync(outputPath, finalContent);
 

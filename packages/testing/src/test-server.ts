@@ -1,6 +1,13 @@
 import { INestApplication } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
-import { DefaultLogger, JobQueueService, Logger, VendureConfig, preBootstrapConfig, configureSessionCookies } from '@vendure/core';
+import {
+    DefaultLogger,
+    JobQueueService,
+    Logger,
+    VendureConfig,
+    configureSessionCookies,
+    preBootstrapConfig,
+} from '@vendure/core';
 import { AppModule } from '@vendure/core/app.module';
 
 import { populateForTesting } from './data-population/populate-for-testing';

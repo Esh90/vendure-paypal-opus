@@ -27,7 +27,8 @@ import { getPrefix } from './utils';
 export class JobListIndexService {
     private readonly BATCH_SIZE = 100;
     private redis: any;
-    private queue: Queue | undefined;    private queueEvents: QueueEvents | undefined;
+    private queue: Queue | undefined;
+    private queueEvents: QueueEvents | undefined;
     private allStates: JobType[] = [
         'wait',
         'active',

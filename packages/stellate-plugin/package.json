@@ -25,7 +25,9 @@
         "node-fetch": "^2.7.0"
     },
     "devDependencies": {
+
         "@vendure/common": "^3.5.4",
         "@vendure/core": "^3.5.4"
+
     }
 }

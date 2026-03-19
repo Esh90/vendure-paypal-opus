@@ -358,6 +358,57 @@ export class CollectionService implements OnModuleInit {
 
     /**
      * @description
+     * Returns a Map of collection IDs to their associated product variants.
+     * This performs a single bulk query to get all variants for all provided collection IDs,
+     * avoiding N+1 query issues when resolving variants on multiple collections.
+     */
+    async getProductVariantsForCollections(
+        ctx: RequestContext,
+        collectionIds: ID[],
+        options?: ListQueryOptions<ProductVariant>,
+        relations?: RelationPaths<ProductVariant>,
+    ): Promise<Map<ID, ProductVariant[]>> {
+        if (collectionIds.length === 0) {
+            return new Map();
+        }
+
+        const qb = this.listQueryBuilder.build(ProductVariant, options, {
+            relations: relations ?? ['taxCategory'],
+            channelId: ctx.channelId,
+            where: { deletedAt: IsNull() },
+            ctx,
+        });
+
+        qb.innerJoin('productvariant.collections', 'collection', 'collection.id IN (:...collectionIds)', {
+            collectionIds,
+        }).addSelect('collection.id', 'collectionId');
+
+        const allVariants = await qb.getMany();
+
+        const variantsByCollectionId = new Map<ID, ProductVariant[]>();
+        for (const id of collectionIds) {
+            variantsByCollectionId.set(String(id), []);
+        }
+
+        // We need to re-query the relations between variants and collections because getMany()
+        // doesn't include the 'collectionId' we added in the select for the raw results.
+        const rawResults = await qb.getRawMany();
+
+        for (const raw of rawResults) {
+            const variant = allVariants.find(v => v.id.toString() === raw.productvariant_id.toString());
+            if (variant) {
+                const variants = variantsByCollectionId.get(String(raw.collectionId));
+                if (variants && !variants.find(v => v.id === variant.id)) {
+                    variants.push(variant);
+                }
+            }
+        }
+
+        return variantsByCollectionId;
+    }
+
+    /**
+     * @description
      * Returns an array of name/id pairs representing all ancestor Collections up
      * to the Root Collection.
      */

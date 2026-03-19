@@ -32,8 +32,10 @@
         "access": "public"
     },
     "devDependencies": {
+
         "@vendure/common": "^3.5.4",
         "@vendure/core": "^3.5.4"
+
     },
     "dependencies": {
         "@sentry/nestjs": "^10.2.0",

@@ -18,10 +18,8 @@ import {
     toggleHeaderColumn,
     toggleHeaderRow,
 } from 'prosemirror-tables';
-import { Decoration, DecorationSet } from 'prosemirror-view';
 
 import { ContextMenuItem, ContextMenuService } from '../context-menu/context-menu.service';
-import { buildMenuItems } from '../menu/menu';
 import { renderClarityIcon } from '../menu/menu-common';
 
 export const tableContextMenuPlugin = (contextMenuService: ContextMenuService) =>
@@ -203,7 +201,9 @@ function createTable(state, rowsCount, colsCount, withHeaderRow, cellContent) {
     const rows: Node[] = [];
 
     for (let index = 0; index < rowsCount; index += 1) {
-        rows.push(types.row.createChecked(null, (withHeaderRow && index === 0 ? headerCells : cells) as any) as any);
+        rows.push(
+            types.row.createChecked(null, (withHeaderRow && index === 0 ? headerCells : cells) as any) as any,
+        );
     }
 
     return types.table.createChecked(null, rows as any);

@@ -45,8 +45,10 @@
         "javascript-stringify": "^2.1.0"
     },
     "devDependencies": {
+
         "@vendure/common": "^3.5.4",
         "@vendure/core": "^3.5.4",
+
         "typescript": "5.8.2"
     }
 }

@@ -20,7 +20,7 @@ import Bull, {
     WorkerOptions,
 } from 'bullmq';
 import { EventEmitter } from 'events';
-import { Cluster, Redis, RedisOptions } from 'ioredis';
+import { Redis, RedisOptions } from 'ioredis';
 import { Subject } from 'rxjs';
 import { filter, takeUntil } from 'rxjs/operators';
 
@@ -82,10 +82,11 @@ export class BullMQJobQueueStrategy implements InspectableJobQueueStrategy {
             options.connection ??
             ({ host: 'localhost', port: 6379, maxRetriesPerRequest: null } as RedisOptions);
 
-        this.redisConnection =
-            (this.connectionOptions instanceof EventEmitter
+        this.redisConnection = (
+            this.connectionOptions instanceof EventEmitter
                 ? this.connectionOptions
-                : new Redis(this.connectionOptions as any)) as any;
+                : new Redis(this.connectionOptions as any)
+        ) as any;
 
         this.defineCustomLuaScripts();
 
@@ -98,7 +99,7 @@ export class BullMQJobQueueStrategy implements InspectableJobQueueStrategy {
             Logger.info('Connected to Redis ✔', loggerCtx);
         }
 
-        this.queue = new Queue(QUEUE_NAME, { ...options.queueOptions, connection: this.redisConnection  })
+        this.queue = new Queue(QUEUE_NAME, { ...options.queueOptions, connection: this.redisConnection })
             .on('error', (e: any) =>
                 Logger.error(`BullMQ Queue error: ${JSON.stringify(e.message)}`, loggerCtx, e.stack),
             )
@@ -141,7 +142,7 @@ export class BullMQJobQueueStrategy implements InspectableJobQueueStrategy {
                     throw e;
                 } finally {
                     if (job.id) {
-                        await (this.redisConnection ).srem(this.CANCELLED_JOB_LIST_NAME, job.id?.toString());
+                        await this.redisConnection.srem(this.CANCELLED_JOB_LIST_NAME, job.id?.toString());
                     }
                     completed$.next();
                     completed$.complete();
@@ -151,7 +152,7 @@ export class BullMQJobQueueStrategy implements InspectableJobQueueStrategy {
         };
         // Subscription-mode Redis connection for the cancellation messages
         this.cancellationSub = new Redis(this.connectionOptions as any);
-        this.jobListIndexService.register(this.redisConnection , this.queue as any);
+        this.jobListIndexService.register(this.redisConnection, this.queue as any);
     }
 
     async destroy() {
@@ -288,7 +289,7 @@ export class BullMQJobQueueStrategy implements InspectableJobQueueStrategy {
             const options: WorkerOptions = {
                 concurrency: DEFAULT_CONCURRENCY,
                 ...this.options.workerOptions,
-                connection: this.redisConnection ,
+                connection: this.redisConnection,
             };
             this.worker = new Worker(QUEUE_NAME, this.workerProcessor, options)
                 .on('error', e => Logger.error(`BullMQ Worker error: ${e.message}`, loggerCtx, e.stack))
@@ -425,7 +426,7 @@ export class BullMQJobQueueStrategy implements InspectableJobQueueStrategy {
     ): Promise<T> {
         return new Promise<T>((resolve, reject) => {
             const prefix = getPrefix(this.options);
-            (this.redisConnection )[scriptDef.name](
+            this.redisConnection[scriptDef.name](
                 `${prefix}:${this.queue.name}:`,
                 ...args,
                 (err: any, result: any) => {

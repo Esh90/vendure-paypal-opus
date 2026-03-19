@@ -1,5 +1,4 @@
-import { toggleMark } from 'prosemirror-commands';
-import { icons, MenuItem } from 'prosemirror-menu';
+import { MenuItem } from 'prosemirror-menu';
 import { MarkType } from 'prosemirror-model';
 import { EditorState, TextSelection } from 'prosemirror-state';
 

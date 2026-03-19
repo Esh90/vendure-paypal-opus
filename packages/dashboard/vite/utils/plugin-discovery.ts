@@ -2,10 +2,10 @@ import { parse } from 'acorn';
 import { simple as walkSimple } from 'acorn-walk';
 import glob from 'fast-glob';
 import fs from 'fs-extra';
-import { open } from 'fs/promises';
-import path from 'path';
+import { open } from 'node:fs/promises';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import * as ts from 'typescript';
-import { fileURLToPath } from 'url';
 
 import { Logger, PluginInfo, TransformTsConfigPathMappingsFn } from '../types.js';
 
@@ -71,8 +71,15 @@ export async function discoverPlugins({
             // Walk the AST to find the plugin class and its decorator
             walkSimple(ast, {
                 CallExpression(node: any) {
-                    // Look for __decorate calls
-                    const calleeName = node.callee.name;
+                    // Look for __decorate calls — handles both direct calls (__decorate(...))
+                    // and tslib member expressions (tslib_1.__decorate(...)) which occur
+                    // when packages are compiled with TypeScript's importHelpers: true
+                    const callee = node.callee;
+                    const calleeName =
+                        callee.name ??
+                        (callee.type === 'MemberExpression' && callee.property?.name === '__decorate'
+                            ? '__decorate'
+                            : undefined);
                     const nodeArgs = node.arguments;
                     const isDecoratorWithArgs = calleeName === '__decorate' && nodeArgs.length >= 2;
 
@@ -93,7 +100,7 @@ export async function discoverPlugins({
                                             const locationProp = prop.value.properties?.find(
                                                 (p: any) => p.key?.name === 'location',
                                             );
-                                            if (locationProp && locationProp.value.type === 'Literal') {
+                                            if (locationProp?.value.type === 'Literal') {
                                                 dashboardPath = locationProp.value.value;
                                                 hasVendurePlugin = true;
                                             }

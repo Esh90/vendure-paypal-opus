@@ -1,0 +1,70 @@
+name: 'Deploy to Vercel'
+description: 'Links project, pulls environment info, builds output directory, and deploys to Vercel'
+
+inputs:
+    vercel-token:
+        description: 'Vercel authentication token'
+        required: true
+    vercel-project-name:
+        description: 'Vercel project name'
+        required: true
+    vercel-scope:
+        description: 'Vercel scope/team name'
+        required: false
+        default: 'vendure'
+    environment:
+        description: 'Deployment environment (preview, production)'
+        required: false
+        default: 'preview'
+    production:
+        description: 'Whether to deploy to production (adds --prod flag)'
+        required: false
+        default: 'false'
+    build-output-path:
+        description: 'Path to the built static files (e.g. packages/dashboard/dist)'
+        required: true
+    alias-domain:
+        description: 'Custom domain to alias the deployment to. Leave empty to skip.'
+        required: false
+        default: ''
+
+outputs:
+    deployment-url:
+        description: 'The URL of the deployed application'
+        value: ${{ steps.deploy.outputs.URL }}
+
+runs:
+    using: 'composite'
+    steps:
+        - name: Link folder to project
+          shell: bash
+          run: vercel link --yes --scope ${{ inputs.vercel-scope }} --project=${{ inputs.vercel-project-name }} --token=${{ inputs.vercel-token }}
+
+        - name: Pull Vercel Environment Information
+          shell: bash
+          run: vercel pull --environment=${{ inputs.environment }} --yes --scope ${{ inputs.vercel-scope }} --token=${{ inputs.vercel-token }}
+
+        - name: Create Vercel output directory
+          shell: bash
+          run: |
+              mkdir -p .vercel/output/static
+              cp -r ${{ inputs.build-output-path }}/* .vercel/output/static/
+              cat > .vercel/output/config.json << 'JSONEOF'
+              {
+                "version": 3,
+                "routes": [
+                  { "handle": "filesystem" },
+                  { "src": "/(.*)", "dest": "/index.html" }
+                ]
+              }
+              JSONEOF
+
+        - name: Deploy to Vercel
+          id: deploy
+          shell: bash
+          run: vercel deploy --archive=tgz --prebuilt --scope ${{ inputs.vercel-scope }} --token=${{ inputs.vercel-token }}${{ inputs.production == 'true' && ' --prod' || '' }} | awk 'END{print}' | awk '{print "URL="$1}' >> $GITHUB_OUTPUT
+
+        - name: Alias deployment to custom domain
+          if: steps.deploy.outputs.URL != '' && inputs.alias-domain != ''
+          shell: bash
+          run: vercel alias set ${{ steps.deploy.outputs.URL }} ${{ inputs.alias-domain }} --scope ${{ inputs.vercel-scope }} --token=${{ inputs.vercel-token }}

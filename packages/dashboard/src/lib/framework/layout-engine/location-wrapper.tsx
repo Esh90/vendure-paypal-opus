@@ -76,7 +76,7 @@ export function LocationWrapper({ children, identifier }: Readonly<LocationWrapp
                     `ring-2 transition-all ring-offset-4 ring-offset-background delay-50 relative`,
                     isHovered || isPopoverOpen ? 'ring-dev-mode' : 'ring-transparent',
                     isPageWrapper ? 'ring-offset-8' : '',
-                    identifier ? 'rounded-md' : 'rounded',
+                    'rounded-none',
                 )}
                 onMouseEnter={handleMouseEnter}
                 onMouseLeave={handleMouseLeave}

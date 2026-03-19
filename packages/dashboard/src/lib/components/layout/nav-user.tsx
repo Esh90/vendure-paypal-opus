@@ -65,10 +65,10 @@ export function NavUser() {
                                 </div>
                                 {state === 'expanded' ? (
                                     <div className="grid flex-1 text-left text-sm leading-tight">
-                                        <span className="truncate font-semibold">
+                                        <span className="truncate font-heading font-semibold text-accent-foreground">
                                             {user.firstName} {user.lastName}
                                         </span>
-                                        <span className="truncate text-xs">{user.emailAddress}</span>
+                                        <span className="truncate font-mono text-xs">{user.emailAddress}</span>
                                     </div>
                                 ) : null}
                                 {state === 'expanded' ? <ChevronsUpDown className="ml-auto size-4" /> : null}
@@ -82,11 +82,14 @@ export function NavUser() {
                             <DropdownMenuGroup>
                                 <DropdownMenuLabel className="p-0 font-normal">
                                     <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
+                                        <div className="relative flex rounded-lg border justify-center items-center w-8 h-8">
+                                            {avatarFallback}
+                                        </div>
                                         <div className="grid flex-1 text-left text-sm leading-tight">
-                                            <span className="truncate font-semibold">
+                                            <span className="truncate font-heading font-semibold text-accent-foreground">
                                                 {user.firstName} {user.lastName}
                                             </span>
-                                            <span className="truncate text-xs">{user.emailAddress}</span>
+                                            <span className="truncate font-mono text-xs">{user.emailAddress}</span>
                                         </div>
                                     </div>
                                 </DropdownMenuLabel>
@@ -95,7 +98,7 @@ export function NavUser() {
                             <DropdownMenuGroup>
                                 <DropdownMenuItem render={<a href="https://vendure.io/pricing" target="_blank" />}>
                                         <Sparkles />
-                                        <Trans>Explore Enterprise Edition</Trans>
+                                        <Trans>Explore Platform & Cloud</Trans>
                                 </DropdownMenuItem>
                             </DropdownMenuGroup>
                             <DropdownMenuSeparator />

@@ -433,7 +433,7 @@ export function DataTable<TData>({
                         modifiers={[restrictToVerticalAxis]}
                     >
                         <Table>
-                            <TableHeader className="bg-secondary">
+                            <TableHeader>
                                 {table.getHeaderGroups().map(headerGroup => (
                                     <TableRow key={headerGroup.id}>
                                         {headerGroup.headers.map(header => {

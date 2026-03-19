@@ -63,11 +63,9 @@ function OptionGroupListPage() {
                 itemId="create-button"
                 requiresPermission={['CreateProduct', 'CreateCatalog']}
             >
-                <Button asChild>
-                    <Link to="./new">
-                        <PlusIcon className="mr-2 h-4 w-4" />
-                        <Trans>New Option Group</Trans>
-                    </Link>
+                <Button render={<Link to="./new" />}>
+                    <PlusIcon className="mr-2 h-4 w-4" />
+                    <Trans>New Option Group</Trans>
                 </Button>
             </ActionBarItem>
         </ListPage>

@@ -70,9 +70,7 @@ function DevModeActionBarWrapper({
                 )}
             >
                 <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
-                    <PopoverTrigger asChild>
-                        <DevModeButton className="h-5 w-5 top-0 -start-4" />
-                    </PopoverTrigger>
+                    <PopoverTrigger render={<DevModeButton className="h-5 w-5 top-0 -start-4" />} />
                     <PopoverContent className="w-40 p-2">
                         <div className="space-y-1.5">
                             {page.pageId && (

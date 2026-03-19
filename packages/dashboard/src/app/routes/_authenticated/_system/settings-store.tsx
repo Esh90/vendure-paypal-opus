@@ -109,11 +109,9 @@ function JsonValueDialog({
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-                <Button variant="outline" size="sm" className="max-w-[300px] justify-start gap-2 font-mono text-xs">
-                    <Braces className="size-3.5 shrink-0" />
-                    <span className="truncate">{truncated}</span>
-                </Button>
+            <DialogTrigger render={<Button variant="outline" size="sm" className="max-w-[300px] justify-start gap-2 font-mono text-xs" />}>
+                <Braces className="size-3.5 shrink-0" />
+                <span className="truncate">{truncated}</span>
             </DialogTrigger>
             <DialogContent className="max-w-2xl">
                 <DialogHeader>

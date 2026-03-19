@@ -121,7 +121,6 @@ export function FacetValuesTable({ facetId, registerRefresher }: Readonly<FacetV
                 }}
                 bulkActions={[
                     {
-                        order: 400,
                         component: DeleteFacetValuesBulkAction,
                     },
                 ]}

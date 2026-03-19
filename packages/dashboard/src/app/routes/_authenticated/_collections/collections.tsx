@@ -418,26 +418,15 @@ function CollectionListPage() {
             }}
             route={Route}
             bulkActions={[
-                {
-                    component: AssignCollectionsToChannelBulkAction,
-                    order: 100,
-                },
-                {
-                    component: RemoveCollectionsFromChannelBulkAction,
-                    order: 200,
-                },
-                {
-                    component: DuplicateCollectionsBulkAction,
-                    order: 300,
-                },
-                {
-                    component: MoveCollectionsBulkAction,
-                    order: 400,
-                },
-                {
-                    component: DeleteCollectionsBulkAction,
-                    order: 500,
-                },
+                [
+                    { component: AssignCollectionsToChannelBulkAction, order: 100 },
+                    { component: RemoveCollectionsFromChannelBulkAction, order: 200 },
+                    { component: DuplicateCollectionsBulkAction, order: 300 },
+                    { component: MoveCollectionsBulkAction, order: 400 },
+                ],
+                [
+                    { component: DeleteCollectionsBulkAction },
+                ],
             ]}
             onReorder={handleReorder}
             disableDragAndDrop={!!searchTerm}

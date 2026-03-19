@@ -45,18 +45,21 @@ function ShippingMethodListPage() {
                 };
             }}
             bulkActions={[
-                {
-                    component: AssignShippingMethodsToChannelBulkAction,
-                    order: 100,
-                },
-                {
-                    component: RemoveShippingMethodsFromChannelBulkAction,
-                    order: 200,
-                },
-                {
-                    component: DeleteShippingMethodsBulkAction,
-                    order: 500,
-                },
+                [
+                    {
+                        component: AssignShippingMethodsToChannelBulkAction,
+                        order: 100,
+                    },
+                    {
+                        component: RemoveShippingMethodsFromChannelBulkAction,
+                        order: 200,
+                    },
+                ],
+                [
+                    {
+                        component: DeleteShippingMethodsBulkAction,
+                    },
+                ],
             ]}
         >
             <ActionBarItem itemId="test-shipping-button">

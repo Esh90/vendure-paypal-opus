@@ -86,22 +86,25 @@ function FacetListPage() {
                 };
             }}
             bulkActions={[
-                {
-                    order: 100,
-                    component: AssignFacetsToChannelBulkAction,
-                },
-                {
-                    order: 200,
-                    component: RemoveFacetsFromChannelBulkAction,
-                },
-                {
-                    order: 300,
-                    component: DuplicateFacetsBulkAction,
-                },
-                {
-                    order: 400,
-                    component: DeleteFacetsBulkAction,
-                },
+                [
+                    {
+                        order: 100,
+                        component: AssignFacetsToChannelBulkAction,
+                    },
+                    {
+                        order: 200,
+                        component: RemoveFacetsFromChannelBulkAction,
+                    },
+                    {
+                        order: 300,
+                        component: DuplicateFacetsBulkAction,
+                    },
+                ],
+                [
+                    {
+                        component: DeleteFacetsBulkAction,
+                    },
+                ],
             ]}
             route={Route}
         >

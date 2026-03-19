@@ -37,7 +37,6 @@ function RouteComponent() {
                     onPageSizeChange={handlePageSizeChange}
                     bulkActions={[
                         {
-                            order: 10,
                             component: DeleteAssetsBulkAction,
                         },
                     ]}

@@ -10,7 +10,7 @@ import { Button } from '@/vdb/components/ui/button.js';
 import { Input } from '@/vdb/components/ui/input.js';
 import { Skeleton } from '@/vdb/components/ui/skeleton.js';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/vdb/components/ui/table.js';
-import { BulkAction } from '@/vdb/framework/extension-api/types/index.js';
+import { BulkActionsInput } from '@/vdb/framework/extension-api/types/index.js';
 import { useChannel } from '@/vdb/hooks/use-channel.js';
 import { usePage } from '@/vdb/hooks/use-page.js';
 import { useSavedViews } from '@/vdb/hooks/use-saved-views.js';
@@ -140,7 +140,7 @@ interface DataTableProps<TData> {
     defaultColumnVisibility?: VisibilityState;
     facetedFilters?: { [key: string]: FacetedFilter | undefined };
     disableViewOptions?: boolean;
-    bulkActions?: BulkAction[];
+    bulkActions?: BulkActionsInput;
     /**
      * @description
      * This property allows full control over _all_ features of TanStack Table

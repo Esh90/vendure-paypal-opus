@@ -79,7 +79,6 @@ function RoleListPage() {
             bulkActions={[
                 {
                     component: DeleteRolesBulkAction,
-                    order: 500,
                 },
             ]}
         >

@@ -44,7 +44,6 @@ function ZoneListPage() {
             bulkActions={[
                 {
                     component: DeleteZonesBulkAction,
-                    order: 500,
                 },
             ]}
         >

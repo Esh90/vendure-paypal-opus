@@ -35,18 +35,21 @@ function StockLocationListPage() {
                 };
             }}
             bulkActions={[
-                {
-                    component: AssignStockLocationsToChannelBulkAction,
-                    order: 100,
-                },
-                {
-                    component: RemoveStockLocationsFromChannelBulkAction,
-                    order: 200,
-                },
-                {
-                    component: DeleteStockLocationsBulkAction,
-                    order: 500,
-                },
+                [
+                    {
+                        component: AssignStockLocationsToChannelBulkAction,
+                        order: 100,
+                    },
+                    {
+                        component: RemoveStockLocationsFromChannelBulkAction,
+                        order: 200,
+                    },
+                ],
+                [
+                    {
+                        component: DeleteStockLocationsBulkAction,
+                    },
+                ],
             ]}
         >
             <ActionBarItem itemId="create-button" requiresPermission={['CreateStockLocation']}>

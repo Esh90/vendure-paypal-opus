@@ -44,18 +44,21 @@ function OptionGroupListPage() {
                 };
             }}
             bulkActions={[
-                {
-                    order: 100,
-                    component: AssignOptionGroupsToChannelBulkAction,
-                },
-                {
-                    order: 200,
-                    component: RemoveOptionGroupsFromChannelBulkAction,
-                },
-                {
-                    order: 300,
-                    component: DeleteOptionGroupsBulkAction,
-                },
+                [
+                    {
+                        order: 100,
+                        component: AssignOptionGroupsToChannelBulkAction,
+                    },
+                    {
+                        order: 200,
+                        component: RemoveOptionGroupsFromChannelBulkAction,
+                    },
+                ],
+                [
+                    {
+                        component: DeleteOptionGroupsBulkAction,
+                    },
+                ],
             ]}
             route={Route}
         >

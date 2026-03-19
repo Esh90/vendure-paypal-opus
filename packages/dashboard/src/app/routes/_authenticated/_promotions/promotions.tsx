@@ -60,22 +60,25 @@ function PromotionListPage() {
                 },
             }}
             bulkActions={[
-                {
-                    order: 100,
-                    component: AssignPromotionsToChannelBulkAction,
-                },
-                {
-                    order: 200,
-                    component: RemovePromotionsFromChannelBulkAction,
-                },
-                {
-                    order: 300,
-                    component: DuplicatePromotionsBulkAction,
-                },
-                {
-                    order: 400,
-                    component: DeletePromotionsBulkAction,
-                },
+                [
+                    {
+                        order: 100,
+                        component: AssignPromotionsToChannelBulkAction,
+                    },
+                    {
+                        order: 200,
+                        component: RemovePromotionsFromChannelBulkAction,
+                    },
+                    {
+                        order: 300,
+                        component: DuplicatePromotionsBulkAction,
+                    },
+                ],
+                [
+                    {
+                        component: DeletePromotionsBulkAction,
+                    },
+                ],
             ]}
         >
             <ActionBarItem itemId="create-button" requiresPermission={['CreatePromotion']}>

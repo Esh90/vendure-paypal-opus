@@ -3,10 +3,13 @@ import { Button } from '@/vdb/components/ui/button.js';
 import {
     DropdownMenu,
     DropdownMenuContent,
+    DropdownMenuGroup,
     DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/vdb/components/ui/dropdown-menu.js';
-import { BulkAction } from '@/vdb/framework/extension-api/types/index.js';
+import { BulkActionsInput } from '@/vdb/framework/extension-api/types/index.js';
 import { useFloatingBulkActions } from '@/vdb/hooks/use-floating-bulk-actions.js';
 import { Trans } from '@lingui/react/macro';
 import { Table } from '@tanstack/react-table';
@@ -15,14 +18,14 @@ import { useRef } from 'react';
 
 interface DataTableBulkActionsProps<TData> {
     table: Table<TData>;
-    bulkActions: BulkAction[];
+    bulkActions: BulkActionsInput;
 }
 
 export function DataTableBulkActions<TData>({
     table,
     bulkActions,
 }: Readonly<DataTableBulkActionsProps<TData>>) {
-    const allBulkActions = useAllBulkActions(bulkActions);
+    const allBulkActionGroups = useAllBulkActions(bulkActions);
 
     // Cache to store selected items across page changes
     const selectedItemsCache = useRef<Map<string, TData>>(new Map());
@@ -59,6 +62,8 @@ export function DataTableBulkActions<TData>({
         return null;
     }
 
+    const hasActions = allBulkActionGroups.some(g => g.actions.length > 0);
+
     return (
         <div
             className="flex items-center gap-4 px-8 py-2 animate-in fade-in duration-200 fixed transform -translate-x-1/2 shadow-2xl bg-background rounded-md border z-50"
@@ -77,15 +82,26 @@ export function DataTableBulkActions<TData>({
                         <Trans>With selected...</Trans>
                         <ChevronDown className="ml-2 h-4 w-4" />
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="start">
-                    {allBulkActions.length > 0 ? (
-                        allBulkActions.map((action, index) => (
-                            <action.component
-                                key={`bulk-action-${index}`}
-                                selection={selection}
-                                table={table}
-                            />
-                        ))
+                <DropdownMenuContent align="start" className="min-w-56">
+                    {hasActions ? (
+                        allBulkActionGroups.map((group, groupIndex) => {
+                            if (group.actions.length === 0) return null;
+                            return (
+                                <div key={`group-${groupIndex}`}>
+                                    {groupIndex > 0 && <DropdownMenuSeparator />}
+                                    <DropdownMenuGroup>
+                                        {group.label && <DropdownMenuLabel>{group.label}</DropdownMenuLabel>}
+                                        {group.actions.map((action, index) => (
+                                            <action.component
+                                                key={`bulk-action-${groupIndex}-${index}`}
+                                                selection={selection}
+                                                table={table}
+                                            />
+                                        ))}
+                                    </DropdownMenuGroup>
+                                </div>
+                            );
+                        })
                     ) : (
                         <DropdownMenuItem className="text-muted-foreground" disabled>
                             <Trans>No actions available</Trans>

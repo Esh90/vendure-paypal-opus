@@ -36,7 +36,6 @@ function SellerListPage() {
             bulkActions={[
                 {
                     component: DeleteSellersBulkAction,
-                    order: 500,
                 },
             ]}
         >

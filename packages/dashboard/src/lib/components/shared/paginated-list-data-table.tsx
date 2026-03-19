@@ -7,7 +7,7 @@ import { useDebounce } from '@uidotdev/usehooks';
 
 import { addCustomFields } from '@/vdb/framework/document-introspection/add-custom-fields.js';
 import { includeOnlySelectedListFields } from '@/vdb/framework/document-introspection/include-only-selected-list-fields.js';
-import { BulkAction } from '@/vdb/framework/extension-api/types/index.js';
+import { BulkActionsInput } from '@/vdb/framework/extension-api/types/index.js';
 import { ResultOf } from '@/vdb/graphql/graphql.js';
 import { useExtendedListQuery } from '@/vdb/hooks/use-extended-list-query.js';
 import { TypedDocumentNode } from '@graphql-typed-document-node/core';
@@ -198,7 +198,7 @@ export interface PaginatedListDataTableProps<
     onColumnVisibilityChange?: (table: Table<any>, columnVisibility: VisibilityState) => void;
     facetedFilters?: FacetedFilterConfig<T>;
     rowActions?: RowAction<PaginatedListItemFields<T>>[];
-    bulkActions?: BulkAction[];
+    bulkActions?: BulkActionsInput;
     disableViewOptions?: boolean;
     transformData?: (data: PaginatedListItemFields<T>[]) => PaginatedListItemFields<T>[];
     setTableOptions?: (table: TableOptions<any>) => TableOptions<any>;

@@ -52,7 +52,6 @@ function CustomerGroupListPage() {
             bulkActions={[
                 {
                     component: DeleteCustomerGroupsBulkAction,
-                    order: 500,
                 },
             ]}
         >

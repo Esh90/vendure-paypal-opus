@@ -58,18 +58,21 @@ function PaymentMethodListPage() {
                 },
             }}
             bulkActions={[
-                {
-                    component: AssignPaymentMethodsToChannelBulkAction,
-                    order: 100,
-                },
-                {
-                    component: RemovePaymentMethodsFromChannelBulkAction,
-                    order: 200,
-                },
-                {
-                    component: DeletePaymentMethodsBulkAction,
-                    order: 500,
-                },
+                [
+                    {
+                        component: AssignPaymentMethodsToChannelBulkAction,
+                        order: 100,
+                    },
+                    {
+                        component: RemovePaymentMethodsFromChannelBulkAction,
+                        order: 200,
+                    },
+                ],
+                [
+                    {
+                        component: DeletePaymentMethodsBulkAction,
+                    },
+                ],
             ]}
         >
             <ActionBarItem itemId="create-button" requiresPermission={['CreatePaymentMethod']}>

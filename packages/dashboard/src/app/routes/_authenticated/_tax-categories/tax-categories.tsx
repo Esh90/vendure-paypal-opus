@@ -49,7 +49,6 @@ function TaxCategoryListPage() {
             bulkActions={[
                 {
                     component: DeleteTaxCategoriesBulkAction,
-                    order: 500,
                 },
             ]}
         >

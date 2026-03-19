@@ -61,7 +61,6 @@ function ChannelListPage() {
             bulkActions={[
                 {
                     component: DeleteChannelsBulkAction,
-                    order: 500,
                 },
             ]}
         >

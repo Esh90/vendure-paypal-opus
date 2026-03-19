@@ -99,7 +99,6 @@ function TaxRateListPage() {
             bulkActions={[
                 {
                     component: DeleteTaxRatesBulkAction,
-                    order: 500,
                 },
             ]}
         >

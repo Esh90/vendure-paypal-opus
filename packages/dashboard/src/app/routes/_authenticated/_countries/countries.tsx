@@ -52,7 +52,6 @@ function CountryListPage() {
             bulkActions={[
                 {
                     component: DeleteCountriesBulkAction,
-                    order: 500,
                 },
             ]}
         >

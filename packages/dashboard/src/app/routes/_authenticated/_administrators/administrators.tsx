@@ -84,7 +84,6 @@ function AdministratorListPage() {
             bulkActions={[
                 {
                     component: DeleteAdministratorsBulkAction,
-                    order: 500,
                 },
             ]}
         >

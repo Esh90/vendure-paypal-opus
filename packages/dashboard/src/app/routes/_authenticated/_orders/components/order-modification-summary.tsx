@@ -249,7 +249,7 @@ export function OrderModificationSummary({
                     <Trans>No modifications made</Trans>
                 </div>
             )}
-            <div className="mt-4 flex items-center gap-2">
+            <div className="mt-4 flex items-center gap-2" data-testid="recalculate-shipping-field">
                 <Checkbox
                     id="recalculate-shipping"
                     disabled={hasNoModifications}

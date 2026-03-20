@@ -64,7 +64,7 @@ function CollapsedSectionMenu({
                 sideOffset={4}
                 className="w-auto min-w-[8rem] p-1"
             >
-                <p className="px-2 py-1.5 text-sm font-semibold">
+                <p className="px-2 py-1.5 text-sm font-semibold" data-testid="sidebar-hover-title">
                     {i18n.t(item.title)}
                 </p>
                 <div className="bg-border my-1 h-px" />

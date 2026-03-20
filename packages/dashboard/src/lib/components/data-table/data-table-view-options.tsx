@@ -84,7 +84,7 @@ export function DataTableViewOptions<TData>({ table }: DataTableViewOptionsProps
         <div className="flex items-center gap-2">
             <DropdownMenu modal={false}>
                 <Tooltip>
-                    <TooltipTrigger render={<DropdownMenuTrigger render={<Button variant="outline" size="icon-sm" className="ml-auto hidden lg:flex" />} />}>
+                    <TooltipTrigger render={<DropdownMenuTrigger render={<Button variant="outline" size="icon-sm" className="ml-auto hidden lg:flex" data-testid="dt-column-settings-trigger" />} />}>
                                 <Settings2 />
                     </TooltipTrigger>
                     <TooltipContent>

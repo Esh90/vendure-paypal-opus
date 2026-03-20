@@ -98,7 +98,7 @@ test.describe('product variant generation', () => {
         await expect(page.locator('table')).toBeVisible();
 
         // Each variant row should have a SKU input
-        const skuInputs = page.locator('table input[placeholder="SKU"]');
+        const skuInputs = page.getByTestId('variant-sku-input');
         await expect(skuInputs).toHaveCount(3);
     });
 
@@ -109,12 +109,12 @@ test.describe('product variant generation', () => {
         });
 
         // Fill in SKU and stock for each variant row
-        const skuInputs = page.locator('table input[placeholder="SKU"]');
+        const skuInputs = page.getByTestId('variant-sku-input');
         await skuInputs.nth(0).fill('EVTP-SM');
         await skuInputs.nth(1).fill('EVTP-MD');
         await skuInputs.nth(2).fill('EVTP-LG');
 
-        const stockInputs = page.locator('table input[type="number"]');
+        const stockInputs = page.getByTestId('variant-stock-input');
         await stockInputs.nth(0).fill('10');
         await stockInputs.nth(1).fill('10');
         await stockInputs.nth(2).fill('10');
@@ -240,12 +240,7 @@ test.describe('manage product variants', () => {
 
         // Click the delete button (trash icon) on the last variant row
         const lastRow = table.locator('tbody tr').last();
-        await lastRow
-            .getByRole('button')
-            .filter({
-                has: page.locator('svg.text-destructive'),
-            })
-            .click();
+        await lastRow.getByTestId('variant-delete-btn').click();
 
         // The confirmation dialog should appear (AlertDialog, not native window.confirm)
         const alertDialog = page.locator('[role="alertdialog"]');

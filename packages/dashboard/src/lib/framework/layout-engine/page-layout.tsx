@@ -602,7 +602,7 @@ function EntityInfoDropdown({ entity }: Readonly<{ entity: any }>) {
 
     return (
         <DropdownMenu>
-            <DropdownMenuTrigger render={<Button variant="ghost" size="icon" className="text-muted-foreground" />}>
+            <DropdownMenuTrigger render={<Button variant="ghost" size="icon" className="text-muted-foreground" data-testid="entity-info-trigger" />}>
                     <InfoIcon className="w-4 h-4" />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-64">
@@ -730,7 +730,7 @@ function PageActionBarDropdown({
 }: Readonly<{ items: DashboardActionBarItem[]; page: PageContextValue }>) {
     return (
         <DropdownMenu>
-            <DropdownMenuTrigger render={<Button variant="ghost" size="icon" />}>
+            <DropdownMenuTrigger render={<Button variant="ghost" size="icon" data-testid="action-bar-dropdown-trigger" />}>
                     <EllipsisVerticalIcon className="w-4 h-4" />
             </DropdownMenuTrigger>
             <DropdownMenuContent>

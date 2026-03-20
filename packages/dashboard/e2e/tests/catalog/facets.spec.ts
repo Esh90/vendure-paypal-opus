@@ -70,7 +70,7 @@ test.describe('Facet values', () => {
         if (await editSlugButton.isVisible({ timeout: 2_000 }).catch(() => false)) {
             await editSlugButton.click();
         }
-        await codeField.locator('input').fill('e2e-test-value');
+        await codeField.getByRole('textbox').fill('e2e-test-value');
 
         // Click Create
         await page.getByRole('button', { name: 'Create', exact: true }).click();

@@ -152,6 +152,7 @@ export const RefundOrderDialog = forwardRef<RefundOrderDialogRef, RefundOrderDia
                                                             max={maxRefundable}
                                                             value={selection?.quantity || ''}
                                                             placeholder="0"
+                                                            data-testid="refund-quantity"
                                                             onChange={e => {
                                                                 const value = Math.min(
                                                                     Math.max(0, Number.parseInt(e.target.value, 10) || 0),

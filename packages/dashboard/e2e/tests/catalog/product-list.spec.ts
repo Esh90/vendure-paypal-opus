@@ -205,9 +205,7 @@ test.describe('Product List', () => {
 
         // The column settings trigger is the gear icon (Settings2) in the data table toolbar.
         // We exclude sidebar buttons (which also use Settings2) via :not([data-sidebar]).
-        const columnSettingsTrigger = page.locator('button:not([data-sidebar])').filter({
-            has: page.locator('svg.lucide-settings2'),
-        });
+        const columnSettingsTrigger = page.getByTestId('dt-column-settings-trigger');
         await columnSettingsTrigger.click();
 
         const dropdownContent = page.locator('[data-slot="dropdown-menu-content"]');

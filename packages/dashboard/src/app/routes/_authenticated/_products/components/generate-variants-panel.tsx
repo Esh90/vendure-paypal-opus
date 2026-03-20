@@ -230,7 +230,7 @@ export function GenerateVariantsPanel({
                                         name={`variants.${variant.id}.sku`}
                                         render={({ field, fieldState }) => (
                                             <Field data-invalid={fieldState.invalid || undefined}>
-                                                <Input {...field} placeholder="SKU" />
+                                                <Input {...field} placeholder="SKU" data-testid="variant-sku-input" />
                                                 {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                                             </Field>
                                         )}
@@ -270,6 +270,7 @@ export function GenerateVariantsPanel({
                                                     type="number"
                                                     min="0"
                                                     step="1"
+                                                    data-testid="variant-stock-input"
                                                 />
                                                 {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                                             </Field>

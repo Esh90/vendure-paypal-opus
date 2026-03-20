@@ -459,6 +459,7 @@ function ManageProductVariants() {
                                                     size="sm"
                                                     variant="ghost"
                                                     disabled={deleteVariantMutation.isPending}
+                                                    data-testid="variant-delete-btn"
                                                 >
                                                     <Trash2 className="h-4 w-4 text-destructive" />
                                                 </Button>

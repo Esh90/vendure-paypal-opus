@@ -187,16 +187,13 @@ test.describe('Orders', () => {
         // Base UI Checkbox separates the visual span[role="checkbox"] from the hidden
         // input[id], so getByRole('checkbox', { name }) can't resolve the label association.
         // Use the label text to find the containing element, then locate the checkbox within.
-        const recalculateCheckbox = page
-            .locator('label[for="recalculate-shipping"]')
-            .locator('..')
-            .getByRole('checkbox');
+        const recalculateCheckbox = page.getByTestId('recalculate-shipping-field').getByRole('checkbox');
         await expect(recalculateCheckbox).toBeVisible({ timeout: 10_000 });
         await expect(recalculateCheckbox).toBeChecked();
         await expect(recalculateCheckbox).toBeDisabled();
 
         // Make a modification (change quantity) to enable the checkbox
-        const quantityInput = page.locator('input[type="number"]').first();
+        const quantityInput = page.getByTestId('order-line-quantity').first();
         await quantityInput.fill('2');
 
         await expect(recalculateCheckbox).toBeEnabled();
@@ -230,7 +227,7 @@ test.describe('Orders', () => {
             await expect(dialog.getByRole('heading', { name: 'Fulfill order' })).toBeVisible();
 
             // The dialog should show order line items with quantity inputs
-            await expect(dialog.locator('input[type="number"]').first()).toBeVisible();
+            await expect(dialog.getByTestId('fulfill-quantity').first()).toBeVisible();
 
             // Submit the fulfillment
             await dialog.getByRole('button', { name: /Fulfill order/i }).click();
@@ -259,9 +256,7 @@ test.describe('Orders', () => {
             await expect(stateSection).toBeVisible({ timeout: 10_000 });
 
             // Click the ellipsis dropdown button next to the state badge
-            const dropdownTrigger = stateSection.locator('button').filter({
-                has: page.locator('svg.lucide-ellipsis-vertical'),
-            });
+            const dropdownTrigger = stateSection.getByTestId('state-transition-trigger');
             await dropdownTrigger.click();
 
             // Select "Transition to Shipped" from the dropdown
@@ -299,12 +294,7 @@ test.describe('Orders', () => {
 
             // The "Refund & Cancel" option is in the page action bar dropdown
             // Open the more actions dropdown (ellipsis in the action bar)
-            const actionBarEllipsis = page
-                .locator('button')
-                .filter({
-                    has: page.locator('svg.lucide-ellipsis-vertical'),
-                })
-                .first();
+            const actionBarEllipsis = page.getByTestId('action-bar-dropdown-trigger');
             await expect(actionBarEllipsis).toBeVisible({ timeout: 10_000 });
             await actionBarEllipsis.click();
 
@@ -322,7 +312,7 @@ test.describe('Orders', () => {
             await expect(dialog.getByText(/Refund/i).first()).toBeVisible();
 
             // The dialog should show order line items
-            await expect(dialog.locator('input[type="number"]').first()).toBeVisible();
+            await expect(dialog.getByTestId('refund-quantity').first()).toBeVisible();
 
             // The dialog should have a reason selector
             await expect(dialog.getByText('Reason', { exact: true })).toBeVisible();
@@ -344,12 +334,7 @@ test.describe('Orders', () => {
             });
 
             // Open the refund dialog via action bar dropdown
-            const actionBarEllipsis = page
-                .locator('button')
-                .filter({
-                    has: page.locator('svg.lucide-ellipsis-vertical'),
-                })
-                .first();
+            const actionBarEllipsis = page.getByTestId('action-bar-dropdown-trigger');
             await expect(actionBarEllipsis).toBeVisible({ timeout: 10_000 });
             await actionBarEllipsis.click();
 
@@ -363,7 +348,7 @@ test.describe('Orders', () => {
             await expect(dialog).toBeVisible({ timeout: 5_000 });
 
             // Set refund quantity to 1 for the first line item
-            const quantityInput = dialog.locator('input[type="number"]').first();
+            const quantityInput = dialog.getByTestId('refund-quantity').first();
             await quantityInput.fill('1');
 
             // Select a refund reason

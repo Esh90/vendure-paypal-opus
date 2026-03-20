@@ -93,7 +93,7 @@ test.describe('Product detail features', () => {
 
         // The rich text editor renders a ProseMirror container with a toolbar
         // Look for the editor toolbar (formatting buttons) or the editable area
-        const editorContainer = page.locator('.tiptap, .ProseMirror, [contenteditable="true"]');
+        const editorContainer = page.getByTestId('rich-text-editor');
         await expect(editorContainer.first()).toBeVisible({ timeout: 5_000 });
     });
 

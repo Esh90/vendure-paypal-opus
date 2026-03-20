@@ -254,7 +254,7 @@ function getRowActions(
         cell: ({ row, table }) => {
             return (
                 <DropdownMenu>
-                    <DropdownMenuTrigger render={<Button variant="ghost" size="icon" />}>
+                    <DropdownMenuTrigger render={<Button variant="ghost" size="icon" data-testid="dt-row-actions-trigger" />}>
                             <EllipsisIcon />
                     </DropdownMenuTrigger>
                     <DropdownMenuContent className="min-w-56">

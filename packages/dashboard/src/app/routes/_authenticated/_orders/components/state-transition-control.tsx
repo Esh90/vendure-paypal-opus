@@ -60,6 +60,7 @@ export function StateTransitionControl({
                             size="sm"
                             disabled={isLoading}
                             className={cn('rounded-l-none border-l-0 shadow-none', 'bg-background')}
+                            data-testid="state-transition-trigger"
                         />}>
                         <EllipsisVertical className="h-4 w-4" />
                     </DropdownMenuTrigger>

@@ -97,8 +97,7 @@ export class BaseListPage {
     /** Open the row-level action menu (ellipsis) for a specific row index, then click "Delete" and confirm. */
     async deleteRowByIndex(rowIndex: number) {
         const row = this.getRows().nth(rowIndex);
-        // The ellipsis trigger is the last button in the row
-        await row.locator('button').last().click();
+        await row.getByTestId('dt-row-actions-trigger').click();
         await this.page.locator('[role="menu"]').getByText('Delete', { exact: true }).click();
         // Confirm in the AlertDialog
         await this.page.locator('[role="alertdialog"]').getByRole('button', { name: 'Delete' }).click();
@@ -138,39 +137,12 @@ export class BaseListPage {
 
     /** Open the column settings dropdown (gear icon in the toolbar). */
     async openColumnSettings() {
-        await this.page
-            .locator('button:not([data-sidebar])')
-            .filter({
-                has: this.page.locator('svg.lucide-settings2'),
-            })
-            .click();
+        await this.page.getByTestId('dt-column-settings-trigger').click();
     }
 
-    /**
-     * Open the add filter dropdown menu (filter icon in the toolbar).
-     * Distinguishes from faceted filter buttons (which have visible text like "Facet values")
-     * by selecting only icon-only buttons with the filter icon.
-     */
+    /** Open the add filter dropdown menu (filter icon in the toolbar). */
     async openAddFilterMenu() {
-        // All buttons with the lucide filter icon
-        const filterButtons = this.page
-            .locator('button')
-            .filter({ has: this.page.locator('svg.lucide-filter') });
-
-        // The icon-only add filter button has no visible text,
-        // while faceted filter buttons have labels like "Facet values".
-        // Find the one without word-character text content.
-        const count = await filterButtons.count();
-        for (let i = 0; i < count; i++) {
-            const btn = filterButtons.nth(i);
-            const text = await btn.innerText();
-            if (!text.trim()) {
-                await btn.click();
-                return;
-            }
-        }
-        // Fallback: click the last filter-icon button
-        await filterButtons.last().click();
+        await this.page.getByTestId('dt-add-filter-trigger').click();
     }
 
     /** Wait for a success toast to appear (handles both toast.success and toast with text). */

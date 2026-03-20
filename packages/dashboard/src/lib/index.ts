@@ -318,6 +318,7 @@ export * from './hooks/use-ui-language-loader.js';
 export * from './hooks/use-user-settings.js';
 export * from './hooks/use-widget-dimensions.js';
 export * from './hooks/use-widget-filters.js';
+export * from './lib/form.js';
 export * from './lib/i18n.js';
 export * from './lib/icons.js';
 export * from './lib/load-i18n-messages.js';

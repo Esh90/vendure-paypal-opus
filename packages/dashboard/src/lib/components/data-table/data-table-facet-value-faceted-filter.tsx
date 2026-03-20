@@ -17,10 +17,10 @@ import {
     getFacetValueListDocument,
     useFacetValueBrowser,
 } from '@/vdb/hooks/use-facet-value-browser.js';
-import { cn } from '@/vdb/lib/utils.js';
+import { Checkbox } from '@/vdb/components/ui/checkbox.js';
 import { Trans, useLingui } from '@lingui/react/macro';
 import { useQuery } from '@tanstack/react-query';
-import { Check, ChevronRight, FilterIcon, Loader2 } from 'lucide-react';
+import { ChevronRight, FilterIcon, Loader2 } from 'lucide-react';
 import React, { useState } from 'react';
 import { DataTableFacetedFilterProps } from './data-table-faceted-filter.js';
 
@@ -292,15 +292,10 @@ export function FacetValueFacetedFilter<TData, TValue>({
 
 function FacetValueCheckbox({ isSelected }: { isSelected: boolean }) {
     return (
-        <div
-            className={cn(
-                'mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary',
-                isSelected
-                    ? 'bg-primary text-primary-foreground'
-                    : 'opacity-50 [&_svg]:invisible',
-            )}
-        >
-            <Check />
-        </div>
+        <Checkbox
+            checked={isSelected}
+            className="mr-2 pointer-events-none"
+            tabIndex={-1}
+        />
     );
 }

@@ -33,9 +33,11 @@ async function goToFirstProduct(page: Page) {
     await lp.search('Laptop');
     await lp.clickEntity('Laptop');
     await expect(page).toHaveURL(/\/products\/[^/]+$/);
-    // Wait for the entity data to load into the form (product name field populated)
+    // Wait for entity data AND custom fields to fully load before interacting.
+    // Custom fields load via separate async queries after the main product data.
     const dp = detailPage(page);
     await expect(dp.formItem('Product name').getByRole('textbox')).toHaveValue('Laptop', { timeout: 10_000 });
+    await page.waitForLoadState('networkidle');
 }
 
 /**

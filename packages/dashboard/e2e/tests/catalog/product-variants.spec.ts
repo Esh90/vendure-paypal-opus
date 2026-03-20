@@ -139,16 +139,16 @@ test.describe('product variant generation', () => {
 
         // The variants table should now show the generated variants (may need scrolling)
         // Variant names follow the pattern: "ProductName OptionName"
-        const variantLink = page.getByRole('link', { name: /E2E Variant Test Product Small/i });
+        const variantLink = page.getByRole('button', { name: /E2E Variant Test Product Small/i });
         await variantLink.scrollIntoViewIfNeeded();
         await expect(variantLink).toBeVisible({ timeout: 10_000 });
 
         // Verify multiple variants exist
-        await expect(page.getByRole('link', { name: /E2E Variant Test Product Medium/i })).toBeVisible();
-        await expect(page.getByRole('link', { name: /E2E Variant Test Product Large/i })).toBeVisible();
+        await expect(page.getByRole('button', { name: /E2E Variant Test Product Medium/i })).toBeVisible();
+        await expect(page.getByRole('button', { name: /E2E Variant Test Product Large/i })).toBeVisible();
 
         // The "Manage variants" link should be visible
-        const manageLink = page.getByRole('link', { name: /Manage variants/i });
+        const manageLink = page.getByRole('button', { name: /Manage variants/i });
         await manageLink.scrollIntoViewIfNeeded();
         await expect(manageLink).toBeVisible();
     });

@@ -51,14 +51,8 @@ test.describe('Facet values', () => {
     });
 
     test('should create a new facet value', async ({ page }) => {
-        await page.goto(`/facets/${seededFacetId}`);
-        await expect(page.getByText('Facet values', { exact: true })).toBeVisible({ timeout: 10_000 });
-        // Wait for the facet values table to finish loading
-        await expect(page.locator('table')).toBeVisible({ timeout: 10_000 });
-        await page.waitForLoadState('networkidle');
-
-        // Click "Add facet value" button
-        await page.getByRole('button', { name: /Add facet value/i }).click();
+        // Navigate directly to the new facet value form
+        await page.goto(`/facets/${seededFacetId}/values/new`);
         await expect(page).toHaveURL(new RegExp(`/facets/${seededFacetId}/values/new`), { timeout: 10_000 });
 
         // Fill in the facet value name

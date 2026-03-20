@@ -82,6 +82,8 @@ test.describe('Global Settings', () => {
         await expect(page.getByRole('heading', { level: 1, name: 'Global Settings' })).toBeVisible({
             timeout: 10_000,
         });
+        // Wait for form data to fully load before reading switch state
+        await page.waitForLoadState('networkidle');
 
         // Find the track inventory switch via its label
         const trackField = page.locator('[data-slot="field"]').filter({
@@ -109,6 +111,7 @@ test.describe('Global Settings', () => {
         await expect(page.getByRole('heading', { level: 1, name: 'Global Settings' })).toBeVisible({
             timeout: 10_000,
         });
+        await page.waitForLoadState('networkidle');
 
         const reloadedField = page.locator('[data-slot="field"]').filter({
             has: page

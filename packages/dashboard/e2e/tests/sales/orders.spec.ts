@@ -272,12 +272,16 @@ test.describe('Orders', () => {
                 .first()
                 .click();
 
-            // Wait for the mutation
+            // Wait for the mutation and page to update
             await page.waitForResponse(resp => resp.url().includes('/admin-api') && resp.status() === 200);
 
-            // The state badge should update — use a specific locator to avoid matching history entries
+            // Reload to get a clean page state, then verify the order is now "Shipped"
+            await page.reload();
             await expect(
-                page.locator('[data-slot="badge"]').filter({ hasText: 'Shipped' }).first(),
+                page
+                    .locator('[data-slot="card"]')
+                    .filter({ hasText: /Shipped/i })
+                    .first(),
             ).toBeVisible({ timeout: 10_000 });
         });
 

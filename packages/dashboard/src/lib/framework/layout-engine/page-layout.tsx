@@ -808,7 +808,7 @@ export function PageBlock({
                             {description && <CardDescription>{description}</CardDescription>}
                         </CardHeader>
                     ) : null}
-                    <CardContent className={cn(!title ? 'pt-6' : '', '')}>{children}</CardContent>
+                    <CardContent>{children}</CardContent>
                 </Card>
             </LocationWrapper>
         </PageBlockContext.Provider>

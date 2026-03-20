@@ -75,7 +75,7 @@ export function StateTransitionControl({
                         />}>
                         <EllipsisVertical className="h-4 w-4" />
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
+                    <DropdownMenuContent align="end" className="min-w-48">
                         {actions.map((action, index) => {
                             return (
                                 <DropdownMenuItem

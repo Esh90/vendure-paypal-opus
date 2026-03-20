@@ -57,7 +57,7 @@ describe('ListQueryBuilder Optimization Benchmark', () => {
     beforeAll(async () => {
         await server.init({
             initialData,
-            productsCsvPath: path.join(__dirname, 'fixtures/e2e-products-full.csv'),
+            productsCsvPath: path.join(__dirname, 'fixtures/e2e-products-minimal.csv'),
             customerCount: 1,
         });
         await adminClient.asSuperAdmin();

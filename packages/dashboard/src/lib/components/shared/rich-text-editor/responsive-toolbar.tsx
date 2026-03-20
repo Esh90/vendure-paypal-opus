@@ -24,7 +24,6 @@ import {
     DropdownMenuTrigger,
 } from '../../ui/dropdown-menu.js';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../ui/select.js';
-import { Separator } from '../../ui/separator.js';
 import { ImageDialog } from './image-dialog.js';
 import { LinkDialog } from './link-dialog.js';
 
@@ -330,11 +329,10 @@ export function ResponsiveToolbar({ editor, disabled }: Readonly<ResponsiveToolb
             const toolbar = toolbarRef.current;
             const toolbarWidth = toolbar.clientWidth;
             const headingSelectWidth = 130; // Fixed width for heading select
-            const separatorWidth = 20; // Approximate separator width
             const overflowButtonWidth = 40; // Width for overflow button
             const padding = 16; // Toolbar padding
 
-            let usedWidth = headingSelectWidth + separatorWidth + padding;
+            let usedWidth = headingSelectWidth + padding;
             const visible: string[] = [];
             const overflow: string[] = [];
 
@@ -390,19 +388,17 @@ export function ResponsiveToolbar({ editor, disabled }: Readonly<ResponsiveToolb
                 onValueChange={value => value != null && handleHeadingChange(value)}
                 disabled={disabled}
             >
-                <SelectTrigger className="h-8 w-[130px]">
+                <SelectTrigger size="sm" className="w-[130px] py-1">
                     <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                     {headingOptions.map(option => (
                         <SelectItem key={option.value} value={option.value}>
-                            <span className="text-xs">{option.label}</span>
+                            {option.label}
                         </SelectItem>
                     ))}
                 </SelectContent>
             </Select>
-
-            <Separator orientation="vertical" className="mx-1 h-6" />
 
             {visibleElements}
 

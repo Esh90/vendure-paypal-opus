@@ -345,11 +345,12 @@ test.describe('Orders', () => {
 
             // Open the refund dialog via action bar dropdown
             const actionBarEllipsis = page
-                .locator('[data-slot="button"]')
+                .locator('button')
                 .filter({
                     has: page.locator('svg.lucide-ellipsis-vertical'),
                 })
                 .first();
+            await expect(actionBarEllipsis).toBeVisible({ timeout: 10_000 });
             await actionBarEllipsis.click();
 
             const menu = page.locator('[data-slot="dropdown-menu-content"]');

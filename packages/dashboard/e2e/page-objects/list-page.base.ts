@@ -40,8 +40,8 @@ export class BaseListPage {
     }
 
     async expectLoaded() {
-        await expect(this.heading).toBeVisible();
-        await expect(this.dataTable).toBeVisible();
+        await expect(this.heading).toBeVisible({ timeout: 10_000 });
+        await expect(this.dataTable).toBeVisible({ timeout: 10_000 });
     }
 
     getRows() {

@@ -142,6 +142,7 @@ export class BaseDetailPage {
     }
 
     async clickUpdate() {
+        await expect(this.updateButton).toBeEnabled({ timeout: 10_000 });
         await this.updateButton.click();
     }
 

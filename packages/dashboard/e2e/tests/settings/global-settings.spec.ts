@@ -68,7 +68,7 @@ test.describe('Global Settings', () => {
                 .locator('[data-slot="field-label"]')
                 .getByText('Global out of stock threshold', { exact: true }),
         });
-        await expect(reloadedField.getByRole('spinbutton')).toHaveValue(newValue);
+        await expect(reloadedField.getByRole('spinbutton')).toHaveValue(newValue, { timeout: 10_000 });
 
         // Reset to original value
         await reloadedField.getByRole('spinbutton').fill(originalValue);

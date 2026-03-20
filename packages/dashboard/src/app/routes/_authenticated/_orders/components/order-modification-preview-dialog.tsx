@@ -280,7 +280,7 @@ export function OrderModificationPreviewDialog({
                                                             )}
                                                         </span>
                                                         {isRefundComplete && (
-                                                            <CheckIcon className="h-4 w-4 text-green-600" />
+                                                            <CheckIcon className="h-4 w-4 text-success" />
                                                         )}
                                                     </div>
                                                     {!isRefundComplete && (

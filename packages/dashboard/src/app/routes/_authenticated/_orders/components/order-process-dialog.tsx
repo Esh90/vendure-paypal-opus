@@ -26,14 +26,14 @@ const stateColors: Record<StateType, { bg: string; border: string; text: string 
         text: 'text-foreground',
     },
     success: {
-        bg: 'bg-green-50 dark:bg-green-950/30',
-        border: 'border-green-300 dark:border-green-800',
-        text: 'text-green-700 dark:text-green-400',
+        bg: 'bg-success/10',
+        border: 'border-success/30',
+        text: 'text-success',
     },
     destructive: {
-        bg: 'bg-red-50 dark:bg-red-950/30',
-        border: 'border-red-300 dark:border-red-800',
-        text: 'text-red-700 dark:text-red-400',
+        bg: 'bg-destructive/10',
+        border: 'border-destructive/30',
+        text: 'text-destructive',
     },
 };
 

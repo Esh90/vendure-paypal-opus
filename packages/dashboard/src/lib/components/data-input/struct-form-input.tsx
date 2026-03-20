@@ -170,7 +170,7 @@ export function StructFormInput({ fieldDef, disabled, ...field }: Readonly<Dashb
         switch (structField.type) {
             case 'boolean':
                 return (
-                    <span className={`inline-flex items-center ${value ? 'text-green-600' : 'text-red-500'}`}>
+                    <span className={`inline-flex items-center ${value ? 'text-success' : 'text-destructive'}`}>
                         {value ? <CheckIcon className="h-4 w-4" /> : <X className="h-4 w-4" />}
                     </span>
                 );

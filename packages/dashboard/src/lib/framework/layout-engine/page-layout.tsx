@@ -600,7 +600,7 @@ function EntityInfoDropdown({ entity }: Readonly<{ entity: any }>) {
                                 className="p-1 hover:bg-muted rounded-sm transition-colors"
                             >
                                 {copiedField === 'id' ? (
-                                    <CheckIcon className="h-3 w-3 text-green-500" />
+                                    <CheckIcon className="h-3 w-3 text-success" />
                                 ) : (
                                     <CopyIcon className="h-3 w-3" />
                                 )}

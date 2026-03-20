@@ -48,7 +48,7 @@ export function HistoryNoteEntry(props: HistoryNoteEntryProps) {
                                 <Separator className="my-1" />
                                 <DropdownMenuItem
                                     onClick={() => onDeleteNote(entry.id)}
-                                    className="cursor-pointer text-red-600 focus:text-red-600"
+                                    className="cursor-pointer text-destructive focus:text-destructive"
                                 >
                                     <TrashIcon className="mr-2 h-4 w-4" />
                                     <span>Delete</span>

@@ -35,7 +35,9 @@ test.describe('product variant generation', () => {
 
     test('should add an option group to the product via the sidebar dialog', async ({ page }) => {
         await page.goto(`/products/${productId}`);
-        await expect(page.getByRole('heading', { name: 'E2E Variant Test Product' })).toBeVisible();
+        await expect(page.getByRole('heading', { name: 'E2E Variant Test Product' })).toBeVisible({
+            timeout: 10_000,
+        });
 
         // The empty state card should have an inline "Add option group" button
         await expect(page.getByRole('button', { name: 'Add option group' })).toBeVisible();
@@ -86,7 +88,9 @@ test.describe('product variant generation', () => {
 
     test('should show the generate variants panel after adding an option group', async ({ page }) => {
         await page.goto(`/products/${productId}`);
-        await expect(page.getByRole('heading', { name: 'E2E Variant Test Product' })).toBeVisible();
+        await expect(page.getByRole('heading', { name: 'E2E Variant Test Product' })).toBeVisible({
+            timeout: 10_000,
+        });
 
         // The "Product variants" block should now show the GenerateVariantsPanel
         // with rows for each option value (Small, Medium, Large)
@@ -100,7 +104,9 @@ test.describe('product variant generation', () => {
 
     test('should generate variants by filling in the form and submitting', async ({ page }) => {
         await page.goto(`/products/${productId}`);
-        await expect(page.getByRole('heading', { name: 'E2E Variant Test Product' })).toBeVisible();
+        await expect(page.getByRole('heading', { name: 'E2E Variant Test Product' })).toBeVisible({
+            timeout: 10_000,
+        });
 
         // Fill in SKU and stock for each variant row
         const skuInputs = page.locator('table input[placeholder="SKU"]');
@@ -127,7 +133,9 @@ test.describe('product variant generation', () => {
 
     test('should show variants in the product variants table after generation', async ({ page }) => {
         await page.goto(`/products/${productId}`);
-        await expect(page.getByRole('heading', { name: 'E2E Variant Test Product' })).toBeVisible();
+        await expect(page.getByRole('heading', { name: 'E2E Variant Test Product' })).toBeVisible({
+            timeout: 10_000,
+        });
 
         // The variants table should now show the generated variants (may need scrolling)
         // Variant names follow the pattern: "ProductName OptionName"

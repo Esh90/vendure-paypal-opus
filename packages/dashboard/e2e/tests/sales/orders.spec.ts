@@ -432,7 +432,10 @@ async function createFulfilledOrder(client: VendureAdminClient): Promise<string>
                 })),
                 handler: {
                     code: fulfillmentHandlers[0].code,
-                    arguments: [],
+                    arguments: [
+                        { name: 'method', value: 'test-method' },
+                        { name: 'trackingCode', value: '' },
+                    ],
                 },
             },
         },

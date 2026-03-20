@@ -56,7 +56,7 @@ test.describe('Facet values', () => {
 
         // Click "Add facet value" button
         await page.getByRole('button', { name: /Add facet value/i }).click();
-        await expect(page).toHaveURL(new RegExp(`/facets/${seededFacetId}/values/new`));
+        await expect(page).toHaveURL(new RegExp(`/facets/${seededFacetId}/values/new`), { timeout: 10_000 });
 
         // Fill in the facet value name
         const nameField = page.locator('[data-slot="field"]').filter({

@@ -25,7 +25,7 @@ const detailPage = (page: Page) =>
         newTitle: 'New product',
     });
 
-/** Navigate to the first seeded product's detail page. */
+/** Navigate to the first seeded product's detail page and wait for the form to load. */
 async function goToFirstProduct(page: Page) {
     const lp = listPage(page);
     await lp.goto();
@@ -33,6 +33,8 @@ async function goToFirstProduct(page: Page) {
     await lp.search('Laptop');
     await lp.clickEntity('Laptop');
     await expect(page).toHaveURL(/\/products\/[^/]+$/);
+    // Wait for the detail form to fully load before interacting
+    await expect(page.getByRole('button', { name: 'Update', exact: true })).toBeVisible({ timeout: 10_000 });
 }
 
 /**

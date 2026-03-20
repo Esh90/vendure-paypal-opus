@@ -153,6 +153,7 @@ test.describe('Product List', () => {
             await facetFilterButton.click();
 
             const popover = page.locator('[data-slot="popover-content"]');
+            await expect(popover).toBeVisible({ timeout: 5_000 });
             await popover.getByRole('option', { name: 'category' }).click();
             await popover.getByRole('option', { name: 'electronics' }).click();
             await page.waitForResponse(resp => resp.url().includes('/admin-api') && resp.status() === 200);

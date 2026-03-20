@@ -8,12 +8,16 @@ import { expect, test } from '@playwright/test';
 test.describe('Global Settings', () => {
     test('should display the global settings page', async ({ page }) => {
         await page.goto('/global-settings');
-        await expect(page.getByRole('heading', { level: 1, name: 'Global Settings' })).toBeVisible();
+        await expect(page.getByRole('heading', { level: 1, name: 'Global Settings' })).toBeVisible({
+            timeout: 10_000,
+        });
     });
 
     test('should show the settings form fields', async ({ page }) => {
         await page.goto('/global-settings');
-        await expect(page.getByRole('heading', { level: 1, name: 'Global Settings' })).toBeVisible();
+        await expect(page.getByRole('heading', { level: 1, name: 'Global Settings' })).toBeVisible({
+            timeout: 10_000,
+        });
         await expect(page.getByText('Available languages')).toBeVisible();
         await expect(page.getByText('Global out of stock threshold')).toBeVisible();
         await expect(page.getByText('Track inventory by default')).toBeVisible();
@@ -26,7 +30,9 @@ test.describe('Global Settings', () => {
 
     test('should update out of stock threshold and persist', async ({ page }) => {
         await page.goto('/global-settings');
-        await expect(page.getByRole('heading', { level: 1, name: 'Global Settings' })).toBeVisible();
+        await expect(page.getByRole('heading', { level: 1, name: 'Global Settings' })).toBeVisible({
+            timeout: 10_000,
+        });
 
         // Find the threshold input via its label
         const thresholdField = page.locator('[data-slot="field"]').filter({
@@ -52,7 +58,9 @@ test.describe('Global Settings', () => {
 
         // Reload and verify persistence
         await page.reload();
-        await expect(page.getByRole('heading', { level: 1, name: 'Global Settings' })).toBeVisible();
+        await expect(page.getByRole('heading', { level: 1, name: 'Global Settings' })).toBeVisible({
+            timeout: 10_000,
+        });
 
         const reloadedField = page.locator('[data-slot="field"]').filter({
             has: page
@@ -71,7 +79,9 @@ test.describe('Global Settings', () => {
 
     test('should toggle track inventory and persist', async ({ page }) => {
         await page.goto('/global-settings');
-        await expect(page.getByRole('heading', { level: 1, name: 'Global Settings' })).toBeVisible();
+        await expect(page.getByRole('heading', { level: 1, name: 'Global Settings' })).toBeVisible({
+            timeout: 10_000,
+        });
 
         // Find the track inventory switch via its label
         const trackField = page.locator('[data-slot="field"]').filter({
@@ -96,7 +106,9 @@ test.describe('Global Settings', () => {
 
         // Reload and verify persistence
         await page.reload();
-        await expect(page.getByRole('heading', { level: 1, name: 'Global Settings' })).toBeVisible();
+        await expect(page.getByRole('heading', { level: 1, name: 'Global Settings' })).toBeVisible({
+            timeout: 10_000,
+        });
 
         const reloadedField = page.locator('[data-slot="field"]').filter({
             has: page

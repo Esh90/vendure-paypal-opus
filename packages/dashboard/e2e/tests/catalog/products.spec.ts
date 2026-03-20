@@ -46,10 +46,14 @@ test.describe('Product detail features', () => {
         ).toBeVisible();
 
         // Facet Values block
-        await expect(page.getByText('Facet Values')).toBeVisible();
+        await expect(
+            page.locator('[data-slot="card-title"]').getByText('Facet Values', { exact: true }),
+        ).toBeVisible();
 
         // Assets block
-        await expect(page.getByText('Assets')).toBeVisible();
+        await expect(
+            page.locator('[data-slot="card-title"]').getByText('Assets', { exact: true }),
+        ).toBeVisible();
     });
 
     test('should display product variants table', async ({ page }) => {

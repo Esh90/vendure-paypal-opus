@@ -13,7 +13,7 @@ import { cn } from '@/vdb/lib/utils.js';
 import { Trans, useLingui } from '@lingui/react/macro';
 import { ArrowRight, Workflow } from 'lucide-react';
 import { useMemo } from 'react';
-import { getTypeForState, type StateType } from './state-transition-control.js';
+import { getTypeForState, type StateType } from '@/vdb/utils/state-type.js';
 
 interface OrderProcessDialogProps {
     currentState: string;
@@ -29,6 +29,11 @@ const stateColors: Record<StateType, { bg: string; border: string; text: string 
         bg: 'bg-success/10',
         border: 'border-success/30',
         text: 'text-success',
+    },
+    warning: {
+        bg: 'bg-warning/10',
+        border: 'border-warning/30',
+        text: 'text-warning',
     },
     destructive: {
         bg: 'bg-destructive/10',

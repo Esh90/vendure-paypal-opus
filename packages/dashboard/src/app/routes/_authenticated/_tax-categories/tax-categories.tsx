@@ -40,7 +40,7 @@ function TaxCategoryListPage() {
                 },
                 isDefault: {
                     cell: ({ row }) => (
-                        <Badge variant={row.original.isDefault ? 'success' : 'destructive'}>
+                        <Badge variant={row.original.isDefault ? 'success' : 'secondary'}>
                             <Trans>{row.original.isDefault ? 'Yes' : 'No'}</Trans>
                         </Badge>
                     ),

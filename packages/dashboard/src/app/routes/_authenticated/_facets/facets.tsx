@@ -40,7 +40,7 @@ function FacetListPage() {
                     cell: ({ row }) => {
                         const isPrivate = row.original.isPrivate;
                         return (
-                            <Badge variant={isPrivate ? 'destructive' : 'success'}>
+                            <Badge variant={isPrivate ? 'warning' : 'success'}>
                                 {isPrivate ? <Trans>private</Trans> : <Trans>public</Trans>}
                             </Badge>
                         );

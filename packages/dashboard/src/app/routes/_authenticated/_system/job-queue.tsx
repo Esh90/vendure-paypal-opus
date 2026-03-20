@@ -164,13 +164,13 @@ function JobQueuePage() {
                             <div className="flex items-center gap-2">
                                 <Badge
                                     variant={
-                                        row.original.state === 'PENDING'
-                                            ? 'secondary'
+                                        row.original.state === 'PENDING' || row.original.state === 'RETRYING'
+                                            ? 'warning'
                                             : row.original.state === 'COMPLETED'
                                               ? 'success'
-                                              : row.original.state === 'FAILED'
+                                              : row.original.state === 'FAILED' || row.original.state === 'CANCELLED'
                                                 ? 'destructive'
-                                                : 'outline'
+                                                : 'secondary'
                                     }
                                 >
                                     {state && (

@@ -1,4 +1,5 @@
-import { LanguageCode, VendureConfig } from '@vendure/core';
+import { LanguageCode } from '@vendure/common/lib/generated-types';
+import type { VendureConfig } from '@vendure/core';
 import { Plugin } from 'vite';
 
 import { getUiConfig } from './utils/ui-config.js';

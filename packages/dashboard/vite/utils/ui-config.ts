@@ -3,7 +3,7 @@ import {
     DEFAULT_AUTH_TOKEN_HEADER_KEY,
     DEFAULT_CHANNEL_TOKEN_KEY,
 } from '@vendure/common/lib/shared-constants';
-import { VendureConfig } from '@vendure/core';
+import type { VendureConfig } from '@vendure/core';
 
 import {
     defaultAvailableLanguages,

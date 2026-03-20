@@ -42,7 +42,7 @@ export default defineConfig({
         },
     ],
     webServer: {
-        command: `npx vite --port ${VITE_PORT}`,
+        command: `npx vite build && npx vite preview --port ${VITE_PORT}`,
         port: VITE_PORT,
         cwd: path.join(__dirname, '..'),
         reuseExistingServer: !process.env.CI,

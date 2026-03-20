@@ -366,6 +366,10 @@ test.describe('Orders', () => {
             const quantityInput = dialog.locator('input[type="number"]').first();
             await quantityInput.fill('1');
 
+            // Select a refund reason
+            await dialog.getByRole('combobox').click();
+            await page.getByRole('option').first().click();
+
             // Select the first available payment for refund
             const paymentCheckbox = dialog.getByRole('checkbox').first();
             if (await paymentCheckbox.isVisible()) {

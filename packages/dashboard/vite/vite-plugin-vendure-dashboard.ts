@@ -202,7 +202,15 @@ export function vendureDashboardPlugin(options: VitePluginVendureDashboardOption
         },
         {
             key: 'lingui',
-            plugin: () => lingui({}),
+            plugin: () => {
+                const linguiPlugins = lingui({});
+                // Filter out the macro error reporter added in @lingui/vite-plugin 5.9+.
+                // It throws on resolveId before our custom linguiBabelPlugin can transform
+                // the macros away in its transform hook.
+                return (Array.isArray(linguiPlugins) ? linguiPlugins : [linguiPlugins]).filter(
+                    (p: any) => p?.name !== 'vite-plugin-lingui-report-macro-error',
+                );
+            },
         },
         {
             key: 'themeVariables',

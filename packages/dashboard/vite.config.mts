@@ -23,6 +23,9 @@ export default ({ mode }: { mode: string }) => {
               './sample-vendure-config.ts');
 
     return defineConfig({
+        optimizeDeps: {
+            include: ['lodash/get', 'lodash/isString', 'lodash/isNaN'],
+        },
         test: {
             globals: true,
             environment: 'jsdom',

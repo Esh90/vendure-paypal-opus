@@ -33,8 +33,9 @@ async function goToFirstProduct(page: Page) {
     await lp.search('Laptop');
     await lp.clickEntity('Laptop');
     await expect(page).toHaveURL(/\/products\/[^/]+$/);
-    // Wait for the detail form to fully load before interacting
-    await expect(page.getByRole('button', { name: 'Update', exact: true })).toBeVisible({ timeout: 10_000 });
+    // Wait for the entity data to load into the form (product name field populated)
+    const dp = detailPage(page);
+    await expect(dp.formItem('Product name').getByRole('textbox')).toHaveValue('Laptop', { timeout: 10_000 });
 }
 
 /**

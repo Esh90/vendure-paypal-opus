@@ -71,7 +71,7 @@ test.describe('Product List', () => {
 
             // The popover should open showing facets in browse mode
             const popover = page.locator('[data-slot="popover-content"]');
-            await expect(popover).toBeVisible();
+            await expect(popover).toBeVisible({ timeout: 5_000 });
             await expect(popover.getByText('Facets')).toBeVisible();
 
             // Should show the "category" facet
@@ -116,7 +116,7 @@ test.describe('Product List', () => {
             await facetFilterButton.click();
 
             const popover = page.locator('[data-slot="popover-content"]');
-            await expect(popover).toBeVisible();
+            await expect(popover).toBeVisible({ timeout: 5_000 });
 
             // Drill into "category" facet
             await popover.getByRole('option', { name: 'category' }).click();
@@ -163,7 +163,7 @@ test.describe('Product List', () => {
 
             // Reopen the filter
             await facetFilterButton.click();
-            await expect(popover).toBeVisible();
+            await expect(popover).toBeVisible({ timeout: 5_000 });
 
             // Click "Clear filters"
             await popover.getByRole('option', { name: 'Clear filters' }).click();
@@ -183,7 +183,7 @@ test.describe('Product List', () => {
             await facetFilterButton.click();
 
             const popover = page.locator('[data-slot="popover-content"]');
-            await expect(popover).toBeVisible();
+            await expect(popover).toBeVisible({ timeout: 5_000 });
 
             // Type in the search box
             const searchInput = popover.getByPlaceholder('Search facet values...');

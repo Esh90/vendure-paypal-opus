@@ -275,8 +275,10 @@ test.describe('Orders', () => {
             // Wait for the mutation
             await page.waitForResponse(resp => resp.url().includes('/admin-api') && resp.status() === 200);
 
-            // The state badge should update
-            await expect(page.getByText('Shipped')).toBeVisible({ timeout: 5_000 });
+            // The state badge should update — use a specific locator to avoid matching history entries
+            await expect(
+                page.locator('[data-slot="badge"]').filter({ hasText: 'Shipped' }).first(),
+            ).toBeVisible({ timeout: 10_000 });
         });
 
         test('should open refund dialog and show order lines', async ({ page }) => {

@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { pathToFileURL } from 'node:url';
 import path from 'path';
 import type { Plugin } from 'vite';

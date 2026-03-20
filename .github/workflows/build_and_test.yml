@@ -91,15 +91,6 @@ jobs:
         runs-on: ubuntu-latest
         permissions:
             contents: read
-        services:
-            postgres:
-                image: postgres:16
-                env:
-                    POSTGRES_USER: vendure
-                    POSTGRES_PASSWORD: password
-                ports:
-                    - 5432
-                options: --health-cmd=pg_isready --health-interval=10s --health-timeout=5s --health-retries=3
         strategy:
             fail-fast: false
             matrix:
@@ -125,9 +116,6 @@ jobs:
               run: npx playwright install-deps chromium
               working-directory: packages/dashboard
             - name: Dashboard e2e tests
-              env:
-                  DB: postgres
-                  E2E_DASHBOARD_POSTGRES_PORT: ${{ job.services.postgres.ports['5432'] }}
               run: npm run e2e:pw -- --shard=${{ matrix.shard }}/4
               working-directory: packages/dashboard
     sonarqube:

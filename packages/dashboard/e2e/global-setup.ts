@@ -2,14 +2,12 @@ import { mergeConfig } from '@vendure/core';
 import {
     createTestEnvironment,
     testConfig as defaultTestConfig,
-    PostgresInitializer,
     registerInitializer,
     SqljsInitializer,
 } from '@vendure/testing';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { DataSourceOptions } from 'typeorm';
 
 import { VENDURE_PORT } from './constants.js';
 import { e2eCustomFields, e2ePaymentMethodHandlers } from './fixtures/e2e-shared-config.js';
@@ -18,25 +16,6 @@ import { initialData } from './fixtures/initial-data.js';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 registerInitializer('sqljs', new SqljsInitializer(path.join(__dirname, '__data__')));
-registerInitializer('postgres', new PostgresInitializer());
-
-function getDbConfig(): DataSourceOptions {
-    const dbType = process.env.DB || 'sqljs';
-    switch (dbType) {
-        case 'postgres':
-            return {
-                synchronize: true,
-                type: 'postgres',
-                host: '127.0.0.1',
-                port: process.env.CI ? +(process.env.E2E_DASHBOARD_POSTGRES_PORT || 5432) : 5432,
-                username: 'vendure',
-                password: 'password',
-            };
-        case 'sqljs':
-        default:
-            return defaultTestConfig.dbConnectionOptions;
-    }
-}
 
 /**
  * Compiles a TypeScript fixture with SWC so that NestJS parameter decorators
@@ -78,7 +57,6 @@ export default async function globalSetup() {
         },
         plugins: [CustomHistoryEntryPlugin],
         customFields: e2eCustomFields,
-        dbConnectionOptions: getDbConfig(),
     });
 
     // mergeConfig won't replace a boolean with an object, so set CORS explicitly.

@@ -1,4 +1,5 @@
 import { DataTable } from '@/vdb/components/data-table/data-table.js';
+import { CopyableText } from '@/vdb/components/shared/copyable-text.js';
 import { Badge } from '@/vdb/components/ui/badge.js';
 import { Button } from '@/vdb/components/ui/button.js';
 import {
@@ -25,7 +26,7 @@ import { setSettingsStoreValueDocument } from '@/vdb/graphql/settings-store-oper
 import { Trans, useLingui } from '@lingui/react/macro';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
-import { createColumnHelper } from '@tanstack/react-table';
+import { ColumnFilter, createColumnHelper } from '@tanstack/react-table';
 import { JsonEditor } from 'json-edit-react';
 import { Braces } from 'lucide-react';
 import React, { useMemo, useRef, useState } from 'react';
@@ -218,6 +219,7 @@ function formatDisplayValue(value: any): string {
 function SettingsStorePage() {
     const { t } = useLingui();
     const [search, setSearch] = useState('');
+    const [columnFilters, setColumnFilters] = useState<ColumnFilter[]>([]);
     const queryClient = useQueryClient();
     const { data, isLoading } = useQuery({
         queryKey: fieldDefinitionsQueryKey,
@@ -240,16 +242,27 @@ function SettingsStorePage() {
     });
 
     const allFields = data?.settingsStoreFieldDefinitions ?? [];
-    const filteredFields = search
-        ? allFields.filter(f => f.key.toLowerCase().includes(search.toLowerCase()))
-        : allFields;
+    const filteredFields = allFields.filter(f => {
+        if (search && !f.key.toLowerCase().includes(search.toLowerCase())) return false;
+        for (const filter of columnFilters) {
+            const values = filter.value as string[];
+            if (!values?.length) continue;
+            if (filter.id === 'scopeType' && !values.includes(f.scopeType)) return false;
+            if (filter.id === 'readonly' && !values.includes(String(f.readonly))) return false;
+        }
+        return true;
+    });
 
     const columnHelper = createColumnHelper<FieldDefinition>();
     const columns = useMemo(
         () => [
             columnHelper.accessor('key', {
                 header: t`Key`,
-                cell: ({ row }) => <code className="text-xs">{row.original.key}</code>,
+                cell: ({ row }) => (
+                    <CopyableText value={row.original.key}>
+                        <code className="text-xs">{row.original.key}</code>
+                    </CopyableText>
+                ),
             }),
             columnHelper.accessor('currentValue', {
                 header: t`Value`,
@@ -292,16 +305,29 @@ function SettingsStorePage() {
             </PageTitle>
             <PageLayout>
                 <FullWidthPageBlock blockId="list-table">
-                    <div className="mb-4">
-                        <Input
-                            placeholder={t`Search by key...`}
-                            value={search}
-                            onChange={e => setSearch(e.target.value)}
-                            className="max-w-sm"
-                        />
-                    </div>
                     <DataTable
                         onRefresh={invalidateFieldDefinitions}
+                        onSearchTermChange={setSearch}
+                        onFilterChange={(_table, filters) => setColumnFilters(filters)}
+                        facetedFilters={{
+                            scopeType: {
+                                title: t`Scope`,
+                                options: [
+                                    { label: 'Global', value: 'GLOBAL' },
+                                    { label: 'User', value: 'USER' },
+                                    { label: 'Channel', value: 'CHANNEL' },
+                                    { label: 'User & Channel', value: 'USER_AND_CHANNEL' },
+                                    { label: 'Custom', value: 'CUSTOM' },
+                                ],
+                            },
+                            readonly: {
+                                title: t`Readonly`,
+                                options: [
+                                    { label: t`Yes`, value: 'true' },
+                                    { label: t`No`, value: 'false' },
+                                ],
+                            },
+                        }}
                         isLoading={isLoading}
                         columns={columns}
                         data={filteredFields}

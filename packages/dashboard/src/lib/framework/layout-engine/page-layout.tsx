@@ -6,6 +6,7 @@ import { Form } from '@/vdb/components/ui/form.js';
 import { useCustomFieldConfig } from '@/vdb/hooks/use-custom-field-config.js';
 import { usePage } from '@/vdb/hooks/use-page.js';
 import { cn } from '@/vdb/lib/utils.js';
+import { useLocalFormat } from '@/vdb/hooks/use-local-format.js';
 import { useIsMobile } from '@/vdb/hooks/use-mobile.js';
 import { useCopyToClipboard } from '@uidotdev/usehooks';
 import { CheckIcon, CopyIcon, EllipsisVerticalIcon, InfoIcon } from 'lucide-react';
@@ -585,15 +586,12 @@ function mergeAndSortActionBarItems(
 function EntityInfoDropdown({ entity }: Readonly<{ entity: any }>) {
     const [copiedField, setCopiedField] = useState<string | null>(null);
     const [, copy] = useCopyToClipboard();
+    const { formatDate } = useLocalFormat();
 
     const handleCopy = async (text: string, field: string) => {
         await copy(text);
         setCopiedField(field);
         setTimeout(() => setCopiedField(null), 2000);
-    };
-
-    const formatDate = (dateString: string) => {
-        return new Date(dateString).toLocaleString();
     };
 
     if (!entity || !entity.id) {

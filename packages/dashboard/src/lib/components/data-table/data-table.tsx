@@ -1,5 +1,3 @@
-'use client';
-
 import { DataTablePagination } from '@/vdb/components/data-table/data-table-pagination.js';
 import { DataTableViewOptions } from '@/vdb/components/data-table/data-table-view-options.js';
 import { GlobalViewsBar } from '@/vdb/components/data-table/global-views-bar.js';

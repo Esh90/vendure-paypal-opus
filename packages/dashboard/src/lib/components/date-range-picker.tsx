@@ -1,5 +1,3 @@
-'use client';
-
 import { useDayPickerLocale } from '@/vdb/components/data-input/index.js';
 import { Button } from '@/vdb/components/ui/button.js';
 import { Calendar } from '@/vdb/components/ui/calendar.js';

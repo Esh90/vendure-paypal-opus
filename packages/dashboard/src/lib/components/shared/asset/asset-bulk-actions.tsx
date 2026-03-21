@@ -1,5 +1,3 @@
-'use client';
-
 import { Button } from '@/vdb/components/ui/button.js';
 import {
     DropdownMenu,

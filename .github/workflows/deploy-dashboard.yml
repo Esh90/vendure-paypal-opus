@@ -40,7 +40,7 @@ jobs:
               uses: ./.github/actions/setup
 
             - name: Install Vercel CLI
-              run: npm i -g vercel@latest
+              run: npm i --ignore-scripts -g vercel@latest
 
             - name: Link Vercel project
               env:
@@ -76,7 +76,7 @@ jobs:
 
             - name: Find Comment
               if: github.event_name == 'pull_request'
-              uses: peter-evans/find-comment@v4
+              uses: peter-evans/find-comment@b30e6a3c0ed37e7c023ccd3f1db5c6c0b0c23aad # v4
               id: fc
               with:
                   issue-number: ${{ github.event.pull_request.number }}
@@ -85,7 +85,7 @@ jobs:
 
             - name: Comment preview URL on PR
               if: github.event_name == 'pull_request'
-              uses: peter-evans/create-or-update-comment@v5
+              uses: peter-evans/create-or-update-comment@e8674b075228eee787fea43ef493e45ece1004c9 # v5
               with:
                   comment-id: ${{ steps.fc.outputs.comment-id }}
                   issue-number: ${{ github.event.pull_request.number }}

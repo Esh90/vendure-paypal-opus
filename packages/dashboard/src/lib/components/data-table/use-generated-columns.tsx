@@ -243,7 +243,7 @@ function getRowActions(
     bulkActionGroups?: BulkActionGroup[],
 ): AccessorKeyColumnDef<any> | undefined {
     const hasRowActions = rowActions && rowActions.length > 0;
-    const hasBulkActions = bulkActionGroups && bulkActionGroups.some(g => g.actions.length > 0);
+    const hasBulkActions = bulkActionGroups?.some(g => g.actions.length > 0);
 
     return {
         id: 'actions',

@@ -96,7 +96,7 @@ export function DataTableNumberFilter({
         <div className="flex flex-col gap-2">
             <div className="flex flex-col md:flex-row gap-2">
                 <Select
-                    items={Object.fromEntries(NUMBER_OPERATORS.map(op => [op, <HumanReadableOperator operator={op} />]))}
+                    items={Object.fromEntries(NUMBER_OPERATORS.map(op => [op, <HumanReadableOperator key={op} operator={op} />]))}
                     value={operator}
                     onValueChange={value => value != null && setOperator(value)}
                 >

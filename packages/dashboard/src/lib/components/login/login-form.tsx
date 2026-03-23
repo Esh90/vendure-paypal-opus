@@ -7,13 +7,12 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Trans, useLingui } from '@lingui/react/macro';
 import { Loader2 } from 'lucide-react';
 import * as React from 'react';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { toast } from '@/vdb/components/ui/sonner.js';
 import { z } from 'zod';
 import { useLoginExtensions } from '../../framework/extension-api/use-login-extensions.js';
 import { LogoMark } from '../shared/logo-mark.js';
 import { Form } from '../ui/form.js';
-import { Controller } from 'react-hook-form';
 import { Field, FieldError } from '../ui/field.js';
 import { Separator } from '../ui/separator.js';
 

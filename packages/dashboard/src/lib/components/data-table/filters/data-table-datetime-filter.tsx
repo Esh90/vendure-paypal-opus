@@ -120,7 +120,7 @@ export function DataTableDateTimeFilter({
         <div className="flex flex-col gap-2">
             <div className="flex flex-col md:flex-row gap-2">
                 <Select
-                    items={Object.fromEntries(DATETIME_OPERATORS.map(op => [op, <HumanReadableOperator operator={op} />]))}
+                    items={Object.fromEntries(DATETIME_OPERATORS.map(op => [op, <HumanReadableOperator key={op} operator={op} />]))}
                     value={operator}
                     onValueChange={value => { if (value != null) setOperator(value); }}
                 >

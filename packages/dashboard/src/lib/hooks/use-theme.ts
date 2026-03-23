@@ -16,5 +16,5 @@ export const useTheme = () => {
 export function useResolvedTheme(): 'dark' | 'light' {
     const { theme } = useTheme();
     if (theme !== 'system') return theme;
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    return globalThis.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
 }

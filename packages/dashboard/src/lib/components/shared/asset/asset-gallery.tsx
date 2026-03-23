@@ -22,8 +22,7 @@ import { assetFragment, AssetFragment } from '@/vdb/graphql/fragments.js';
 import { graphql } from '@/vdb/graphql/graphql.js';
 import { useLocalFormat } from '@/vdb/hooks/use-local-format.js';
 import { formatFileSize } from '@/vdb/lib/utils.js';
-import { Trans } from '@lingui/react/macro';
-import { useLingui } from '@lingui/react/macro';
+import { Trans, useLingui } from '@lingui/react/macro';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
 import { useDebounce } from '@uidotdev/usehooks';
@@ -638,7 +637,7 @@ function AssetGridView({
     isSelected,
     handleSelect,
     toggleAssetSelection,
-}: AssetViewProps) {
+}: Readonly<AssetViewProps>) {
     if (isLoading) {
         return (
             <div data-asset-gallery className="flex justify-center py-12">
@@ -657,23 +656,16 @@ function AssetGridView({
             className="grid grid-cols-2 xs:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 p-1"
         >
             {assets.map(asset => (
-                <div
+                <button
+                    type="button"
                     key={asset.id}
                     className={`
                         group cursor-pointer transition-all overflow-hidden rounded-xl
-                        bg-card text-card-foreground shadow-xs ring-1
+                        bg-card text-card-foreground shadow-xs ring-1 text-left
                         hover:ring-primary/40
                         ${isSelected(asset) ? 'ring-2 ring-primary' : 'ring-foreground/10'}
                     `}
-                    role="button"
-                    tabIndex={0}
                     onClick={e => handleSelect(asset, e)}
-                    onKeyDown={e => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                            e.preventDefault();
-                            handleSelect(asset, e);
-                        }
-                    }}
                 >
                     <div className="relative aspect-square bg-muted/30 overflow-hidden">
                         <VendureImage
@@ -713,7 +705,7 @@ function AssetGridView({
                             </Link>
                         </div>
                     </div>
-                </div>
+                </button>
             ))}
         </div>
     );
@@ -726,7 +718,7 @@ function AssetListView({
     isSelected,
     handleSelect,
     toggleAssetSelection,
-}: AssetViewProps) {
+}: Readonly<AssetViewProps>) {
     const { formatDate } = useLocalFormat();
 
     if (isLoading) {

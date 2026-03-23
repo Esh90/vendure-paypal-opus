@@ -28,6 +28,21 @@ import { useEffect, useRef, useState } from 'react';
 import { PayloadDialog } from './components/payload-dialog.js';
 import { cancelJobDocument, jobListDocument, jobQueueListDocument } from './job-queue.graphql.js';
 
+function getJobStateBadgeVariant(state: string) {
+    switch (state) {
+        case 'PENDING':
+        case 'RETRYING':
+            return 'warning';
+        case 'COMPLETED':
+            return 'success';
+        case 'FAILED':
+        case 'CANCELLED':
+            return 'destructive';
+        default:
+            return 'secondary';
+    }
+}
+
 export const Route = createFileRoute('/_authenticated/_system/job-queue')({
     component: JobQueuePage,
     loader: () => ({ breadcrumb: () => <Trans>Job Queue</Trans> }),
@@ -163,15 +178,7 @@ function JobQueuePage() {
                         return (
                             <div className="flex items-center gap-2">
                                 <Badge
-                                    variant={
-                                        row.original.state === 'PENDING' || row.original.state === 'RETRYING'
-                                            ? 'warning'
-                                            : row.original.state === 'COMPLETED'
-                                              ? 'success'
-                                              : row.original.state === 'FAILED' || row.original.state === 'CANCELLED'
-                                                ? 'destructive'
-                                                : 'secondary'
-                                    }
+                                    variant={getJobStateBadgeVariant(row.original.state)}
                                 >
                                     {state && (
                                         <state.icon

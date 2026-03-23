@@ -97,7 +97,7 @@ export function NavUser() {
                             </DropdownMenuGroup>
                             <DropdownMenuSeparator />
                             <DropdownMenuGroup>
-                                <DropdownMenuItem render={<a href="https://vendure.io/pricing" target="_blank" />}>
+                                <DropdownMenuItem render={<a href="https://vendure.io/pricing" target="_blank" rel="noopener noreferrer" aria-label="Explore Platform & Cloud" />}>
                                         <Sparkles />
                                         <Trans>Explore Platform & Cloud</Trans>
                                 </DropdownMenuItem>

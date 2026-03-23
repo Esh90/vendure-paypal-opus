@@ -12,7 +12,6 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/vdb/components/ui/dialog.js';
-import { Controller } from 'react-hook-form';
 import { Textarea } from '@/vdb/components/ui/textarea.js';
 import { addCustomFields } from '@/vdb/framework/document-introspection/add-custom-fields.js';
 import { api } from '@/vdb/graphql/api.js';
@@ -22,7 +21,7 @@ import { useMutation } from '@tanstack/react-query';
 import { ResultOf, VariablesOf } from 'gql.tada';
 import { CheckIcon } from 'lucide-react';
 import { useEffect, useRef } from 'react';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { Form } from '@/vdb/components/ui/form.js';
 import { modifyOrderDocument, orderDetailDocument } from '../orders.graphql.js';
 import { OrderTable } from './order-table.js';

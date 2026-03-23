@@ -23,7 +23,7 @@ function BrandingStyle() {
     );
 }
 
-function VendureBranding({ className }: { className?: string }) {
+function VendureBranding({ className }: Readonly<{ className?: string }>) {
     return (
         <>
             <BrandingStyle />

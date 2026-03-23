@@ -1,10 +1,9 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { OverriddenFormComponent } from '@/vdb/framework/form-engine/overridden-form-component.js';
 import { LocationWrapper } from '@/vdb/framework/layout-engine/location-wrapper.js';
 import { useLocalFormat } from '@/vdb/hooks/use-local-format.js';
 import { useUserSettings } from '@/vdb/hooks/use-user-settings.js';
 import { Trans } from '@lingui/react/macro';
-import { useEffect } from 'react';
 import { Controller, ControllerProps, FieldPath, FieldValues, useFormContext } from 'react-hook-form';
 import { Field, FieldDescription, FieldError, FieldLabel } from '../ui/field.js';
 import { applyControlProps } from './apply-control-props.js';

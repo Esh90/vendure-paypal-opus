@@ -4,7 +4,6 @@ import { cn } from '@/vdb/lib/utils.js';
 
 import {
     Badge as BaseBadge,
-    badgeVariants as baseBadgeVariants,
 } from '@vendure-io/ui/components/ui/badge';
 
 type BaseBadgeProps = React.ComponentProps<typeof BaseBadge>;
@@ -30,4 +29,5 @@ function Badge({ className, variant, ...props }: BadgeProps) {
     return <BaseBadge className={className} variant={variant as BaseBadgeProps['variant']} {...props} />;
 }
 
-export { Badge, baseBadgeVariants as badgeVariants };
+export { Badge };
+export { badgeVariants } from '@vendure-io/ui/components/ui/badge';

@@ -310,7 +310,9 @@ export function PageLayout({ children, className }: Readonly<PageLayoutProps>) {
 
     return (
         <div className={cn('w-full space-y-4', className, '@container/layout')}>
-            {!isMobile ? (
+            {isMobile ? (
+                <div className="space-y-4">{finalChildArray}</div>
+            ) : (
                 <div className="grid grid-cols-1 gap-4 @3xl/layout:grid-cols-4">
                     {fullWidthBlocks.length > 0 && (
                         <div className="@md/layout:col-span-5 space-y-4">{fullWidthBlocks}</div>
@@ -318,8 +320,6 @@ export function PageLayout({ children, className }: Readonly<PageLayoutProps>) {
                     <div className="@3xl/layout:col-span-3 space-y-4">{mainBlocks}</div>
                     <div className="@3xl/layout:col-span-1 space-y-4">{sideBlocks}</div>
                 </div>
-            ) : (
-                <div className="space-y-4">{finalChildArray}</div>
             )}
         </div>
     );
@@ -459,9 +459,12 @@ export function PageActionBar({
             break;
         }
     }
-    const visibleMergedItems = isMobile && mergedItems.length >= 2
-        ? (primaryItemIndex >= 0 ? [mergedItems[primaryItemIndex]] : [mergedItems[mergedItems.length - 1]])
-        : mergedItems;
+    let visibleMergedItems = mergedItems;
+    if (isMobile && mergedItems.length >= 2) {
+        visibleMergedItems = primaryItemIndex >= 0
+            ? [mergedItems[primaryItemIndex]]
+            : [mergedItems[mergedItems.length - 1]];
+    }
 
     const renderMergedItem = (mergedItem: MergedActionBarItem, index: number) => {
         if (mergedItem.type === 'inline') {
@@ -594,7 +597,7 @@ function EntityInfoDropdown({ entity }: Readonly<{ entity: any }>) {
         setTimeout(() => setCopiedField(null), 2000);
     };
 
-    if (!entity || !entity.id) {
+    if (!entity?.id) {
         return null;
     }
 

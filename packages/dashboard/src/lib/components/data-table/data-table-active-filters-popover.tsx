@@ -19,7 +19,7 @@ export function ActiveFiltersPopover({
     currencyCode,
     onRemoveFilter,
     onClearAll,
-}: ActiveFiltersPopoverProps) {
+}: Readonly<ActiveFiltersPopoverProps>) {
     return (
         <Popover>
             <PopoverTrigger render={<Button variant="outline" size="sm" className="h-8 border-dashed" />}>

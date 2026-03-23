@@ -193,6 +193,7 @@ export function PermissionsTableGrid({
                                                 <TooltipTrigger render={<label
                                                         htmlFor={`mobile-${section.id}-${permission.name}`}
                                                         className="text-xs cursor-pointer block truncate"
+                                                        aria-label={i18n.t(permission.name)}
                                                     />}>
                                                         {getPermissionLabel(permission, section.label)}
                                                 </TooltipTrigger>

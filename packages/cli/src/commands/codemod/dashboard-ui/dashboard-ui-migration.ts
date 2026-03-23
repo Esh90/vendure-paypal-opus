@@ -1,4 +1,5 @@
 import { log, spinner } from '@clack/prompts';
+import fs from 'fs-extra';
 import path from 'node:path';
 
 import { getTsMorphProject } from '../../../utilities/ast-utils';
@@ -31,8 +32,10 @@ export async function dashboardUiMigration(targetPath?: string) {
     const s = spinner();
     s.start('Analyzing project...');
 
-    // If a target path was provided, resolve the tsconfig from that directory
-    const tsConfigPath = targetPath ? path.join(targetPath, 'tsconfig.json') : undefined;
+    // Resolve the tsconfig path. When a target path is provided, look there.
+    // Otherwise fall back to the current working directory.
+    const projectDir = targetPath ?? process.cwd();
+    const tsConfigPath = findTsConfig(projectDir);
 
     let project;
     try {
@@ -88,4 +91,22 @@ export async function dashboardUiMigration(targetPath?: string) {
     } else {
         log.info('No Radix UI patterns found. Your code is already up to date!');
     }
+}
+
+/**
+ * Finds the tsconfig.json in the given directory and returns its absolute path.
+ * Throws with a clear message if no tsconfig is found.
+ */
+function findTsConfig(dir: string): string {
+    const tsConfigFiles = fs.readdirSync(dir).filter(f => /^tsconfig.*\.json$/.test(f));
+    if (tsConfigFiles.length === 0) {
+        throw new Error(
+            `No tsconfig.json found in ${dir}\n` +
+                `Make sure you are running the codemod from a directory with a tsconfig.json, ` +
+                `or provide the path to the project directory as the second argument.`,
+        );
+    }
+    // Prefer canonical tsconfig.json
+    const configFile = tsConfigFiles.includes('tsconfig.json') ? 'tsconfig.json' : tsConfigFiles[0];
+    return path.resolve(dir, configFile);
 }

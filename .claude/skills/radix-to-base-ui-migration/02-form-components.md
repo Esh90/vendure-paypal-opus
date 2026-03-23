@@ -52,7 +52,7 @@ import { FormFieldWrapper, Input } from '@vendure/dashboard';
 
 ### Advanced Path: Controller + Field Primitives
 
-For complex form fields that don't fit the `FormFieldWrapper` pattern, use `Controller` from `react-hook-form` with Field primitives from `@vendure/dashboard`.
+For complex form fields that don't fit the `FormFieldWrapper` pattern, use `Controller` with Field primitives — both from `@vendure/dashboard`.
 
 #### Before
 ```tsx
@@ -85,7 +85,7 @@ import {
 #### After
 ```tsx
 import { Field, FieldLabel, FieldError } from '@vendure/dashboard';
-import { Controller } from 'react-hook-form';
+import { Controller } from '@vendure/dashboard';
 
 <Controller
     control={form.control}
@@ -124,7 +124,7 @@ import { Controller } from 'react-hook-form';
 import { FormFieldWrapper } from '@vendure/dashboard';
 // Or for advanced usage:
 import { Field, FieldLabel, FieldDescription, FieldError } from '@vendure/dashboard';
-import { Controller } from 'react-hook-form';
+import { Controller } from '@vendure/dashboard';
 ```
 
 ### FormFieldWrapper Props

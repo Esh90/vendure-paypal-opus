@@ -665,7 +665,15 @@ function AssetGridView({
                         hover:ring-primary/40
                         ${isSelected(asset) ? 'ring-2 ring-primary' : 'ring-foreground/10'}
                     `}
+                    role="button"
+                    tabIndex={0}
                     onClick={e => handleSelect(asset, e)}
+                    onKeyDown={e => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            handleSelect(asset, e);
+                        }
+                    }}
                 >
                     <div className="relative aspect-square bg-muted/30 overflow-hidden">
                         <VendureImage

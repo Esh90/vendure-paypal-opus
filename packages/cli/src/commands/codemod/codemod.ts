@@ -1,23 +1,30 @@
 import { cancel, intro, isCancel, log, outro, select } from '@clack/prompts';
+import fs from 'fs-extra';
+import path from 'node:path';
 import pc from 'picocolors';
 
 import { withInteractiveTimeout } from '../../utilities/utils';
 
 /**
  * Registry of available codemods. To add a new codemod, just add an entry here.
+ * Each codemod receives an optional resolved target path. If no path is provided,
+ * the codemod should operate on the current working directory.
  */
-const CODEMODS: Record<string, { description: string; run: () => Promise<void> }> = {
+const CODEMODS: Record<string, { description: string; run: (targetPath?: string) => Promise<void> }> = {
     'dashboard-ui': {
         description: 'Migrate dashboard extensions from Radix UI to Base UI patterns',
-        run: async () => {
+        run: async (targetPath?: string) => {
             const { dashboardUiMigration } = await import('./dashboard-ui/dashboard-ui-migration');
-            await dashboardUiMigration();
+            await dashboardUiMigration(targetPath);
         },
     },
 };
 
-export async function codemodCommand(transform?: string, path?: string) {
-    if (transform) {
+export async function codemodCommand(transform?: string, targetPath?: string) {
+    // Resolve and validate the target path if provided
+    const resolvedPath = targetPath ? resolveAndValidatePath(targetPath) : undefined;
+
+    if (transform && transform.trim().length > 0) {
         // Non-interactive: run the specified codemod
         const codemod = CODEMODS[transform];
         if (!codemod) {
@@ -25,14 +32,12 @@ export async function codemodCommand(transform?: string, path?: string) {
             log.info(`Available codemods:\n${formatCodemodList()}`);
             process.exit(1);
         }
-        if (path) {
-            process.chdir(path);
-        }
-        await codemod.run();
+        await codemod.run(resolvedPath);
         return;
     }
 
-    // Interactive: let the user pick a codemod
+    // Interactive mode: let the user pick a codemod.
+    // Path is not supported in interactive mode — run from the project directory.
     // eslint-disable-next-line no-console
     console.log(`\n`);
     intro(pc.blue('🔧 Vendure Codemods'));
@@ -52,8 +57,31 @@ export async function codemodCommand(transform?: string, path?: string) {
         process.exit(0);
     }
 
-    await CODEMODS[selected as string].run();
+    const selectedCodemod = CODEMODS[selected as string];
+    if (!selectedCodemod) {
+        log.error('Selected codemod not found.');
+        process.exit(1);
+    }
+
+    await selectedCodemod.run(resolvedPath);
     outro('✅ Done!');
+}
+
+/**
+ * Resolves a path argument to an absolute path and validates it exists
+ * and is a directory. Exits with an error if validation fails.
+ */
+function resolveAndValidatePath(targetPath: string): string {
+    const resolved = path.resolve(targetPath);
+    if (!fs.existsSync(resolved)) {
+        log.error(`Path does not exist: ${resolved}`);
+        process.exit(1);
+    }
+    if (!fs.statSync(resolved).isDirectory()) {
+        log.error(`Path is not a directory: ${resolved}`);
+        process.exit(1);
+    }
+    return resolved;
 }
 
 function formatCodemodList(): string {

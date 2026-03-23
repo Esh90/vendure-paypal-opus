@@ -1,4 +1,5 @@
 import { log, spinner } from '@clack/prompts';
+import path from 'node:path';
 
 import { getTsMorphProject } from '../../../utilities/ast-utils';
 
@@ -10,6 +11,9 @@ import { warnSelectItemsProp } from './transforms/select-items-prop';
 
 /**
  * Runs all dashboard UI migration transforms on every .tsx file in the project.
+ *
+ * @param targetPath — Optional absolute path to the project directory.
+ *                     If omitted, uses the current working directory.
  *
  * Transform order matters:
  * 1. asChild → render prop — must run before import consolidation so the
@@ -23,11 +27,13 @@ import { warnSelectItemsProp } from './transforms/select-items-prop';
  * 4. Accordion prop removal — independent, order doesn't matter.
  * 5. Select items warning — read-only, no mutations.
  */
-export async function dashboardUiMigration() {
+export async function dashboardUiMigration(targetPath?: string) {
     const s = spinner();
     s.start('Analyzing project...');
 
-    const { project } = await getTsMorphProject();
+    // If a target path was provided, resolve the tsconfig from that directory
+    const tsConfigPath = targetPath ? path.join(targetPath, 'tsconfig.json') : undefined;
+    const { project } = await getTsMorphProject({}, tsConfigPath);
     const sourceFiles = project.getSourceFiles().filter(sf => sf.getFilePath().endsWith('.tsx'));
 
     s.stop(`Found ${sourceFiles.length} TSX files`);

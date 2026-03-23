@@ -22,6 +22,13 @@ export interface CliCommandDefinition {
     description: string;
     arguments?: CliCommandArgument[];
     options?: CliCommandOption[];
+    /**
+     * Commander calling convention: positional arguments are passed first
+     * (in the order they are declared in `arguments`), followed by the
+     * parsed options object, followed by the Command instance itself.
+     * E.g. for `vendure codemod <transform> [path]`:
+     *   action(transform, path, options, command)
+     */
     action: (...args: any[]) => Promise<void>;
 }
 

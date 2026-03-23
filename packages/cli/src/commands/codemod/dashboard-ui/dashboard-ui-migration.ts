@@ -33,7 +33,21 @@ export async function dashboardUiMigration(targetPath?: string) {
 
     // If a target path was provided, resolve the tsconfig from that directory
     const tsConfigPath = targetPath ? path.join(targetPath, 'tsconfig.json') : undefined;
-    const { project } = await getTsMorphProject({}, tsConfigPath);
+
+    let project;
+    try {
+        const result = await getTsMorphProject({}, tsConfigPath);
+        project = result.project;
+    } catch (e: unknown) {
+        s.stop('Failed to initialize project');
+        const message = e instanceof Error ? e.message : String(e);
+        throw new Error(
+            `Could not load TypeScript project: ${message}\n` +
+                `Make sure you are running the codemod from a directory with a tsconfig.json, ` +
+                `or provide the path to the project directory as the second argument.`,
+        );
+    }
+
     const sourceFiles = project.getSourceFiles().filter(sf => sf.getFilePath().endsWith('.tsx'));
 
     s.stop(`Found ${sourceFiles.length} TSX files`);
@@ -42,18 +56,25 @@ export async function dashboardUiMigration(targetPath?: string) {
     let filesChanged = 0;
 
     for (const sourceFile of sourceFiles) {
+        const filePath = sourceFile.getFilePath();
         let fileChanges = 0;
 
-        fileChanges += transformAsChildToRender(sourceFile);
-        fileChanges += transformFormComponents(sourceFile);
-        fileChanges += transformImportConsolidation(sourceFile);
-        fileChanges += transformAccordionProps(sourceFile);
-        warnSelectItemsProp(sourceFile);
+        try {
+            fileChanges += transformAsChildToRender(sourceFile);
+            fileChanges += transformFormComponents(sourceFile);
+            fileChanges += transformImportConsolidation(sourceFile);
+            fileChanges += transformAccordionProps(sourceFile);
+            warnSelectItemsProp(sourceFile);
+        } catch (e: unknown) {
+            const message = e instanceof Error ? e.message : String(e);
+            log.warn(`Error processing ${filePath}: ${message}`);
+            continue;
+        }
 
         if (fileChanges > 0) {
             totalChanges += fileChanges;
             filesChanged++;
-            log.info(`Updated: ${sourceFile.getFilePath()} (${fileChanges} changes)`);
+            log.info(`Updated: ${filePath} (${fileChanges} changes)`);
         }
     }
 

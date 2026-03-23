@@ -32,7 +32,16 @@ export async function codemodCommand(transform?: string, targetPath?: string) {
             log.info(`Available codemods:\n${formatCodemodList()}`);
             process.exit(1);
         }
-        await codemod.run(resolvedPath);
+        try {
+            await codemod.run(resolvedPath);
+        } catch (e: unknown) {
+            const message = e instanceof Error ? e.message : String(e);
+            log.error(`Codemod "${transform}" failed: ${message}`);
+            if (e instanceof Error && e.stack) {
+                log.error(e.stack);
+            }
+            process.exit(1);
+        }
         return;
     }
 
@@ -63,8 +72,17 @@ export async function codemodCommand(transform?: string, targetPath?: string) {
         process.exit(1);
     }
 
-    await selectedCodemod.run(resolvedPath);
-    outro('✅ Done!');
+    try {
+        await selectedCodemod.run(resolvedPath);
+        outro('✅ Done!');
+    } catch (e: unknown) {
+        const message = e instanceof Error ? e.message : String(e);
+        log.error(`Codemod failed: ${message}`);
+        if (e instanceof Error && e.stack) {
+            log.error(e.stack);
+        }
+        process.exit(1);
+    }
 }
 
 /**

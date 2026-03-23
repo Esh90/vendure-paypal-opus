@@ -41,8 +41,10 @@ export async function dashboardUiMigration(targetPath?: string) {
     } catch (e: unknown) {
         s.stop('Failed to initialize project');
         const message = e instanceof Error ? e.message : String(e);
+        const searchDir = targetPath ?? process.cwd();
         throw new Error(
             `Could not load TypeScript project: ${message}\n` +
+                `Searched in: ${searchDir}\n` +
                 `Make sure you are running the codemod from a directory with a tsconfig.json, ` +
                 `or provide the path to the project directory as the second argument.`,
         );

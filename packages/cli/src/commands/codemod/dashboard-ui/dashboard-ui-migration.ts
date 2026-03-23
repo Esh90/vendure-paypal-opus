@@ -60,12 +60,21 @@ export async function dashboardUiMigration(targetPath?: string) {
         );
     }
 
-    const sourceFiles = project.getSourceFiles().filter(sf => sf.getFilePath().endsWith('.tsx'));
+    let sourceFiles = project.getSourceFiles().filter(sf => sf.getFilePath().endsWith('.tsx'));
 
-    s.stop(`Found ${sourceFiles.length} TSX files`);
+    // If no TSX files were picked up by the tsconfig, scan the directory
+    // tree manually and add them. This handles cases where the tsconfig
+    // include patterns don't cover dashboard extension files.
+    if (sourceFiles.length === 0) {
+        const glob = path.join(projectDir, '**/*.tsx');
+        project.addSourceFilesAtPaths(glob);
+        sourceFiles = project.getSourceFiles().filter(sf => sf.getFilePath().endsWith('.tsx'));
+    }
+
+    s.stop(`Found ${sourceFiles.length} TSX files (using ${tsConfigPath})`);
 
     if (sourceFiles.length === 0) {
-        log.info(`No .tsx files found in the project at ${projectDir}`);
+        log.info(`No .tsx files found in ${projectDir}`);
         return;
     }
 

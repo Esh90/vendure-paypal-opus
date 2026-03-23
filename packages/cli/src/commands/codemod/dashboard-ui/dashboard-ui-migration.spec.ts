@@ -879,10 +879,10 @@ const el = (
         const changes = transformSelectItemsProp(sf);
         expect(changes).toBe(1);
         const text = sf.getFullText();
-        expect(text).toContain('items={{');
-        expect(text).toContain("'draft': 'Draft'");
-        expect(text).toContain("'published': 'Published'");
-        expect(text).toContain("'archived': 'Archived'");
+        expect(text).toContain('items={[');
+        expect(text).toContain("{ label: 'Draft', value: 'draft' }");
+        expect(text).toContain("{ label: 'Published', value: 'published' }");
+        expect(text).toContain("{ label: 'Archived', value: 'archived' }");
     });
 
     it('should not touch Select that already has items prop', () => {

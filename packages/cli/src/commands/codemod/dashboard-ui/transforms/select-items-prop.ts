@@ -99,9 +99,11 @@ export function transformSelectItemsProp(sourceFile: SourceFile): number {
                 continue;
             }
 
-            // Build the items object literal
-            const entries = itemEntries.map(({ value, label }) => `'${value}': '${label}'`).join(', ');
-            const itemsProp = `items={{ ${entries} }}`;
+            // Build the items array: [{ label: 'Label', value: 'value' }, ...]
+            const entries = itemEntries
+                .map(({ value, label }) => `{ label: '${label}', value: '${value}' }`)
+                .join(', ');
+            const itemsProp = `items={[${entries}]}`;
 
             // Add the items prop to the Select opening tag
             const openingText = selectOpening.getText();

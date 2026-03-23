@@ -42,8 +42,80 @@ const NAMESPACE_MEMBER_MAP: Record<string, string> = {
 };
 
 /**
- * Rewrites imports from Radix UI, @vendure-io/ui, and @base-ui/react
- * to `@vendure/dashboard`. Also rewrites namespace member access sites
+ * Symbols re-exported from `@vendure/dashboard` that extensions should
+ * not import directly from third-party packages. Maps package name →
+ * set of symbol names that can be redirected.
+ *
+ * Note: `@lingui/react/macro` (Trans, useLingui from the macro path)
+ * is NOT included — Babel macros cannot be re-exported.
+ * Actual icon components from `lucide-react` are also excluded — only
+ * the `LucideIcon` type is re-exported.
+ */
+const REEXPORTED_SYMBOLS: Record<string, Set<string>> = {
+    'react-hook-form': new Set([
+        'Controller',
+        'FormProvider',
+        'useFieldArray',
+        'useForm',
+        'useFormContext',
+        'useWatch',
+        'Control',
+        'ControllerFieldState',
+        'ControllerProps',
+        'ControllerRenderProps',
+        'FieldPath',
+        'FieldValues',
+        'UseFormReturn',
+    ]),
+    '@tanstack/react-query': new Set([
+        'keepPreviousData',
+        'queryOptions',
+        'useInfiniteQuery',
+        'useMutation',
+        'useQuery',
+        'useQueryClient',
+        'useSuspenseQuery',
+        'DefinedInitialDataOptions',
+        'QueryClient',
+        'UseMutationOptions',
+        'UseQueryOptions',
+    ]),
+    '@tanstack/react-router': new Set([
+        'Link',
+        'Outlet',
+        'useBlocker',
+        'useNavigate',
+        'useRouter',
+        'useRouterState',
+        'AnyRoute',
+        'LinkProps',
+        'RouteOptions',
+    ]),
+    '@tanstack/react-table': new Set([
+        'AccessorFnColumnDef',
+        'CellContext',
+        'Column',
+        'ColumnDef',
+        'ColumnFiltersState',
+        'ColumnSort',
+        'ExpandedState',
+        'HeaderContext',
+        'Row',
+        'RowSelectionState',
+        'SortingState',
+        'Table',
+        'VisibilityState',
+    ]),
+    '@lingui/react': new Set(['useLingui']),
+    '@lingui/core': new Set(['I18n', 'MessageDescriptor', 'Messages']),
+    'lucide-react': new Set(['LucideIcon']),
+    sonner: new Set(['toast']),
+};
+
+/**
+ * Rewrites imports from Radix UI, @vendure-io/ui, @base-ui/react, and
+ * third-party packages that are re-exported from `@vendure/dashboard`.
+ * Also rewrites namespace member access sites
  * (e.g. `Dialog.Root` → `Dialog`, `Dialog.Trigger` → `DialogTrigger`).
  */
 export function transformImportConsolidation(sourceFile: SourceFile): number {
@@ -59,6 +131,42 @@ export function transformImportConsolidation(sourceFile: SourceFile): number {
         const isRadixUi = moduleSpecifier.startsWith('@radix-ui/');
         const isVendureIoUi = moduleSpecifier.startsWith('@vendure-io/ui');
         const isBaseUi = moduleSpecifier.startsWith('@base-ui/react');
+        const reexportedSet = REEXPORTED_SYMBOLS[moduleSpecifier];
+
+        // Handle third-party packages with re-exported symbols
+        if (!isRadixUi && !isVendureIoUi && !isBaseUi && reexportedSet) {
+            const thirdPartyImports = importDecl.getNamedImports();
+            const toMove: string[] = [];
+            const toKeep: string[] = [];
+
+            for (const ni of thirdPartyImports) {
+                const name = ni.getName();
+                const alias = ni.getAliasNode();
+                const importStr = alias ? `${name} as ${alias.getText()}` : name;
+                if (reexportedSet.has(name)) {
+                    toMove.push(importStr);
+                } else {
+                    toKeep.push(importStr);
+                }
+            }
+
+            if (toMove.length > 0) {
+                collectedNamedImports.push(...toMove);
+                if (toKeep.length === 0) {
+                    // All imports can be moved — remove entire declaration
+                    declarationsToRemove.push(importDecl);
+                } else {
+                    // Some imports stay — remove only the ones we're moving
+                    for (const ni of thirdPartyImports) {
+                        if (reexportedSet.has(ni.getName())) {
+                            ni.remove();
+                        }
+                    }
+                }
+                changeCount++;
+            }
+            continue;
+        }
 
         if (!isRadixUi && !isVendureIoUi && !isBaseUi) {
             continue;

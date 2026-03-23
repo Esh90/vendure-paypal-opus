@@ -638,6 +638,122 @@ function App() {
         const buttonMatches = text.match(/\bButton\b/g) || [];
         expect(buttonMatches.length).toBe(2);
     });
+    it('should rewrite react-hook-form imports to @vendure/dashboard', () => {
+        const sf = createSourceFile(`
+import { useForm, Controller } from 'react-hook-form';
+
+function App() {
+    const form = useForm();
+    return <Controller control={form.control} name="x" render={() => <div />} />;
+}
+`);
+        const changes = transformImportConsolidation(sf);
+        expect(changes).toBe(1);
+        const text = sf.getFullText();
+        expect(text).not.toContain("from 'react-hook-form'");
+        expect(text).toContain("from '@vendure/dashboard'");
+        expect(text).toContain('useForm');
+        expect(text).toContain('Controller');
+    });
+
+    it('should rewrite @tanstack/react-query imports to @vendure/dashboard', () => {
+        const sf = createSourceFile(`
+import { useQuery, useMutation } from '@tanstack/react-query';
+
+function App() {
+    const { data } = useQuery({ queryKey: ['x'], queryFn: () => null });
+    return <div>{data}</div>;
+}
+`);
+        const changes = transformImportConsolidation(sf);
+        expect(changes).toBe(1);
+        const text = sf.getFullText();
+        expect(text).not.toContain("from '@tanstack/react-query'");
+        expect(text).toContain("from '@vendure/dashboard'");
+        expect(text).toContain('useQuery');
+        expect(text).toContain('useMutation');
+    });
+
+    it('should rewrite @tanstack/react-router imports to @vendure/dashboard', () => {
+        const sf = createSourceFile(`
+import { Link, useNavigate } from '@tanstack/react-router';
+
+function App() {
+    return <Link to="/home">Home</Link>;
+}
+`);
+        const changes = transformImportConsolidation(sf);
+        expect(changes).toBe(1);
+        const text = sf.getFullText();
+        expect(text).not.toContain("from '@tanstack/react-router'");
+        expect(text).toContain("from '@vendure/dashboard'");
+        expect(text).toContain('Link');
+        expect(text).toContain('useNavigate');
+    });
+
+    it('should rewrite sonner toast import to @vendure/dashboard', () => {
+        const sf = createSourceFile(`
+import { toast } from 'sonner';
+
+function App() {
+    return <button onClick={() => toast('done')}>Go</button>;
+}
+`);
+        const changes = transformImportConsolidation(sf);
+        expect(changes).toBe(1);
+        const text = sf.getFullText();
+        expect(text).not.toContain("from 'sonner'");
+        expect(text).toContain("from '@vendure/dashboard'");
+        expect(text).toContain('toast');
+    });
+
+    it('should NOT rewrite @lingui/react/macro imports (Babel macros)', () => {
+        const sf = createSourceFile(`
+import { Trans, useLingui } from '@lingui/react/macro';
+
+function App() {
+    return <Trans>Hello</Trans>;
+}
+`);
+        const changes = transformImportConsolidation(sf);
+        expect(changes).toBe(0);
+        const text = sf.getFullText();
+        expect(text).toContain("from '@lingui/react/macro'");
+    });
+
+    it('should rewrite @lingui/react non-macro imports to @vendure/dashboard', () => {
+        const sf = createSourceFile(`
+import { useLingui } from '@lingui/react';
+
+function App() {
+    const { i18n } = useLingui();
+    return <div>{i18n.locale}</div>;
+}
+`);
+        const changes = transformImportConsolidation(sf);
+        expect(changes).toBe(1);
+        const text = sf.getFullText();
+        expect(text).not.toContain("from '@lingui/react'");
+        expect(text).toContain("from '@vendure/dashboard'");
+    });
+
+    it('should keep non-reexported imports from lucide-react (actual icons)', () => {
+        const sf = createSourceFile(`
+import { PlusIcon, LucideIcon } from 'lucide-react';
+
+function App() {
+    return <PlusIcon />;
+}
+`);
+        const changes = transformImportConsolidation(sf);
+        expect(changes).toBe(1);
+        const text = sf.getFullText();
+        // LucideIcon type is re-exported, PlusIcon is not
+        expect(text).toContain("from 'lucide-react'");
+        expect(text).toContain('PlusIcon');
+        expect(text).toContain("from '@vendure/dashboard'");
+        expect(text).toContain('LucideIcon');
+    });
 });
 
 // ─── Accordion props ─────────────────────────────────────────────────

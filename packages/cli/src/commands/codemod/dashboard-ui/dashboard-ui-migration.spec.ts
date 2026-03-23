@@ -251,7 +251,7 @@ const el = (
         expect(changes).toBe(1);
         const text = sf.getFullText();
         expect(text).toContain('TODO');
-        expect(text).toContain('no FormControl found');
+        expect(text).toContain('FormFieldWrapper');
     });
 
     it('should not infinite loop when multiple FormFields cannot be converted', () => {
@@ -283,12 +283,14 @@ const el = (
     </div>
 );
 `);
-        // Should complete without hanging — both get TODO comments
+        // Should complete without hanging — both get renamed with TODO comments
         const changes = transformFormComponents(sf);
         expect(changes).toBe(2);
         const text = sf.getFullText();
         const todoCount = (text.match(/TODO/g) || []).length;
         expect(todoCount).toBe(2);
+        // No raw <FormField should remain — all renamed to FormFieldWrapper
+        expect(text).not.toContain('<FormField ');
     });
 
     it('should remove old form imports when they become unused', () => {

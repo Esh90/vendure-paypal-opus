@@ -162,7 +162,6 @@ function rewriteNamespaceUsages(sourceFile: SourceFile, namespaceName: string): 
     // ts-morph represents these as JsxOpeningElement/JsxClosingElement with dotted tag names
     const fullText = sourceFile.getFullText();
     const jsxPattern = new RegExp(`${namespaceName}\\.(\\w+)`, 'g');
-    let jsxMatch: RegExpExecArray | null;
     let replaced = false;
 
     // Use a single pass to replace any remaining dotted references in JSX

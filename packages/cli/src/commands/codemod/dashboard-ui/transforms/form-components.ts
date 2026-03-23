@@ -46,22 +46,17 @@ export function transformFormComponents(sourceFile: SourceFile): number {
         return 0;
     }
 
-    // Process iteratively — each replacement invalidates AST positions
-    let foundOne = true;
-    while (foundOne) {
-        foundOne = false;
-
-        // Find all self-closing <FormField /> elements
-        const formFields = sourceFile
+    // Process one FormField at a time, re-querying after each modification
+    // because insertText/replaceWithText invalidates AST node references.
+    const maxIterations = 100;
+    for (let i = 0; i < maxIterations; i++) {
+        const formField = sourceFile
             .getDescendantsOfKind(SyntaxKind.JsxSelfClosingElement)
-            .filter(el => el.getTagNameNode().getText() === 'FormField');
+            .find(el => el.getTagNameNode().getText() === 'FormField');
 
-        if (formFields.length === 0) {
+        if (!formField) {
             break;
         }
-
-        const formField = formFields[0];
-
         // Extract control and name props
         const controlAttr = getJsxAttributeValue(formField, 'control');
         const nameAttr = getJsxAttributeValue(formField, 'name');
@@ -69,19 +64,16 @@ export function transformFormComponents(sourceFile: SourceFile): number {
         // Extract the render prop's arrow function body
         const renderAttr = formField.getAttribute('render');
         if (!renderAttr || renderAttr.getKind() !== SyntaxKind.JsxAttribute) {
-            // No render prop — can't convert, add TODO and rename to prevent re-match
-            addTodoAndRename(formField, 'missing render prop');
+            addTodoComment(formField, 'missing render prop');
             changeCount++;
-            foundOne = true;
             continue;
         }
 
         // Navigate into the render callback to find the JSX body
         const renderInitializer = renderAttr.asKindOrThrow(SyntaxKind.JsxAttribute).getInitializer();
         if (!renderInitializer) {
-            addTodoAndRename(formField, 'empty render prop');
+            addTodoComment(formField, 'empty render prop');
             changeCount++;
-            foundOne = true;
             continue;
         }
 
@@ -97,9 +89,8 @@ export function transformFormComponents(sourceFile: SourceFile): number {
         const hasComplexLabel = complexLabelMatch && /<[^>]+>/.test(complexLabelMatch[1]) && !labelMatch;
 
         if (hasComplexLabel) {
-            addTodoAndRename(formField, 'complex JSX label');
+            addTodoComment(formField, 'complex JSX label');
             changeCount++;
-            foundOne = true;
             continue;
         }
 
@@ -110,9 +101,8 @@ export function transformFormComponents(sourceFile: SourceFile): number {
         // Extract the content inside <FormControl>...</FormControl>
         const formControlMatch = /<FormControl>\s*([\s\S]*?)\s*<\/FormControl>/.exec(renderText);
         if (!formControlMatch) {
-            addTodoAndRename(formField, 'no FormControl found');
+            addTodoComment(formField, 'no FormControl found');
             changeCount++;
-            foundOne = true;
             continue;
         }
 
@@ -138,7 +128,6 @@ export function transformFormComponents(sourceFile: SourceFile): number {
 
         formField.replaceWithText(replacement);
         changeCount++;
-        foundOne = true;
     }
 
     if (changeCount > 0) {
@@ -170,17 +159,19 @@ function getJsxAttributeValue(element: JsxSelfClosingElement, attrName: string):
 }
 
 /**
- * Adds a TODO comment and renames FormField → FormField_TODO to prevent
- * infinite re-matching in the while loop.
+ * Replaces a FormField that can't be auto-converted with a wrapped version
+ * that includes a TODO comment. The tag is renamed to FormFieldWrapper so
+ * it won't be re-matched on the next iteration.
  */
-function addTodoAndRename(formField: JsxSelfClosingElement, reason: string) {
+function addTodoComment(formField: JsxSelfClosingElement, reason: string) {
     const filePath = formField.getSourceFile().getFilePath();
     const line = formField.getStartLineNumber();
     log.warn(`${filePath}:${line} — Cannot auto-convert FormField (${reason}). Added TODO comment.`);
+
     const original = formField.getText();
-    formField.replaceWithText(
-        `{/* TODO: Migrate this FormField to FormFieldWrapper manually — ${reason} */}\n${original}`,
-    );
+    // Rename the tag so it won't match on re-query, and wrap in a TODO comment
+    const renamed = original.replace(/^<FormField/, '<FormFieldWrapper /* TODO: migrate manually */');
+    formField.replaceWithText(renamed);
 }
 
 /**

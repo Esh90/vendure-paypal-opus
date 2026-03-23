@@ -11,7 +11,7 @@ import { withInteractiveTimeout } from '../../utilities/utils';
  * the codemod should operate on the current working directory.
  */
 const CODEMODS: Record<string, { description: string; run: (targetPath?: string) => Promise<void> }> = {
-    'dashboard-ui': {
+    'dashboard-base-ui': {
         description: 'Migrate dashboard extensions from Radix UI to Base UI patterns',
         run: async (targetPath?: string) => {
             const { dashboardUiMigration } = await import('./dashboard-ui/dashboard-ui-migration');

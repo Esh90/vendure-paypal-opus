@@ -78,7 +78,33 @@ test.describe('Translation fallback placeholders', () => {
         const client = new VendureAdminClient(page);
         await client.login();
 
-        // Get the active channel ID
+        // First, add German to the global available languages
+        const globalData = await client.gql(`
+            query {
+                globalSettings {
+                    id
+                    availableLanguages
+                }
+            }
+        `);
+        const globalLanguages: string[] = globalData.globalSettings.availableLanguages;
+        if (!globalLanguages.includes('de')) {
+            await client.gql(
+                `mutation UpdateGlobalSettings($input: UpdateGlobalSettingsInput!) {
+                    updateGlobalSettings(input: $input) {
+                        ... on GlobalSettings { id availableLanguages }
+                        ... on ErrorResult { errorCode message }
+                    }
+                }`,
+                {
+                    input: {
+                        availableLanguages: [...globalLanguages, 'de'],
+                    },
+                },
+            );
+        }
+
+        // Then add German to the channel's available languages
         const channelData = await client.gql(`
             query {
                 activeChannel {
@@ -89,8 +115,6 @@ test.describe('Translation fallback placeholders', () => {
         `);
         const channelId = channelData.activeChannel.id;
         const currentLanguages: string[] = channelData.activeChannel.availableLanguageCodes;
-
-        // Add German if not already present
         if (!currentLanguages.includes('de')) {
             await client.gql(
                 `mutation UpdateChannel($input: UpdateChannelInput!) {
@@ -234,6 +258,21 @@ test.describe('Translation fallback placeholders', () => {
                 input: {
                     id: channelData.activeChannel.id,
                     availableLanguageCodes: ['en'],
+                },
+            },
+        );
+
+        // Restore global settings to English only
+        await client.gql(
+            `mutation UpdateGlobalSettings($input: UpdateGlobalSettingsInput!) {
+                updateGlobalSettings(input: $input) {
+                    ... on GlobalSettings { id availableLanguages }
+                    ... on ErrorResult { errorCode message }
+                }
+            }`,
+            {
+                input: {
+                    availableLanguages: ['en'],
                 },
             },
         );

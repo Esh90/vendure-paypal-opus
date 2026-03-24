@@ -17,7 +17,9 @@ export function RichTextInput({
     placeholder,
 }: Readonly<DashboardFormComponentProps & { placeholder?: string }>) {
     const readOnly = isFieldDisabled(disabled, fieldDef);
-    const strippedPlaceholder = placeholder?.replace(/<[^>]*>/g, '').trim() || undefined;
+    const strippedPlaceholder = placeholder
+        ? new DOMParser().parseFromString(placeholder, 'text/html').body.textContent?.trim() || undefined
+        : undefined;
 
     return <RichTextEditor value={value} onChange={onChange} disabled={readOnly} placeholder={strippedPlaceholder} />;
 }

@@ -9,8 +9,15 @@ import { RichTextEditor } from '../shared/rich-text-editor/rich-text-editor.js';
  * @docsCategory form-components
  * @docsPage RichTextInput
  */
-export function RichTextInput({ value, onChange, fieldDef, disabled }: Readonly<DashboardFormComponentProps>) {
+export function RichTextInput({
+    value,
+    onChange,
+    fieldDef,
+    disabled,
+    placeholder,
+}: Readonly<DashboardFormComponentProps & { placeholder?: string }>) {
     const readOnly = isFieldDisabled(disabled, fieldDef);
+    const strippedPlaceholder = placeholder?.replace(/<[^>]*>/g, '').trim() || undefined;
 
-    return <RichTextEditor value={value} onChange={onChange} disabled={readOnly} />;
+    return <RichTextEditor value={value} onChange={onChange} disabled={readOnly} placeholder={strippedPlaceholder} />;
 }

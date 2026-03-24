@@ -149,7 +149,7 @@ const customConfig = mergeConfig(testConfig(), {
             {
                 name: 'dashboardHidden',
                 type: 'boolean',
-                dashboard: false,
+                ui: { dashboard: false },
                 readonly: true,
                 public: true,
             },

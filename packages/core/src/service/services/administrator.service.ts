@@ -274,11 +274,6 @@ export class AdministratorService {
         };
     }
 
-    /**
-     * @description
-     * Resolves to `true` if the administrator ID belongs to the only Administrator
-     * with SuperAdmin permissions.
-     */
     private async checkForDuplicateEmailAddress(ctx: RequestContext, emailAddress: string, excludeId?: ID) {
         const existing = await this.connection.getRepository(ctx, Administrator).findOne({
             where: {
@@ -287,10 +282,15 @@ export class AdministratorService {
             },
         });
         if (existing && (!excludeId || !idsAreEqual(existing.id, excludeId))) {
-            throw new UserInputError('An administrator with this email address already exists');
+            throw new UserInputError('error.email-address-already-exists-for-administrator');
         }
     }
 
+    /**
+     * @description
+     * Resolves to `true` if the administrator ID belongs to the only Administrator
+     * with SuperAdmin permissions.
+     */
     private async isSoleSuperadmin(ctx: RequestContext, id: ID) {
         const superAdminRole = await this.roleService.getSuperAdminRole(ctx);
         const allAdmins = await this.connection.getRepository(ctx, Administrator).find({
@@ -298,13 +298,15 @@ export class AdministratorService {
             where: { deletedAt: IsNull() },
         });
         const superAdmins = allAdmins.filter(
-            admin => !!admin.user.roles.find(r => r.id === superAdminRole.id),
+            admin => !!admin.user.roles.find(r => idsAreEqual(r.id, superAdminRole.id)),
         );
-        if (1 < superAdmins.length) {
+        if (superAdmins.length === 0) {
             return false;
-        } else {
-            return idsAreEqual(superAdmins[0].id, id);
         }
+        if (superAdmins.length > 1) {
+            return false;
+        }
+        return idsAreEqual(superAdmins[0].id, id);
     }
 
     /**

@@ -252,6 +252,26 @@ describe('translateEntity()', () => {
             expect(result.name).toBe(PRODUCT_NAME_DE);
         });
 
+        it('should fall back to first translation when default translation row does not exist', () => {
+            const productTranslationFR = new ProductTranslation({
+                id: '4',
+                languageCode: LanguageCode.fr,
+                name: '',
+                slug: '',
+                description: '',
+            });
+            productTranslationFR.base = { id: 1 } as any;
+            productTranslationFR.customFields = {};
+
+            // No EN (default) translation exists at all, DE is first and has values
+            product.translations = [productTranslationDE, productTranslationFR];
+
+            const result = translateEntity(product, LanguageCode.fr);
+
+            expect(result.languageCode).toBe(LanguageCode.fr);
+            expect(result.name).toBe(PRODUCT_NAME_DE);
+        });
+
         describe('with languageCode array (TranslatorService pattern)', () => {
             it('should respect array priority for field-level fallback', () => {
                 const productTranslationFR = new ProductTranslation({
@@ -264,6 +284,7 @@ describe('translateEntity()', () => {
                 productTranslationFR.base = { id: 1 } as any;
                 productTranslationFR.customFields = {};
 
+                productTranslationEN.description = 'English description';
                 productTranslationDE.name = '';
                 productTranslationDE.slug = '';
                 productTranslationDE.description = '';
@@ -279,7 +300,7 @@ describe('translateEntity()', () => {
                 expect(result.name).toBe('French Name');
                 expect(result.slug).toBe('french-slug');
                 // FR description is also empty, so falls through to EN
-                expect(result.description).toBe('');
+                expect(result.description).toBe('English description');
             });
 
             it('should fall back through array priority then to first translation', () => {

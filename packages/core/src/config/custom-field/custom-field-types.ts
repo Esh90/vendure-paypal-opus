@@ -72,6 +72,20 @@ export type BaseTypedCustomFieldConfig<T extends CustomFieldType, C extends Cust
      * @since 3.4.0
      */
     deprecated?: boolean | string;
+    /**
+     * @description
+     * Whether this custom field should be visible in the Dashboard (React admin UI).
+     * When set to `false`, the field will be excluded from the Dashboard's auto-generated
+     * queries, mutations, and form controls, but will remain available in the
+     * Admin and Shop GraphQL APIs.
+     *
+     * This is useful for fields that are set programmatically by plugins and should
+     * not be displayed to admin users.
+     *
+     * @default true
+     * @since 3.5.0
+     */
+    dashboard?: boolean;
     ui?: UiComponentConfig<DefaultFormComponentId | string>;
 };
 

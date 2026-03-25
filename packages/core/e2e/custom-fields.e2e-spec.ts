@@ -146,6 +146,18 @@ const customConfig = mergeConfig(testConfig(), {
                 internal: true,
             },
             {
+                name: 'dashboardHidden',
+                type: 'boolean',
+                ui: { dashboard: false },
+                readonly: true,
+                public: true,
+            },
+            {
+                name: 'dashboardHiddenWritable',
+                type: 'string',
+                ui: { dashboard: false },
+            },
+            {
                 name: 'stringList',
                 type: 'string',
                 list: true,
@@ -303,13 +315,16 @@ describe('Custom fields', () => {
                 { name: 'longString', type: 'string', list: false },
                 { name: 'longLocaleString', type: 'localeString', list: false },
                 { name: 'readonlyString', type: 'string', list: false },
+                // The internal type should not be exposed at all
+                // { name: 'internalString', type: 'string' },
+                // dashboard: false fields ARE still exposed in the legacy customFieldConfig
+                { name: 'dashboardHidden', type: 'boolean', list: false },
+                { name: 'dashboardHiddenWritable', type: 'string', list: false },
                 { name: 'stringList', type: 'string', list: true },
                 { name: 'localeStringList', type: 'localeString', list: true },
                 { name: 'stringListWithDefault', type: 'string', list: true },
                 { name: 'intListWithValidation', type: 'int', list: true },
                 { name: 'uniqueString', type: 'string', list: false },
-                // The internal type should not be exposed at all
-                // { name: 'internalString', type: 'string' },
             ],
         });
     });
@@ -374,8 +389,25 @@ describe('Custom fields', () => {
                 { name: 'uniqueString', type: 'string', list: false },
                 // The internal type should not be exposed at all
                 // { name: 'internalString', type: 'string' },
+                // The dashboard: false type should not be exposed in entityCustomFields
+                // { name: 'dashboardHidden', type: 'boolean' },
             ],
         });
+    });
+
+    it('dashboard: false field is still queryable via Admin API', async () => {
+        const { product } = await adminClient.query(getProductDashboardHiddenDocument);
+        expect(product.customFields.dashboardHidden).toBeNull();
+    });
+
+    it('dashboard: false field is still queryable via Shop API', async () => {
+        const { product } = await shopClient.query(getShopProductDashboardHiddenDocument);
+        expect(product.customFields.dashboardHidden).toBeNull();
+    });
+
+    it('ui.dashboard: false field is still writable via Admin API', async () => {
+        const { updateProduct } = await adminClient.query(updateProductDashboardHiddenWritableDocument);
+        expect(updateProduct.customFields.dashboardHiddenWritable).toBe('set-by-plugin');
     });
 
     it('get nullable with no default', async () => {
@@ -1576,6 +1608,39 @@ const getShopProductPublicCustomFieldDocument = graphqlShop(`
             id
             customFields {
                 public
+            }
+        }
+    }
+`);
+
+const getProductDashboardHiddenDocument = graphql(`
+    query GetProductDashboardHidden {
+        product(id: "T_1") {
+            id
+            customFields {
+                dashboardHidden
+            }
+        }
+    }
+`);
+
+const getShopProductDashboardHiddenDocument = graphqlShop(`
+    query GetShopProductDashboardHidden {
+        product(id: "T_1") {
+            id
+            customFields {
+                dashboardHidden
+            }
+        }
+    }
+`);
+
+const updateProductDashboardHiddenWritableDocument = graphql(`
+    mutation UpdateProductDashboardHiddenWritable {
+        updateProduct(input: { id: "T_1", customFields: { dashboardHiddenWritable: "set-by-plugin" } }) {
+            id
+            customFields {
+                dashboardHiddenWritable
             }
         }
     }

@@ -161,17 +161,16 @@ export class AdministratorService {
         if (input.roleIds) {
             await this.checkActiveUserCanGrantRoles(ctx, input.roleIds);
         }
+        if (input.emailAddress) {
+            const normalizedEmail = normalizeEmailAddress(input.emailAddress);
+            await this.checkForDuplicateEmailAddress(ctx, normalizedEmail, input.id);
+            input.emailAddress = normalizedEmail;
+        }
         let updatedAdministrator = patchEntity(administrator, input);
         await this.connection.getRepository(ctx, Administrator).save(administrator, { reload: false });
 
         if (input.emailAddress) {
-            const normalizedEmail = normalizeEmailAddress(input.emailAddress);
-            await this.checkForDuplicateEmailAddress(ctx, normalizedEmail, input.id);
-            updatedAdministrator.emailAddress = normalizedEmail;
-            updatedAdministrator.user.identifier = normalizedEmail;
-            await this.connection
-                .getRepository(ctx, Administrator)
-                .save(updatedAdministrator, { reload: false });
+            updatedAdministrator.user.identifier = input.emailAddress;
             await this.connection.getRepository(ctx, User).save(updatedAdministrator.user);
         }
         if (input.password) {

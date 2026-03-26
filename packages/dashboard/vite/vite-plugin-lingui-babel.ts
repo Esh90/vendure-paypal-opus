@@ -1,8 +1,14 @@
+import { createRequire } from 'node:module';
+
 import * as babel from '@babel/core';
 import type { Plugin } from 'vite';
 
 import { CompileResult } from './utils/compiler.js';
 import { ConfigLoaderApi, getConfigLoaderApi } from './vite-plugin-config-loader.js';
+const _require = createRequire(import.meta.url);
+const presetTypescript = _require.resolve('@babel/preset-typescript');
+const presetReact = _require.resolve('@babel/preset-react');
+const linguiPlugin = _require.resolve('@lingui/babel-plugin-lingui-macro');
 
 /**
  * Options for the linguiBabelPlugin.
@@ -130,10 +136,10 @@ export function linguiBabelPlugin(options?: LinguiBabelPluginOptions): Plugin {
                 const result = await babel.transformAsync(code, {
                     filename: id,
                     presets: [
-                        ['@babel/preset-typescript', { isTSX: true, allExtensions: true }],
-                        ['@babel/preset-react', { runtime: 'automatic' }],
+                        [presetTypescript, { isTSX: true, allExtensions: true }],
+                        [presetReact, { runtime: 'automatic' }],
                     ],
-                    plugins: ['@lingui/babel-plugin-lingui-macro'],
+                    plugins: [linguiPlugin],
                     sourceMaps: true,
                     // Don't look for babel config files - we want to control the config completely
                     configFile: false,

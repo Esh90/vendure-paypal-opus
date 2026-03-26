@@ -41,8 +41,9 @@
     ],
     "dependencies": {
         "@apollo/server": "^5.4.0",
+        "@as-integrations/express5": "^1.1.2",
         "@graphql-tools/stitch": "^10.1.16",
-        "@nestjs/apollo": "~13.2.0",
+        "@nestjs/apollo": "13.2.4",
         "@nestjs/common": "^11.0.12",
         "@nestjs/core": "^11.0.12",
         "@nestjs/graphql": "~13.2.0",

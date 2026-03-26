@@ -671,7 +671,7 @@ export class AssetService {
 
     private getDimensions(imageFile: Buffer): { width: number; height: number } {
         try {
-            const { width, height } = imageSize(new Uint8Array(imageFile));
+            const { width, height } = imageSize(imageFile);
             return { width: width ?? 0, height: height ?? 0 };
         } catch (e: any) {
             Logger.error('Could not determine Asset dimensions: ' + JSON.stringify(e));

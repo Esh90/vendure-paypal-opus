@@ -1,4 +1,4 @@
-import { brand, darkTheme, fontFamily, lightTheme, radii, shadows } from '@vendure-io/design-tokens';
+import { brand, darkTheme, fontFamily, lightTheme, radii } from '@vendure-io/design-tokens';
 import { Plugin } from 'vite';
 
 type ThemeColors = Record<string, string | undefined>;
@@ -59,8 +59,12 @@ function generateThemeInlineBlock(): string {
     // Radius — direct values from token definitions (not calc-based)
     const radiusLines = Object.entries(radii).map(([key, value]) => `    --radius-${key}: ${value};`);
 
-    // Shadows — direct values from token definitions
-    const shadowLines = Object.entries(shadows).map(([key, value]) => `    --shadow-${key}: ${value};`);
+    // Note: shadow tokens are intentionally NOT included here. The design tokens
+    // set all shadows to "none", but the CSS keyword `none` cannot be composed in
+    // a comma-separated box-shadow list (e.g. "0 0 0 1px blue, none" is invalid).
+    // Tailwind v4 composes ring-* and shadow-* into a single box-shadow declaration,
+    // so injecting "--shadow-md: none" would break ring-1 on popovers, selects, etc.
+    // By omitting shadows, Tailwind uses its built-in defaults which compose correctly.
 
     // Fonts — use var() indirection so user overrides via themeVariablesPlugin
     // options are picked up (the :root block sets --font-* from dashboardExtensions)
@@ -76,7 +80,7 @@ function generateThemeInlineBlock(): string {
         '    --color-vendure-brand: #17c1ff;',
     ];
 
-    const allLines = [...colorLines, ...radiusLines, ...shadowLines, ...fontLines, ...dashboardLines];
+    const allLines = [...colorLines, ...radiusLines, ...fontLines, ...dashboardLines];
     return `@theme inline {\n${allLines.join('\n')}\n}`;
 }
 

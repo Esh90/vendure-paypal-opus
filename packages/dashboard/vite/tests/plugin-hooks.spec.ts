@@ -140,7 +140,7 @@ describe('themeVariablesPlugin', () => {
         expect(result).toContain('@theme inline');
         expect(result).toContain('--color-background: var(--background);');
         expect(result).toContain('--radius-sm:');
-        expect(result).toContain('--shadow-sm:');
+        expect(result).not.toContain('--shadow-');
         expect(result).toContain('--font-sans: var(--font-sans);');
         expect(result).toContain('--color-dev-mode: var(--dev-mode);');
         expect(result).toContain('--color-vendure-brand: #17c1ff;');

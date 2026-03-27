@@ -194,36 +194,65 @@ export class EntityHydrator {
         target: Entity,
         options: HydrateOptions<Entity>,
     ) {
-        const missingRelations: string[] = [];
+        const missingRelations = new Set<string>();
         for (const relation of options.relations.slice().sort()) {
             if (typeof relation === 'string') {
-                const parts = relation.split('.');
-                let entity: Record<string, any> | undefined = target;
-                const path = [];
-                for (const part of parts) {
-                    path.push(part);
-                    // null = the relation has been fetched but was null in the database.
-                    // undefined = the relation has not been fetched.
-                    if (entity && entity[part] === null) {
-                        break;
-                    }
-                    if (entity && entity[part]) {
-                        entity = Array.isArray(entity[part]) ? entity[part][0] : entity[part];
-                    } else {
-                        const allParts = path.reduce((result, p, i) => {
-                            if (i === 0) {
-                                return [p];
-                            } else {
-                                return [...result, [result[result.length - 1], p].join('.')];
-                            }
-                        }, [] as string[]);
-                        missingRelations.push(...allParts);
-                        entity = undefined;
-                    }
-                }
+                this.collectMissingRelationsForPath(target, relation.split('.'), 0, [], missingRelations);
             }
         }
-        return unique(missingRelations.filter(relation => !relation.endsWith('.customFields')));
+        return [...missingRelations].filter(relation => !relation.endsWith('.customFields'));
+    }
+
+    private collectMissingRelationsForPath(
+        entity: Record<string, any> | Array<Record<string, any> | undefined | null> | undefined | null,
+        parts: string[],
+        partIndex: number,
+        traversedPath: string[],
+        missingRelations: Set<string>,
+    ): void {
+        if (!entity || partIndex >= parts.length) {
+            return;
+        }
+        if (Array.isArray(entity)) {
+            if (entity.length === 0) {
+                return;
+            }
+            for (const item of entity) {
+                this.collectMissingRelationsForPath(item, parts, partIndex, traversedPath, missingRelations);
+            }
+            return;
+        }
+
+        const part = parts[partIndex];
+        traversedPath.push(part);
+        const value = entity[part];
+
+        // null = the relation has been fetched but was null in the database.
+        // undefined = the relation has not been fetched.
+        if (value === null) {
+            traversedPath.pop();
+            return;
+        }
+        if (value === undefined) {
+            this.addRelationPrefixes(traversedPath, missingRelations);
+            traversedPath.pop();
+            return;
+        }
+        if (partIndex === parts.length - 1) {
+            traversedPath.pop();
+            return;
+        }
+
+        this.collectMissingRelationsForPath(value, parts, partIndex + 1, traversedPath, missingRelations);
+        traversedPath.pop();
+    }
+
+    private addRelationPrefixes(path: string[], missingRelations: Set<string>) {
+        let relation = '';
+        for (const part of path) {
+            relation = relation ? `${relation}.${part}` : part;
+            missingRelations.add(relation);
+        }
     }
 
     private getRequiredProductVariantRelations<Entity extends VendureEntity>(

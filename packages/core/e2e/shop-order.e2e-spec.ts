@@ -23,6 +23,7 @@ import {
 } from './fixtures/test-payment-methods';
 import {
     countryCodeShippingEligibilityChecker,
+    hydratingLineVariantTranslationsShippingEligibilityChecker,
     hydratingShippingEligibilityChecker,
 } from './fixtures/test-shipping-eligibility-checkers';
 import * as Codegen from './graphql/generated-e2e-admin-types';
@@ -92,6 +93,7 @@ describe('Shop orders', () => {
                     defaultShippingEligibilityChecker,
                     countryCodeShippingEligibilityChecker,
                     hydratingShippingEligibilityChecker,
+                    hydratingLineVariantTranslationsShippingEligibilityChecker,
                 ],
             },
             customFields: {
@@ -2792,6 +2794,69 @@ describe('Shop orders', () => {
 
             expect(result2.activeOrder?.lines.map(l => l.linePriceWithTax).sort()).toEqual([503640]);
             expect(result2.activeOrder?.subTotalWithTax).toBe(503640);
+        });
+
+        // https://github.com/vendurehq/vendure/issues/4566
+        it('hydrates missing line variant translations when adding to an existing order', async () => {
+            await adminClient.query(CreateShippingMethodDocument, {
+                input: {
+                    code: 'hydrating-line-variant-translations-checker',
+                    translations: [
+                        {
+                            languageCode: LanguageCode.en,
+                            name: 'hydrating line variant translations checker',
+                            description: '',
+                        },
+                    ],
+                    fulfillmentHandler: manualFulfillmentHandler.code,
+                    checker: {
+                        code: hydratingLineVariantTranslationsShippingEligibilityChecker.code,
+                        arguments: [],
+                    },
+                    calculator: {
+                        code: defaultShippingCalculator.code,
+                        arguments: [
+                            { name: 'rate', value: '1000' },
+                            { name: 'taxRate', value: '0' },
+                            { name: 'includesTax', value: 'auto' },
+                        ],
+                    },
+                },
+            });
+
+            await shopClient.asAnonymousUser();
+            const { addItemToOrder: firstAddItemToOrder } = await shopClient.query<
+                CodegenShop.AddItemToOrderMutation,
+                CodegenShop.AddItemToOrderMutationVariables
+            >(ADD_ITEM_TO_ORDER, {
+                productVariantId: 'T_1',
+                quantity: 1,
+            });
+            orderResultGuard.assertSuccess(firstAddItemToOrder);
+
+            const { eligibleShippingMethods } = await shopClient.query<CodegenShop.GetShippingMethodsQuery>(
+                GET_ELIGIBLE_SHIPPING_METHODS,
+            );
+            const { setOrderShippingMethod } = await shopClient.query<
+                CodegenShop.SetShippingMethodMutation,
+                CodegenShop.SetShippingMethodMutationVariables
+            >(SET_SHIPPING_METHOD, {
+                id: eligibleShippingMethods.find(
+                    method => method.code === 'hydrating-line-variant-translations-checker',
+                )!.id,
+            });
+            orderResultGuard.assertSuccess(setOrderShippingMethod);
+
+            const { addItemToOrder } = await shopClient.query<
+                CodegenShop.AddItemToOrderMutation,
+                CodegenShop.AddItemToOrderMutationVariables
+            >(ADD_ITEM_TO_ORDER, {
+                productVariantId: 'T_2',
+                quantity: 1,
+            });
+            orderResultGuard.assertSuccess(addItemToOrder);
+            expect(addItemToOrder.lines).toHaveLength(2);
+            expect(addItemToOrder.lines.map(line => line.productVariant.id).sort()).toEqual(['T_1', 'T_2']);
         });
     });
 });

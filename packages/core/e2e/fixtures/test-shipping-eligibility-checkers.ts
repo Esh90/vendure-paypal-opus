@@ -38,3 +38,23 @@ export const hydratingShippingEligibilityChecker = new ShippingEligibilityChecke
         return true;
     },
 });
+
+export const hydratingLineVariantTranslationsShippingEligibilityChecker = new ShippingEligibilityChecker({
+    code: 'hydrating-line-variant-translations-shipping-eligibility-checker',
+    description: [
+        {
+            languageCode: LanguageCode.en,
+            value: 'Hydrating Line Variant Translations Shipping Eligibility Checker',
+        },
+    ],
+    args: {},
+    init(injector) {
+        entityHydrator = injector.get(EntityHydrator);
+    },
+    check: async (ctx, order) => {
+        await entityHydrator.hydrate(ctx, order, {
+            relations: ['lines.productVariant.translations', 'lines.productVariant.product'],
+        });
+        return true;
+    },
+});

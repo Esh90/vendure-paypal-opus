@@ -62,8 +62,9 @@ function generateThemeInlineBlock(): string {
     // Shadows — direct values from token definitions
     const shadowLines = Object.entries(shadows).map(([key, value]) => `    --shadow-${key}: ${value};`);
 
-    // Fonts — direct values from token definitions
-    const fontLines = Object.entries(fontFamily).map(([key, value]) => `    --font-${key}: ${value};`);
+    // Fonts — use var() indirection so user overrides via themeVariablesPlugin
+    // options are picked up (the :root block sets --font-* from dashboardExtensions)
+    const fontLines = Object.entries(fontFamily).map(([key]) => `    --font-${key}: var(--font-${key});`);
 
     // Dashboard-specific tokens not present in the base design-tokens
     const dashboardLines = [

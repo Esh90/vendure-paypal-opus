@@ -202,10 +202,7 @@ export const plugins: VendureConfig['plugins'] = [
       port: 5002,
   }),
   DefaultJobQueuePlugin,
-  ElasticsearchPlugin.init({
-      host: 'localhost',
-      port: 9200,
-  }),
+  DefaultSearchPlugin,
   EmailPlugin.init({
     // ...lots of lines of config
   }),

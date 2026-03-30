@@ -60,7 +60,8 @@ export async function migrateAssetTranslationData(queryRunner: QueryRunner): Pro
         `INSERT INTO ${esc('asset_translation')} (${esc('createdAt')}, ${esc('updatedAt')}, ${esc('languageCode')}, ${esc('name')}, ${esc('baseId')})
          SELECT a.${esc('createdAt')}, a.${esc('updatedAt')}, '${defaultLanguageCode}', a.${esc('name')}, a.${esc('id')}
          FROM ${esc('asset')} a
-         WHERE NOT EXISTS (
+         WHERE a.${esc('name')} IS NOT NULL
+         AND NOT EXISTS (
              SELECT 1 FROM ${esc('asset_translation')} t
              WHERE t.${esc('baseId')} = a.${esc('id')}
          )`,

@@ -14,13 +14,8 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. js-lingui-explicit-id
-#: src/lib/framework/defaults.ts:45
-msgid "Option Groups"
-msgstr ""
-
-#. js-lingui-explicit-id
-#: src/lib/framework/defaults.ts:151
-msgid "Settings Store"
+#: src/lib/framework/defaults.ts:158
+msgid "API Keys"
 msgstr ""
 
 #. js-lingui-explicit-id
@@ -79,6 +74,11 @@ msgstr "Товари"
 #: src/lib/framework/defaults.ts:38
 msgid "Product Variants"
 msgstr "Варіанти товару"
+
+#. js-lingui-explicit-id
+#: src/lib/framework/defaults.ts:45
+msgid "Option Groups"
+msgstr ""
 
 #. js-lingui-explicit-id
 #: src/lib/framework/defaults.ts:52
@@ -142,82 +142,87 @@ msgid "Scheduled Tasks"
 msgstr "Заплановані завдання"
 
 #. js-lingui-explicit-id
-#: src/lib/framework/defaults.ts:160
+#: src/lib/framework/defaults.ts:151
+msgid "Settings Store"
+msgstr ""
+
+#. js-lingui-explicit-id
+#: src/lib/framework/defaults.ts:167
 msgid "Settings"
 msgstr "Налаштування"
 
 #. js-lingui-explicit-id
-#: src/lib/framework/defaults.ts:167
+#: src/lib/framework/defaults.ts:174
 msgid "Sellers"
 msgstr "Продавці"
 
 #. js-lingui-explicit-id
-#: src/lib/framework/defaults.ts:174
+#: src/lib/framework/defaults.ts:181
 msgid "Channels"
 msgstr "Канали"
 
 #. js-lingui-explicit-id
-#: src/lib/framework/defaults.ts:181
+#: src/lib/framework/defaults.ts:188
 msgid "Stock Locations"
 msgstr "Місця зберігання"
 
 #. js-lingui-explicit-id
-#: src/lib/framework/defaults.ts:188
+#: src/lib/framework/defaults.ts:195
 msgid "Administrators"
 msgstr "Адміністратори"
 
 #. js-lingui-explicit-id
-#: src/lib/framework/defaults.ts:195
+#: src/lib/framework/defaults.ts:202
 msgid "Roles"
 msgstr "Ролі"
 
 #. js-lingui-explicit-id
-#: src/lib/framework/defaults.ts:202
+#: src/lib/framework/defaults.ts:209
 msgid "Shipping Methods"
 msgstr "Способи доставки"
 
 #. js-lingui-explicit-id
-#: src/lib/framework/defaults.ts:209
+#: src/lib/framework/defaults.ts:216
 msgid "Payment Methods"
 msgstr "Способи оплати"
 
 #. js-lingui-explicit-id
-#: src/lib/framework/defaults.ts:216
+#: src/lib/framework/defaults.ts:223
 msgid "Tax Categories"
 msgstr "Податкові категорії"
 
 #. js-lingui-explicit-id
-#: src/lib/framework/defaults.ts:223
+#: src/lib/framework/defaults.ts:230
 msgid "Tax Rates"
 msgstr "Податкові ставки"
 
 #. js-lingui-explicit-id
-#: src/lib/framework/defaults.ts:230
+#: src/lib/framework/defaults.ts:237
 msgid "Countries"
 msgstr "Країни"
 
 #. js-lingui-explicit-id
-#: src/lib/framework/defaults.ts:237
+#: src/lib/framework/defaults.ts:244
 msgid "Zones"
 msgstr "Зони"
 
 #. js-lingui-explicit-id
-#: src/lib/framework/defaults.ts:244
+#: src/lib/framework/defaults.ts:251
 msgid "Global Settings"
 msgstr "Глобальні налаштування"
 
 #. js-lingui-explicit-id
-#: src/lib/framework/defaults.ts:256
+#: src/lib/framework/defaults.ts:263
 msgid "Metrics Widget"
 msgstr "Віджет метрик"
 
 #. js-lingui-explicit-id
-#: src/lib/framework/defaults.ts:264
+#: src/lib/framework/defaults.ts:271
 msgid "Latest Orders Widget"
 msgstr "Віджет останніх замовлень"
 
 #. js-lingui-explicit-id
-#: src/lib/framework/defaults.ts:271
+#: src/lib/framework/defaults.ts:278
 msgid "Orders Summary Widget"
 msgstr "Віджет зведення замовлень"
 
@@ -828,7 +833,7 @@ msgid "{0} selected"
 msgstr "{0} вибрано"
 
 #. placeholder {0}: row.original.productVariantCount
-#: src/app/routes/_authenticated/_collections/collections.tsx:331
+#: src/app/routes/_authenticated/_collections/collections.tsx:408
 msgid "{0} variants"
 msgstr "{0} варіантів"
 
@@ -877,7 +882,7 @@ msgstr "{totalQuantity} товар(ів) повернено"
 msgid "+ {0} more"
 msgstr "+ ще {0}"
 
-#: src/app/routes/_authenticated/_collections/collections.tsx:349
+#: src/app/routes/_authenticated/_collections/collections.tsx:426
 msgid "+ {leftOver} more"
 msgstr "+ ще {leftOver}"
 
@@ -1215,6 +1220,20 @@ msgstr "І"
 msgid "Apartment, suite, etc."
 msgstr "Квартира, офіс тощо"
 
+#: src/app/routes/_authenticated/_api-keys/components/api-key-secret-dialog.tsx:85
+msgid "API Key"
+msgstr ""
+
+#: src/app/routes/_authenticated/_api-keys/components/rotate-api-key-button.tsx:32
+msgid "API key rotated successfully"
+msgstr ""
+
+#: src/app/routes/_authenticated/_api-keys/api-keys_.$id.tsx:48
+#: src/app/routes/_authenticated/_api-keys/api-keys.tsx:14
+#: src/app/routes/_authenticated/_api-keys/api-keys.tsx:25
+msgid "API Keys"
+msgstr ""
+
 #: src/lib/components/data-table/views-sheet.tsx:49
 msgid "Applied global view \"{viewName}\""
 msgstr "Застосовано глобальне подання \"{viewName}\""
@@ -1414,8 +1433,9 @@ msgid "Calculator"
 msgstr "Калькулятор"
 
 #: src/app/common/duplicate-entity-dialog.tsx:112
+#: src/app/routes/_authenticated/_api-keys/components/rotate-api-key-button.tsx:61
 #: src/app/routes/_authenticated/_assets/components/manage-tags-dialog.tsx:203
-#: src/app/routes/_authenticated/_collections/components/move-collections-dialog.tsx:417
+#: src/app/routes/_authenticated/_collections/components/move-collections-dialog.tsx:418
 #: src/app/routes/_authenticated/_customers/components/customer-address-form.tsx:250
 #: src/app/routes/_authenticated/_orders/components/add-manual-payment-dialog.tsx:168
 #: src/app/routes/_authenticated/_orders/components/fulfill-order-dialog.tsx:310
@@ -1453,7 +1473,7 @@ msgstr "Скасувати зміну"
 msgid "Cancel payment"
 msgstr "Скасувати платіж"
 
-#: src/app/routes/_authenticated/_collections/collections.tsx:210
+#: src/app/routes/_authenticated/_collections/collections.tsx:288
 msgid "Cannot move a collection into its own descendant"
 msgstr "Неможливо перемістити колекцію в її власного нащадка"
 
@@ -1521,6 +1541,10 @@ msgstr "Очистити фільтри"
 msgid "Click \"Run Test\" to test this shipping method."
 msgstr "Натисніть «Запустити тест» для перевірки цього способу доставки."
 
+#: src/app/routes/_authenticated/_api-keys/components/api-key-secret-dialog.tsx:125
+msgid "Close"
+msgstr ""
+
 #: src/app/routes/_authenticated/_channels/channels_.$id.tsx:132
 #: src/app/routes/_authenticated/_countries/countries_.$id.tsx:110
 #: src/app/routes/_authenticated/_facets/facets_.$facetId.values_.$id.tsx:137
@@ -1539,17 +1563,17 @@ msgstr "Код"
 msgid "Collection contents for {collectionName}"
 msgstr "Вміст колекції {collectionName}"
 
-#: src/app/routes/_authenticated/_collections/collections.tsx:248
+#: src/app/routes/_authenticated/_collections/collections.tsx:325
 msgid "Collection moved to new parent"
 msgstr "Колекцію переміщено до нового батьківського елемента"
 
-#: src/app/routes/_authenticated/_collections/collections.tsx:242
+#: src/app/routes/_authenticated/_collections/collections.tsx:323
 msgid "Collection position updated"
 msgstr "Позицію колекції оновлено"
 
 #: src/app/routes/_authenticated/_collections/collections_.$id.tsx:46
-#: src/app/routes/_authenticated/_collections/collections.tsx:36
-#: src/app/routes/_authenticated/_collections/collections.tsx:262
+#: src/app/routes/_authenticated/_collections/collections.tsx:51
+#: src/app/routes/_authenticated/_collections/collections.tsx:339
 msgid "Collections"
 msgstr "Колекції"
 
@@ -1611,7 +1635,7 @@ msgid "Content:"
 msgstr "Вміст:"
 
 #: src/app/routes/_authenticated/_collections/collections_.$id.tsx:245
-#: src/app/routes/_authenticated/_collections/collections.tsx:324
+#: src/app/routes/_authenticated/_collections/collections.tsx:401
 msgid "Contents"
 msgstr "Вміст"
 
@@ -1651,6 +1675,7 @@ msgid "Coupon code set for order"
 msgstr "Код купона встановлено для замовлення"
 
 #: src/app/routes/_authenticated/_administrators/administrators_.$id.tsx:105
+#: src/app/routes/_authenticated/_api-keys/api-keys_.$id.tsx:155
 #: src/app/routes/_authenticated/_channels/channels_.$id.tsx:122
 #: src/app/routes/_authenticated/_collections/collections_.$id.tsx:148
 #: src/app/routes/_authenticated/_countries/countries_.$id.tsx:84
@@ -1718,9 +1743,10 @@ msgstr "Створити варіант"
 #~ msgid "Create variants for your product"
 #~ msgstr "Створіть варіанти для вашого товару"
 
+#: src/app/routes/_authenticated/_api-keys/api-keys_.$id.tsx:226
 #: src/app/routes/_authenticated/_orders/components/fulfillment-details.tsx:124
 #: src/lib/components/shared/asset/asset-gallery.tsx:747
-#: src/lib/framework/layout-engine/page-layout.tsx:640
+#: src/lib/framework/layout-engine/page-layout.tsx:650
 msgid "Created"
 msgstr "Створено"
 
@@ -1728,6 +1754,11 @@ msgstr "Створено"
 #: src/app/routes/_authenticated/_orders/components/payment-details.tsx:221
 msgid "Created at"
 msgstr "Дата створення"
+
+#: src/app/routes/_authenticated/_api-keys/api-keys_.$id.tsx:210
+#: src/app/routes/_authenticated/_api-keys/api-keys.tsx:66
+msgid "Created by"
+msgstr ""
 
 #: src/app/routes/_authenticated/_products/components/generate-variants-panel.tsx:292
 msgid "Creating..."
@@ -1973,6 +2004,10 @@ msgstr "Не відстежувати"
 msgid "does not contain"
 msgstr "не містить"
 
+#: src/app/routes/_authenticated/_api-keys/components/api-key-secret-dialog.tsx:108
+msgid "Download as .env file"
+msgstr ""
+
 #: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:304
 #: src/app/routes/_authenticated/_orders/orders.tsx:115
 msgid "Draft order"
@@ -2137,7 +2172,7 @@ msgstr "Увімкнути"
 msgid "Enabled"
 msgstr "Увімкнено"
 
-#: src/lib/components/data-table/data-table-filter-badge.tsx:110
+#: src/lib/components/data-table/data-table-filter-badge.tsx:122
 msgid "end"
 msgstr "кінець"
 
@@ -2165,7 +2200,7 @@ msgstr "Введіть ID транзакції для цього розраху�
 msgid "Enter transaction ID"
 msgstr "Введіть ID транзакції"
 
-#: src/lib/framework/layout-engine/page-layout.tsx:612
+#: src/lib/framework/layout-engine/page-layout.tsx:622
 msgid "Entity Information"
 msgstr "Інформація про об'єкт"
 
@@ -2294,6 +2329,10 @@ msgstr "Не вдалося створити адресу"
 #: src/app/routes/_authenticated/_administrators/administrators_.$id.tsx:86
 msgid "Failed to create administrator"
 msgstr "Не вдалося створити адміністратора"
+
+#: src/app/routes/_authenticated/_api-keys/api-keys_.$id.tsx:121
+msgid "Failed to create API key"
+msgstr ""
 
 #: src/app/routes/_authenticated/_channels/channels_.$id.tsx:90
 #: src/app/routes/_authenticated/_channels/channels_.$id.tsx:96
@@ -2448,7 +2487,7 @@ msgstr "Не вдалося завантажити глобальні налаш
 msgid "Failed to modify order"
 msgstr "Не вдалося змінити замовлення"
 
-#: src/app/routes/_authenticated/_collections/components/move-collections-dialog.tsx:293
+#: src/app/routes/_authenticated/_collections/components/move-collections-dialog.tsx:294
 msgid "Failed to move collections"
 msgstr "Не вдалося перемістити колекції"
 
@@ -2493,6 +2532,10 @@ msgstr "Не вдалося перейменувати подання"
 msgid "Failed to reorder items"
 msgstr "Не вдалося змінити порядок позицій"
 
+#: src/app/routes/_authenticated/_api-keys/components/rotate-api-key-button.tsx:35
+msgid "Failed to rotate API key"
+msgstr ""
+
 #: src/app/routes/_authenticated/_orders/components/payment-details.tsx:48
 #: src/app/routes/_authenticated/_orders/components/payment-details.tsx:52
 msgid "Failed to settle payment"
@@ -2515,6 +2558,10 @@ msgstr "Не вдалося оновити адресу"
 msgid "Failed to update administrator"
 msgstr "Не вдалося оновити адміністратора"
 
+#: src/app/routes/_authenticated/_api-keys/api-keys_.$id.tsx:121
+msgid "Failed to update API key"
+msgstr ""
+
 #: src/app/routes/_authenticated/_assets/assets_.$id.tsx:89
 msgid "Failed to update asset"
 msgstr "Не вдалося оновити ресурс"
@@ -2528,7 +2575,7 @@ msgstr "Не вдалося оновити канал"
 msgid "Failed to update collection"
 msgstr "Не вдалося оновити колекцію"
 
-#: src/app/routes/_authenticated/_collections/collections.tsx:253
+#: src/app/routes/_authenticated/_collections/collections.tsx:330
 msgid "Failed to update collection position"
 msgstr "Не вдалося оновити позицію колекції"
 
@@ -2650,7 +2697,7 @@ msgstr "Хибність"
 msgid "Filter by {columnId}"
 msgstr "Фільтрувати за {columnId}"
 
-#: src/app/routes/_authenticated/_collections/components/move-collections-dialog.tsx:369
+#: src/app/routes/_authenticated/_collections/components/move-collections-dialog.tsx:370
 msgid "Filter by collection name"
 msgstr "Фільтрувати за назвою колекції"
 
@@ -2868,6 +2915,10 @@ msgstr "Висота"
 msgid "Hide password"
 msgstr "Приховати пароль"
 
+#: src/app/routes/_authenticated/_api-keys/components/api-key-secret-dialog.tsx:118
+msgid "I have saved this API key"
+msgstr ""
+
 #: src/app/routes/_authenticated/_system/scheduled-tasks.tsx:108
 msgid "ID"
 msgstr "ID"
@@ -3047,6 +3098,11 @@ msgstr "Останній результат"
 #~ msgid "Last updated {0}"
 #~ msgstr "Останнє оновлення {0}"
 
+#: src/app/routes/_authenticated/_api-keys/api-keys_.$id.tsx:214
+#: src/app/routes/_authenticated/_api-keys/api-keys.tsx:46
+msgid "Last used"
+msgstr ""
+
 #: src/lib/framework/dashboard-widget/latest-orders-widget/index.tsx:78
 msgid "Latest Orders"
 msgstr "Останні замовлення"
@@ -3081,7 +3137,7 @@ msgid "List view"
 msgstr ""
 
 #. placeholder {0}: Math.min(remaining, CHILDREN_PAGE_SIZE)
-#: src/app/routes/_authenticated/_collections/collections.tsx:395
+#: src/app/routes/_authenticated/_collections/collections.tsx:477
 msgid "Load {0} more ({remaining} remaining)"
 msgstr "Завантажити ще {0} (залишилось {remaining})"
 
@@ -3094,7 +3150,7 @@ msgstr "Завантажити ще"
 msgid "Loading addresses..."
 msgstr "Завантаження адрес..."
 
-#: src/app/routes/_authenticated/_collections/components/move-collections-dialog.tsx:378
+#: src/app/routes/_authenticated/_collections/components/move-collections-dialog.tsx:379
 msgid "Loading collections..."
 msgstr "Завантаження колекцій..."
 
@@ -3119,7 +3175,6 @@ msgstr "Завантаження тегів..."
 #: src/lib/components/shared/customer-group-selector.tsx:56
 #: src/lib/components/shared/customer-selector.tsx:88
 #: src/lib/components/shared/facet-value-selector.tsx:159
-#: src/lib/components/shared/seller-selector.tsx:90
 msgid "Loading..."
 msgstr "Завантаження..."
 
@@ -3130,6 +3185,12 @@ msgstr "Локаль"
 #: src/lib/components/layout/nav-user.tsx:164
 msgid "Log out"
 msgstr "Вийти"
+
+#: src/app/routes/_authenticated/_api-keys/api-keys_.$id.tsx:204
+#: src/app/routes/_authenticated/_api-keys/api-keys.tsx:60
+#: src/app/routes/_authenticated/_api-keys/components/api-key-secret-dialog.tsx:95
+msgid "Lookup ID"
+msgstr ""
 
 #: src/lib/components/data-table/views-sheet.tsx:261
 msgid "Make Global"
@@ -3181,6 +3242,7 @@ msgstr "відповідає regex"
 msgid "Medium date"
 msgstr "Середня дата"
 
+#: src/app/routes/_authenticated/_api-keys/api-keys_.$id.tsx:201
 #: src/app/routes/_authenticated/_orders/components/payment-details.tsx:245
 msgid "Metadata"
 msgstr "Метадані"
@@ -3215,12 +3277,12 @@ msgstr "З початку місяця"
 msgid "More views"
 msgstr "Більше подань"
 
-#: src/app/routes/_authenticated/_collections/components/collection-bulk-actions.tsx:118
+#: src/app/routes/_authenticated/_collections/components/collection-bulk-actions.tsx:116
 msgid "Move"
 msgstr "Перемістити"
 
-#: src/app/routes/_authenticated/_collections/components/move-collections-dialog.tsx:339
-#: src/app/routes/_authenticated/_collections/components/move-collections-dialog.tsx:426
+#: src/app/routes/_authenticated/_collections/components/move-collections-dialog.tsx:340
+#: src/app/routes/_authenticated/_collections/components/move-collections-dialog.tsx:427
 msgid "Move Collections"
 msgstr "Перемістити колекції"
 
@@ -3235,7 +3297,7 @@ msgstr "Перемістити на верхній рівень"
 msgid "Moving {0} collection{1} into {2}"
 msgstr "Переміщення {0} колекцій до {2}"
 
-#: src/app/routes/_authenticated/_collections/components/move-collections-dialog.tsx:424
+#: src/app/routes/_authenticated/_collections/components/move-collections-dialog.tsx:425
 msgid "Moving..."
 msgstr "Переміщення..."
 
@@ -3248,6 +3310,7 @@ msgid "My Saved Views"
 msgstr "Мої збережені подання"
 
 #: src/app/routes/_authenticated/_administrators/administrators.tsx:45
+#: src/app/routes/_authenticated/_api-keys/api-keys_.$id.tsx:165
 #: src/app/routes/_authenticated/_assets/assets_.$id.tsx:152
 #: src/app/routes/_authenticated/_collections/collections_.$id.tsx:169
 #: src/app/routes/_authenticated/_countries/countries_.$id.tsx:104
@@ -3271,6 +3334,8 @@ msgstr "Мої збережені подання"
 msgid "Name"
 msgstr "Назва"
 
+#: src/app/routes/_authenticated/_api-keys/api-keys_.$id.tsx:221
+#: src/app/routes/_authenticated/_api-keys/api-keys.tsx:50
 #: src/app/routes/_authenticated/_system/scheduled-tasks.tsx:142
 #: src/app/routes/_authenticated/_system/scheduled-tasks.tsx:152
 msgid "Never"
@@ -3280,6 +3345,12 @@ msgstr "Ніколи"
 #: src/app/routes/_authenticated/_administrators/administrators_.$id.tsx:97
 msgid "New administrator"
 msgstr "Новий адміністратор"
+
+#: src/app/routes/_authenticated/_api-keys/api-keys_.$id.tsx:49
+#: src/app/routes/_authenticated/_api-keys/api-keys_.$id.tsx:136
+#: src/app/routes/_authenticated/_api-keys/api-keys.tsx:79
+msgid "New API Key"
+msgstr ""
 
 #: src/app/routes/_authenticated/_assets/assets_.$id.tsx:40
 msgid "New asset"
@@ -3299,7 +3370,7 @@ msgstr "Новий канал"
 msgid "New collection"
 msgstr "Нова колекція"
 
-#: src/app/routes/_authenticated/_collections/collections.tsx:437
+#: src/app/routes/_authenticated/_collections/collections.tsx:519
 msgid "New Collection"
 msgstr "Нова колекція"
 
@@ -3597,8 +3668,8 @@ msgid "No results found"
 msgstr "Результати не знайдено"
 
 #: src/lib/components/shared/seller-selector.tsx:90
-msgid "No sellers found"
-msgstr "Продавці не знайдено"
+#~ msgid "No sellers found"
+#~ msgstr "Продавці не знайдено"
 
 #: src/app/routes/_authenticated/_orders/orders_.$id_.modify.tsx:271
 msgid "No shipping address"
@@ -3675,6 +3746,10 @@ msgstr "Стара електронна пошта:"
 #: src/app/routes/_authenticated/_orders/components/draft-order-status.tsx:29
 msgid "Only draft orders can be completed"
 msgstr "Лише чернетки замовлень можуть бути завершені"
+
+#: src/app/routes/_authenticated/_api-keys/api-keys_.$id.tsx:195
+msgid "Only roles assigned to your account are available."
+msgstr ""
 
 #: src/app/routes/_authenticated/_products/products_.$id_.variants.tsx:293
 msgid "Option"
@@ -3973,7 +4048,11 @@ msgstr "Оформлено"
 msgid "Please add products and complete the shipping address to run the test."
 msgstr "Будь ласка, додайте товари та вкажіть адресу доставки для запуску тесту."
 
-#: src/app/routes/_authenticated/_collections/components/move-collections-dialog.tsx:311
+#: src/app/routes/_authenticated/_api-keys/components/api-key-secret-dialog.tsx:53
+msgid "Please confirm you have saved the API key before closing."
+msgstr ""
+
+#: src/app/routes/_authenticated/_collections/components/move-collections-dialog.tsx:312
 msgid "Please select a target collection"
 msgstr "Будь ласка, виберіть цільову колекцію"
 
@@ -4311,11 +4390,25 @@ msgstr "Перегляньте зміни перед їх застосуванн
 
 #: src/app/routes/_authenticated/_administrators/administrators_.$id.tsx:139
 #: src/app/routes/_authenticated/_administrators/administrators.tsx:55
+#: src/app/routes/_authenticated/_api-keys/api-keys_.$id.tsx:170
 #: src/app/routes/_authenticated/_roles/roles_.$id.tsx:32
 #: src/app/routes/_authenticated/_roles/roles.tsx:18
 #: src/app/routes/_authenticated/_roles/roles.tsx:27
 msgid "Roles"
 msgstr "Ролі"
+
+#: src/app/routes/_authenticated/_api-keys/components/rotate-api-key-button.tsx:51
+msgid "Rotate API Key"
+msgstr ""
+
+#: src/app/routes/_authenticated/_api-keys/components/rotate-api-key-button.tsx:45
+#: src/app/routes/_authenticated/_api-keys/components/rotate-api-key-button.tsx:68
+msgid "Rotate Key"
+msgstr ""
+
+#: src/app/routes/_authenticated/_api-keys/components/rotate-api-key-button.tsx:53
+msgid "Rotating this key will immediately invalidate the current key. Any integrations using it will stop working until updated with the new key."
+msgstr ""
 
 #: src/lib/components/data-table/data-table-pagination.tsx:20
 msgid "Rows per page"
@@ -4451,9 +4544,14 @@ msgstr ""
 msgid "Search payment methods..."
 msgstr "Пошук способів оплати..."
 
+#: src/app/routes/_authenticated/_api-keys/api-keys_.$id.tsx:188
 #: src/lib/components/shared/role-selector.tsx:53
 msgid "Search roles..."
 msgstr "Пошук ролей..."
+
+#: src/lib/components/shared/seller-selector.tsx:37
+msgid "Search sellers..."
+msgstr ""
 
 #. placeholder {0}: entityName.toLowerCase()
 #. placeholder {0}: group.name
@@ -4512,7 +4610,7 @@ msgid "Select a role"
 msgstr "Виберіть роль"
 
 #. placeholder {0}: collectionsToMove.length === 1 ? 'this collection' : `${collectionsToMove.length} collections`
-#: src/app/routes/_authenticated/_collections/components/move-collections-dialog.tsx:342
+#: src/app/routes/_authenticated/_collections/components/move-collections-dialog.tsx:343
 msgid "Select a target collection to move {0} to."
 msgstr "Виберіть цільову колекцію для переміщення {0}."
 
@@ -4584,7 +4682,11 @@ msgstr "Виберіть платежі для повернення"
 msgid "Select quantities to fulfill and configure the fulfillment handler"
 msgstr "Виберіть кількість для виконання та налаштуйте обробник виконання"
 
-#: src/lib/components/shared/seller-selector.tsx:75
+#: src/app/routes/_authenticated/_api-keys/api-keys_.$id.tsx:187
+msgid "Select roles"
+msgstr ""
+
+#: src/lib/components/shared/seller-selector.tsx:39
 msgid "Select seller"
 msgstr "Вибрати продавця"
 
@@ -4789,7 +4891,7 @@ msgstr "Slug буде згенеровано автоматично..."
 msgid "Source"
 msgstr "Джерело"
 
-#: src/lib/components/data-table/data-table-filter-badge.tsx:108
+#: src/lib/components/data-table/data-table-filter-badge.tsx:120
 msgid "start"
 msgstr "початок"
 
@@ -4886,6 +4988,10 @@ msgstr ""
 #: src/app/routes/_authenticated/_administrators/administrators_.$id.tsx:77
 msgid "Successfully created administrator"
 msgstr "Адміністратора успішно створено"
+
+#: src/app/routes/_authenticated/_api-keys/api-keys_.$id.tsx:108
+msgid "Successfully created API key"
+msgstr ""
 
 #: src/app/routes/_authenticated/_channels/channels_.$id.tsx:83
 msgid "Successfully created channel"
@@ -5012,6 +5118,10 @@ msgstr ""
 #: src/app/routes/_authenticated/_administrators/administrators_.$id.tsx:78
 msgid "Successfully updated administrator"
 msgstr "Адміністратора успішно оновлено"
+
+#: src/app/routes/_authenticated/_api-keys/api-keys_.$id.tsx:115
+msgid "Successfully updated API key"
+msgstr ""
 
 #: src/app/routes/_authenticated/_assets/assets_.$id.tsx:85
 msgid "Successfully updated asset"
@@ -5280,6 +5390,10 @@ msgstr "Це попередній перегляд вмісту колекції
 msgid "This is the contents of the <0>{collectionName}</0> collection."
 msgstr "Це вміст колекції <0>{collectionName}</0>."
 
+#: src/app/routes/_authenticated/_api-keys/components/api-key-secret-dialog.tsx:77
+msgid "This is the only time the full API key will be displayed. Copy or download it now — it cannot be retrieved later."
+msgstr ""
+
 #: src/lib/components/date-range-picker.tsx:71
 msgctxt "date-range"
 msgid "This month"
@@ -5423,6 +5537,7 @@ msgid "Unverified"
 msgstr "Не верифіковано"
 
 #: src/app/routes/_authenticated/_administrators/administrators_.$id.tsx:105
+#: src/app/routes/_authenticated/_api-keys/api-keys_.$id.tsx:155
 #: src/app/routes/_authenticated/_assets/assets_.$id.tsx:115
 #: src/app/routes/_authenticated/_channels/channels_.$id.tsx:122
 #: src/app/routes/_authenticated/_collections/collections_.$id.tsx:148
@@ -5456,7 +5571,7 @@ msgstr "Оновити"
 msgid "Update the note content or visibility"
 msgstr "Оновити вміст або видимість примітки"
 
-#: src/lib/framework/layout-engine/page-layout.tsx:653
+#: src/lib/framework/layout-engine/page-layout.tsx:663
 msgid "Updated"
 msgstr "Оновлено"
 
@@ -5651,6 +5766,10 @@ msgstr "У вас немає дозволу на перегляд глобаль
 #: src/lib/components/data-table/views-sheet.tsx:152
 msgid "You haven't saved any views yet."
 msgstr "Ви ще не зберегли жодного подання."
+
+#: src/app/routes/_authenticated/_api-keys/components/api-key-secret-dialog.tsx:67
+msgid "Your API Key"
+msgstr ""
 
 #: src/lib/framework/dashboard-widget/latest-orders-widget/index.tsx:78
 msgid "Your latest orders"

@@ -163,7 +163,7 @@ jobs:
         permissions:
             contents: read
         services:
-redis:
+            redis:
                 image: redis:7.4.1
                 ports:
                     - 6379
@@ -180,7 +180,7 @@ redis:
               run: npx lerna run ci
             - name: e2e tests
               env:
-E2E_REDIS_PORT: ${{ job.services.redis.ports['6379'] }}
+                  E2E_REDIS_PORT: ${{ job.services.redis.ports['6379'] }}
                   DB: sqljs
               run: npm run e2e
     e2e-mariadb:
@@ -198,24 +198,6 @@ E2E_REDIS_PORT: ${{ job.services.redis.ports['6379'] }}
                 ports:
                     - 3306
                 options: --health-cmd="mariadb-admin ping -h localhost -u vendure -ppassword" --health-interval=10s --health-timeout=5s --health-retries=3
-            elastic:
-                image: docker.elastic.co/elasticsearch/elasticsearch:9.1.0
-                env:
-                    node.name: es
-                    cluster.name: es-docker-cluster
-                    xpack.security.enabled: false
-                    xpack.security.http.ssl.enabled: false
-                    xpack.security.transport.ssl.enabled: false
-                    xpack.license.self_generated.type: basic
-                    discovery.type: single-node
-                    bootstrap.memory_lock: true
-                    ES_JAVA_OPTS: -Xms512m -Xmx512m
-                    cluster.routing.allocation.disk.watermark.low: 500mb
-                    cluster.routing.allocation.disk.watermark.high: 200mb
-                    cluster.routing.allocation.disk.watermark.flood_stage: 100mb
-                ports:
-                    - 9200
-                options: --health-cmd="curl --silent --fail localhost:9200/_cluster/health" --health-interval=10s --health-timeout=5s --health-retries=3
             redis:
                 image: redis:7.4.1
                 ports:
@@ -234,7 +216,7 @@ E2E_REDIS_PORT: ${{ job.services.redis.ports['6379'] }}
             - name: e2e tests
               env:
                   E2E_MARIADB_PORT: ${{ job.services.mariadb.ports['3306'] }}
-E2E_REDIS_PORT: ${{ job.services.redis.ports['6379'] }}
+                  E2E_REDIS_PORT: ${{ job.services.redis.ports['6379'] }}
                   DB: mariadb
               run: npm run e2e
     e2e-mysql:
@@ -250,24 +232,6 @@ E2E_REDIS_PORT: ${{ job.services.redis.ports['6379'] }}
                 ports:
                     - 3306
                 options: --health-cmd="mysqladmin ping --silent" --health-interval=10s --health-timeout=20s --health-retries=10
-            elastic:
-                image: docker.elastic.co/elasticsearch/elasticsearch:9.1.0
-                env:
-                    node.name: es
-                    cluster.name: es-docker-cluster
-                    xpack.security.enabled: false
-                    xpack.security.http.ssl.enabled: false
-                    xpack.security.transport.ssl.enabled: false
-                    xpack.license.self_generated.type: basic
-                    discovery.type: single-node
-                    bootstrap.memory_lock: true
-                    ES_JAVA_OPTS: -Xms512m -Xmx512m
-                    cluster.routing.allocation.disk.watermark.low: 500mb
-                    cluster.routing.allocation.disk.watermark.high: 200mb
-                    cluster.routing.allocation.disk.watermark.flood_stage: 100mb
-                ports:
-                    - 9200
-                options: --health-cmd="curl --silent --fail localhost:9200/_cluster/health" --health-interval=10s --health-timeout=5s --health-retries=3
             redis:
                 image: redis:7.4.1
                 ports:
@@ -286,7 +250,7 @@ E2E_REDIS_PORT: ${{ job.services.redis.ports['6379'] }}
             - name: e2e tests
               env:
                   E2E_MYSQL_PORT: ${{ job.services.mysql.ports['3306'] }}
-E2E_REDIS_PORT: ${{ job.services.redis.ports['6379'] }}
+                  E2E_REDIS_PORT: ${{ job.services.redis.ports['6379'] }}
                   DB: mysql
               run: npm run e2e
     e2e-postgres:
@@ -303,24 +267,6 @@ E2E_REDIS_PORT: ${{ job.services.redis.ports['6379'] }}
                 ports:
                     - 5432
                 options: --health-cmd=pg_isready --health-interval=10s --health-timeout=5s --health-retries=3
-            elastic:
-                image: docker.elastic.co/elasticsearch/elasticsearch:9.1.0
-                env:
-                    node.name: es
-                    cluster.name: es-docker-cluster
-                    xpack.security.enabled: false
-                    xpack.security.http.ssl.enabled: false
-                    xpack.security.transport.ssl.enabled: false
-                    xpack.license.self_generated.type: basic
-                    discovery.type: single-node
-                    bootstrap.memory_lock: true
-                    ES_JAVA_OPTS: -Xms512m -Xmx512m
-                    cluster.routing.allocation.disk.watermark.low: 500mb
-                    cluster.routing.allocation.disk.watermark.high: 200mb
-                    cluster.routing.allocation.disk.watermark.flood_stage: 100mb
-                ports:
-                    - 9200
-                options: --health-cmd="curl --silent --fail localhost:9200/_cluster/health" --health-interval=10s --health-timeout=5s --health-retries=3
             redis:
                 image: redis:7.4.1
                 ports:
@@ -339,6 +285,6 @@ E2E_REDIS_PORT: ${{ job.services.redis.ports['6379'] }}
             - name: e2e tests
               env:
                   E2E_POSTGRES_PORT: ${{ job.services.postgres.ports['5432'] }}
-E2E_REDIS_PORT: ${{ job.services.redis.ports['6379'] }}
+                  E2E_REDIS_PORT: ${{ job.services.redis.ports['6379'] }}
                   DB: postgres
               run: npm run e2e

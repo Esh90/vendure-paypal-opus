@@ -224,7 +224,7 @@
           "title": "Configuration",
           "slug": "configuration",
           "file": "docs/guides/developer-guide/configuration/index.mdx",
-          "lastModified": "2026-03-30T20:58:01+02:00"
+          "lastModified": "2026-03-30T21:29:53+02:00"
         },
         {
           "title": "Custom Fields",
@@ -3659,7 +3659,7 @@
               "lastModified": "2026-01-28T14:49:21+01:00"
             }
           ],
-          "lastModified": "2026-01-28T14:49:21+01:00"
+          "lastModified": "2026-03-30T21:29:53+02:00"
         },
         {
           "title": "GraphQL API",

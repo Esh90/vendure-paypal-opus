@@ -7,5 +7,6 @@ export * from './history-entries.js';
 export * from './layout.js';
 export * from './login.js';
 export * from './navigation.js';
+export * from './refund-destinations.js';
 export * from './toolbar.js';
 export * from './widgets.js';

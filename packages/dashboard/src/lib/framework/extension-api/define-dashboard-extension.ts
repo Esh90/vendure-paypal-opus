@@ -11,6 +11,7 @@ import {
     registerLayoutExtensions,
     registerLoginExtensions,
     registerNavigationExtensions,
+    registerRefundDestinationExtensions,
     registerToolbarExtensions,
     registerWidgetExtensions,
 } from './logic/index.js';
@@ -120,6 +121,9 @@ export function defineDashboardExtension(extension: DashboardExtension) {
 
         // Register toolbar extensions
         registerToolbarExtensions(extension.toolbarItems);
+
+        // Register refund destination extensions
+        registerRefundDestinationExtensions(extension.refundDestinations);
 
         // Execute extension source change callbacks
         const callbacks = globalRegistry.get('extensionSourceChangeCallbacks');

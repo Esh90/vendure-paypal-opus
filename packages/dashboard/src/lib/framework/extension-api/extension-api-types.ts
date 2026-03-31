@@ -11,6 +11,7 @@ import {
     DashboardLoginExtensions,
     DashboardNavSectionDefinition,
     DashboardPageBlockDefinition,
+    DashboardRefundDestinationDefinition,
     DashboardRouteDefinition,
     DashboardToolbarItemDefinition,
     DashboardWidgetDefinition,
@@ -128,4 +129,12 @@ export interface DashboardExtension {
      * @since 3.5.3
      */
     toolbarItems?: DashboardToolbarItemDefinition[];
+    /**
+     * @description
+     * Register custom refund destination UI components. Each entry corresponds
+     * to a backend `RefundDestinationStrategy` matched by `code`.
+     *
+     * @since 3.3.0
+     */
+    refundDestinations?: DashboardRefundDestinationDefinition[];
 }

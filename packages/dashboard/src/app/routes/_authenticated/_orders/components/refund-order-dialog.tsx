@@ -64,6 +64,8 @@ export const RefundOrderDialog = forwardRef<RefundOrderDialogRef, RefundOrderDia
             setOpen(false);
         };
 
+        const remaining = refund.refundTotal - refund.amountToRefundTotal;
+
         return (
             <Dialog open={open} onOpenChange={setOpen}>
                 <DialogContent className="!max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -268,7 +270,8 @@ export const RefundOrderDialog = forwardRef<RefundOrderDialogRef, RefundOrderDia
                                 <Input
                                     type="number"
                                     step="0.01"
-                                    value={toMajorUnits(refund.refundTotal)}
+                                    value={refund.refundTotal ? toMajorUnits(refund.refundTotal) : ''}
+                                    placeholder="0"
                                     onChange={e =>
                                         refund.onManualRefundTotalChange(
                                             toMinorUnits(Number.parseFloat(e.target.value) || 0),
@@ -284,60 +287,74 @@ export const RefundOrderDialog = forwardRef<RefundOrderDialogRef, RefundOrderDia
                             </div>
                         </div>
 
-                        {/* Payment Selection */}
+                        {/* Refund Targets — unified list of payments + destinations */}
                         <div className="space-y-2">
                             <Label className="text-base font-medium">
-                                <Trans>Select payments to refund</Trans>
+                                <Trans>Refund to</Trans>
                             </Label>
                             <div className="space-y-3">
-                                {refund.refundablePayments.map(payment => (
-                                    <div key={payment.id} className="border rounded-md p-3 space-y-2">
+                                {refund.refundTargets.map(target => (
+                                    <div key={target.id} className="border rounded-md p-3">
                                         <div className="flex items-center justify-between">
                                             <div className="flex items-center gap-2">
                                                 <Checkbox
-                                                    checked={payment.selected}
+                                                    checked={target.selected}
                                                     onCheckedChange={checked =>
-                                                        refund.onPaymentSelected(payment.id, !!checked)
+                                                        refund.onTargetSelected(target.id, !!checked)
                                                     }
                                                 />
                                                 <div>
-                                                    <div className="font-medium">{payment.method}</div>
-                                                    <div className="text-sm text-muted-foreground">
-                                                        <Trans>Available</Trans>:{' '}
-                                                        {formatCurrency(
-                                                            payment.refundableAmount,
-                                                            order.currencyCode,
+                                                    <div className="font-medium">
+                                                        {target.label}
+                                                        {target.type === 'payment' && (
+                                                            <span className="ml-2 text-xs font-normal text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
+                                                                <Trans>Original payment</Trans>
+                                                            </span>
                                                         )}
                                                     </div>
                                                 </div>
                                             </div>
-                                            {payment.selected && (
-                                                <div className="flex items-center gap-2">
-                                                    <Label className="text-sm">
-                                                        <Trans>Amount</Trans>:
-                                                    </Label>
-                                                    <Input
-                                                        type="number"
-                                                        step="0.01"
-                                                        value={toMajorUnits(payment.amountToRefund)}
-                                                        onChange={e =>
-                                                            refund.onPaymentAmountChange(
-                                                                payment.id,
-                                                                toMinorUnits(Number.parseFloat(e.target.value) || 0),
-                                                            )
-                                                        }
-                                                        className="w-24"
-                                                        max={toMajorUnits(payment.refundableAmount)}
-                                                    />
-                                                    <span className="text-muted-foreground text-sm">
-                                                        {order.currencyCode}
-                                                    </span>
-                                                </div>
-                                            )}
+                                            <div className="flex items-center gap-2">
+                                                <Label className="text-sm">
+                                                    <Trans>Amount</Trans>:
+                                                </Label>
+                                                <Input
+                                                    type="number"
+                                                    step="0.01"
+                                                    value={target.amountToRefund ? toMajorUnits(target.amountToRefund) : ''}
+                                                    placeholder="0"
+                                                    onChange={e => {
+                                                        const amount = toMinorUnits(Number.parseFloat(e.target.value) || 0);
+                                                        refund.onTargetAmountChange(target.id, amount, amount > 0 ? true : undefined);
+                                                    }}
+                                                    className="w-24"
+                                                />
+                                                <span className="text-muted-foreground text-sm">
+                                                    {order.currencyCode}
+                                                </span>
+                                            </div>
                                         </div>
                                     </div>
                                 ))}
                             </div>
+
+                            {/* Allocation summary */}
+                            {refund.refundTotal > 0 && (
+                                <div className={`text-sm flex justify-between px-1 ${remaining === 0 ? 'text-muted-foreground' : 'text-destructive font-medium'}`}>
+                                    <span>
+                                        <Trans>Allocated</Trans>:{' '}
+                                        {formatCurrency(refund.amountToRefundTotal, order.currencyCode)}
+                                        {' / '}
+                                        {formatCurrency(refund.refundTotal, order.currencyCode)}
+                                    </span>
+                                    {remaining !== 0 && (
+                                        <span>
+                                            <Trans>Remaining</Trans>:{' '}
+                                            {formatCurrency(remaining, order.currencyCode)}
+                                        </span>
+                                    )}
+                                </div>
+                            )}
                         </div>
 
                         {/* Validation Errors */}
@@ -365,7 +382,7 @@ export const RefundOrderDialog = forwardRef<RefundOrderDialogRef, RefundOrderDia
                                 <Trans>Processing...</Trans>
                             ) : (
                                 <Trans>
-                                    Refund {formatCurrency(refund.amountToRefundTotal, order.currencyCode)}
+                                    Refund {formatCurrency(refund.refundTotal, order.currencyCode)}
                                 </Trans>
                             )}
                         </Button>

@@ -139,7 +139,7 @@ An API key consists of two parts separated by a colon:
 ```
 
 - **Lookup ID** (24 hex chars by default) — a non-secret identifier used to find the key in the database. Think of it like a username.
-- **Secret** (64 hex chars by default) — the actual secret, stored as a bcrypt hash. Think of it like a password.
+- **Secret** (64 hex chars by default) — the secret portion of the key. The full key (`lookupId:secret`) is hashed using bcrypt and stored in the database.
 
 This two-part design is important: bcrypt produces different hashes for the same input (due to random salts), so you cannot look up a key by hashing the incoming secret and searching for a match. The lookup ID solves this by providing a stable, indexable identifier.
 
@@ -150,7 +150,7 @@ When a request arrives with an API key:
 1. The `vendure-api-key` header value is extracted
 2. The key is parsed into `lookupId` and `secret`
 3. The `ApiKey` entity is fetched from the database using the `lookupId`
-4. The incoming secret is verified against the stored bcrypt hash
+4. The full incoming key (`lookupId:secret`) is verified against the stored bcrypt hash
 5. The session associated with the key's user is loaded (or created if missing)
 6. The request proceeds with that user's roles and permissions
 
@@ -160,7 +160,7 @@ Each API key is associated with a **dedicated user** that holds the key's roles.
 
 - Has no login credentials (cannot be used for interactive authentication)
 - Is created automatically when the API key is created
-- Is deleted when the API key is deleted
+- Is soft-deleted when the API key is deleted (the database row remains with a `deletedAt` timestamp)
 - Has its permissions determined entirely by the assigned roles
 
 The key also tracks an **owner** — the administrator who created it. This is useful for auditing.

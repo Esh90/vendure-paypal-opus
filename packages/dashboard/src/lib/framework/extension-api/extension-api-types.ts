@@ -1,6 +1,7 @@
 // Import types for the main interface
 import { NavMenuConfig } from '../nav-menu/nav-menu-extensions.js';
 
+import { DashboardCustomProviderDefinition } from './custom-providers.js';
 import {
     DashboardActionBarItem,
     DashboardAlertDefinition,
@@ -128,4 +129,10 @@ export interface DashboardExtension {
      * @since 3.5.3
      */
     toolbarItems?: DashboardToolbarItemDefinition[];
+
+    /**
+     * @description
+     * Allows you to add custom providers in different locations.
+     */
+    customProviders?: DashboardCustomProviderDefinition[];
 }

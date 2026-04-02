@@ -23,6 +23,7 @@ import { detailPageRouteLoader } from '@/vdb/framework/page/detail-page-route-lo
 import { useDetailPage } from '@/vdb/framework/page/use-detail-page.js';
 import { Trans, useLingui } from '@lingui/react/macro';
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
+import { useMutation } from '@tanstack/react-query';
 import { Layers, Package, PlusIcon } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { toast } from 'sonner';
@@ -34,6 +35,7 @@ import {
     assignProductsToChannelDocument,
     createProductDocument,
     productDetailDocument,
+    removeOptionGroupFromProductDocument,
     removeProductsFromChannelDocument,
     updateProductDocument,
 } from './products.graphql.js';
@@ -74,21 +76,13 @@ function NoVariantsPrompt({
 
     if (mode === 'single') {
         return (
-            <div className="space-y-3">
-                <GenerateVariantsPanel
-                    productId={productId}
-                    productName={productName}
-                    optionGroups={[]}
-                    onSuccess={onVariantCreated}
-                />
-                <button
-                    type="button"
-                    onClick={() => setMode('choose')}
-                    className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-                >
-                    <Trans>← Back</Trans>
-                </button>
-            </div>
+            <GenerateVariantsPanel
+                productId={productId}
+                productName={productName}
+                optionGroups={[]}
+                onSuccess={onVariantCreated}
+                onBack={{ handler: () => setMode('choose') }}
+            />
         );
     }
 
@@ -176,6 +170,42 @@ function ProductDetailPage() {
             });
         },
     });
+
+    const removeOptionGroupMutation = useMutation({
+        mutationFn: api.mutate(removeOptionGroupFromProductDocument),
+    });
+
+    const removeAllOptionGroups = async (
+        productId: string,
+        optionGroups: Array<{ id: string }>,
+    ) => {
+        try {
+            for (const group of optionGroups) {
+                const result = await removeOptionGroupMutation.mutateAsync({
+                    productId,
+                    optionGroupId: group.id,
+                });
+                const removeResult = result?.removeOptionGroupFromProduct;
+                if (
+                    removeResult &&
+                    '__typename' in removeResult &&
+                    removeResult.__typename === 'ProductOptionInUseError'
+                ) {
+                    toast.error(t`Could not remove option group`, {
+                        description: removeResult.message,
+                    });
+                    refreshEntity();
+                    return;
+                }
+            }
+            refreshEntity();
+        } catch (error) {
+            toast.error(t`Failed to remove option groups`, {
+                description: error instanceof Error ? error.message : t`Unknown error`,
+            });
+            refreshEntity();
+        }
+    };
 
     return (
         <Page pageId={pageId} form={form} submitHandler={submitHandler} entity={entity}>
@@ -270,6 +300,13 @@ function ProductDetailPage() {
                                 productName={entity.name}
                                 optionGroups={entity.optionGroups}
                                 onSuccess={() => refreshEntity()}
+                                onBack={{
+                                    handler: () => removeAllOptionGroups(entity.id, entity.optionGroups),
+                                    confirmation: {
+                                        title: t`Remove option groups?`,
+                                        description: t`This will remove all option groups from this product and return to the variant setup choice.`,
+                                    },
+                                }}
                             />
                         )}
                     </PageBlock>

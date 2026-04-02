@@ -302,7 +302,7 @@ msgstr "Produktvariante erfolgreich aktualisiert"
 msgid "Failed to delete {failed} {entityName}: {allErrors}"
 msgstr "Fehler beim Löschen von {failed} {entityName}: {allErrors}"
 
-#: src/app/routes/_authenticated/_products/products_.$id.tsx:166
+#: src/app/routes/_authenticated/_products/products_.$id.tsx:160
 msgid "Successfully updated product"
 msgstr "Produkt erfolgreich aktualisiert"
 
@@ -341,8 +341,9 @@ msgstr "Lagerort erfolgreich erstellt"
 #: src/app/routes/_authenticated/_products/components/add-option-group-dialog.tsx:78
 #: src/app/routes/_authenticated/_products/components/add-option-group-dialog.tsx:120
 #: src/app/routes/_authenticated/_products/components/add-product-variant-dialog.tsx:166
-#: src/app/routes/_authenticated/_products/components/generate-variants-panel.tsx:174
+#: src/app/routes/_authenticated/_products/components/generate-variants-panel.tsx:180
 #: src/app/routes/_authenticated/_products/products_.$id_.variants.tsx:112
+#: src/app/routes/_authenticated/_products/products_.$id.tsx:204
 msgid "Unknown error"
 msgstr "Unbekannter Fehler"
 
@@ -394,7 +395,7 @@ msgstr "Zurück auf Lager"
 msgid "Visibility"
 msgstr "Sichtbarkeit"
 
-#: src/app/routes/_authenticated/_products/products_.$id.tsx:258
+#: src/app/routes/_authenticated/_products/products_.$id.tsx:288
 msgid "Product variants"
 msgstr ""
 
@@ -418,8 +419,8 @@ msgid "Choose your preferred display language and locale settings"
 msgstr ""
 
 #: src/app/routes/_authenticated/_products/products_.$id.tsx:89
-msgid "← Back"
-msgstr ""
+#~ msgid "← Back"
+#~ msgstr ""
 
 #: src/app/routes/_authenticated/_option-groups/components/option-group-bulk-actions.tsx:87
 msgid "Successfully removed {successCount} option groups from channel"
@@ -532,7 +533,7 @@ msgstr "Zahlungsmethoden suchen..."
 msgid "Shipping address unset for order"
 msgstr "Lieferadresse für Bestellung entfernt"
 
-#: src/app/routes/_authenticated/_products/components/generate-variants-panel.tsx:303
+#: src/app/routes/_authenticated/_products/components/generate-variants-panel.tsx:335
 msgid "Create {enabledCount} variants"
 msgstr ""
 
@@ -851,7 +852,7 @@ msgstr "Fehler beim Erstellen der Sammlung"
 msgid "Go to first page"
 msgstr "Zur ersten Seite"
 
-#: src/app/routes/_authenticated/_products/products_.$id.tsx:174
+#: src/app/routes/_authenticated/_products/products_.$id.tsx:168
 msgid "Failed to create product"
 msgstr "Fehler beim Erstellen des Produkts"
 
@@ -875,7 +876,7 @@ msgstr "Lieferadresse für Bestellung festgelegt"
 msgid "Focal Point"
 msgstr "Fokuspunkt"
 
-#: src/app/routes/_authenticated/_products/products_.$id.tsx:105
+#: src/app/routes/_authenticated/_products/products_.$id.tsx:99
 msgid "Single variant, no options"
 msgstr ""
 
@@ -1006,7 +1007,7 @@ msgstr "Sammlung erfolgreich erstellt"
 #: src/app/routes/_authenticated/_orders/components/shipping-method-selector.tsx:49
 #: src/app/routes/_authenticated/_product-variants/product-variants_.$id.tsx:298
 #: src/app/routes/_authenticated/_products/components/add-product-variant-dialog.tsx:298
-#: src/app/routes/_authenticated/_products/components/generate-variants-panel.tsx:202
+#: src/app/routes/_authenticated/_products/components/generate-variants-panel.tsx:208
 #: src/lib/components/layout/language-dialog.tsx:136
 msgid "Price"
 msgstr "Preis"
@@ -1183,7 +1184,7 @@ msgstr ""
 msgid "No countries found"
 msgstr "Keine Länder gefunden"
 
-#: src/app/routes/_authenticated/_products/components/generate-variants-panel.tsx:170
+#: src/app/routes/_authenticated/_products/components/generate-variants-panel.tsx:176
 msgid "Successfully created variants"
 msgstr ""
 
@@ -1627,7 +1628,7 @@ msgid "Private collections are not visible in the shop"
 msgstr "Private Sammlungen sind im Shop nicht sichtbar"
 
 #: src/app/routes/_authenticated/_product-variants/product-variants_.$id.tsx:236
-#: src/app/routes/_authenticated/_products/products_.$id.tsx:199
+#: src/app/routes/_authenticated/_products/products_.$id.tsx:229
 msgid "When enabled, a product is available in the shop"
 msgstr "Wenn aktiviert, ist ein Produkt im Shop verfügbar"
 
@@ -1687,6 +1688,10 @@ msgstr "Keine Facetten-Werte"
 msgid "A reason for the refund is required"
 msgstr "Ein Grund für die Erstattung ist erforderlich"
 
+#: src/app/routes/_authenticated/_products/products_.$id.tsx:194
+msgid "Could not remove option group"
+msgstr ""
+
 #: src/app/routes/_authenticated/_tax-categories/tax-categories_.$id.tsx:77
 msgid "Failed to update tax category"
 msgstr "Fehler beim Aktualisieren der Steuerkategorie"
@@ -1712,7 +1717,7 @@ msgstr "Rückerstattung erfolgreich abgewickelt"
 #: src/app/routes/_authenticated/_payment-methods/payment-methods_.$id.tsx:138
 #: src/app/routes/_authenticated/_product-variants/product-variants_.$id.tsx:226
 #: src/app/routes/_authenticated/_products/components/assign-facet-values-dialog.tsx:276
-#: src/app/routes/_authenticated/_products/products_.$id.tsx:189
+#: src/app/routes/_authenticated/_products/products_.$id.tsx:219
 #: src/app/routes/_authenticated/_profile/profile.tsx:84
 #: src/app/routes/_authenticated/_promotions/promotions_.$id.tsx:144
 #: src/app/routes/_authenticated/_roles/roles_.$id.tsx:84
@@ -1809,6 +1814,10 @@ msgstr "Spalteneinstellungen"
 msgid "Code"
 msgstr "Code"
 
+#: src/app/routes/_authenticated/_products/products_.$id.tsx:203
+msgid "Failed to remove option groups"
+msgstr ""
+
 #: src/app/routes/_authenticated/_orders/components/order-history/order-history-utils.tsx:97
 msgid "Order delivered"
 msgstr "Bestellung zugestellt"
@@ -1892,7 +1901,7 @@ msgid "Test Shipping Method"
 msgstr "Versandmethode testen"
 
 #: src/app/routes/_authenticated/_product-variants/product-variants_.$id.tsx:465
-#: src/app/routes/_authenticated/_products/products_.$id.tsx:296
+#: src/app/routes/_authenticated/_products/products_.$id.tsx:333
 msgid "Facet Values"
 msgstr "Facetten-Werte"
 
@@ -2296,7 +2305,7 @@ msgstr "Seite {0} von {1}"
 msgid "Rate"
 msgstr "Satz"
 
-#: src/app/routes/_authenticated/_products/products_.$id.tsx:120
+#: src/app/routes/_authenticated/_products/products_.$id.tsx:114
 msgid "Size, colour, etc."
 msgstr ""
 
@@ -2375,7 +2384,7 @@ msgstr "Kunde für Bestellung festgelegt"
 msgid "Facets"
 msgstr "Facetten"
 
-#: src/app/routes/_authenticated/_products/components/generate-variants-panel.tsx:205
+#: src/app/routes/_authenticated/_products/components/generate-variants-panel.tsx:211
 msgid "Stock on Hand"
 msgstr "Lagerbestand"
 
@@ -2528,9 +2537,13 @@ msgstr "Versand neu berechnen"
 #: src/app/routes/_authenticated/_assets/assets.tsx:40
 #: src/app/routes/_authenticated/_collections/collections_.$id.tsx:225
 #: src/app/routes/_authenticated/_product-variants/product-variants_.$id.tsx:482
-#: src/app/routes/_authenticated/_products/products_.$id.tsx:329
+#: src/app/routes/_authenticated/_products/products_.$id.tsx:366
 msgid "Assets"
 msgstr "Assets"
+
+#: src/app/routes/_authenticated/_products/products_.$id.tsx:307
+msgid "This will remove all option groups from this product and return to the variant setup choice."
+msgstr ""
 
 #: src/app/routes/_authenticated/_orders/components/order-detail-shared.tsx:299
 #: src/app/routes/_authenticated/_orders/orders_.$id_.modify.tsx:277
@@ -2574,7 +2587,7 @@ msgstr ""
 msgid "Only draft orders can be completed"
 msgstr "Nur Bestellentwürfe können abgeschlossen werden"
 
-#: src/app/routes/_authenticated/_products/products_.$id.tsx:174
+#: src/app/routes/_authenticated/_products/products_.$id.tsx:168
 msgid "Failed to update product"
 msgstr "Fehler beim Aktualisieren des Produkts"
 
@@ -2625,7 +2638,7 @@ msgid "Successfully created administrator"
 msgstr "Administrator erfolgreich erstellt"
 
 #: src/app/routes/_authenticated/_option-groups/option-groups_.$id.tsx:198
-#: src/app/routes/_authenticated/_products/products_.$id.tsx:278
+#: src/app/routes/_authenticated/_products/products_.$id.tsx:315
 msgid "Product Options"
 msgstr "Produktoptionen"
 
@@ -2633,7 +2646,7 @@ msgstr "Produktoptionen"
 msgid "Select country"
 msgstr "Land auswählen"
 
-#: src/app/routes/_authenticated/_products/components/generate-variants-panel.tsx:299
+#: src/app/routes/_authenticated/_products/components/generate-variants-panel.tsx:331
 msgid "Creating..."
 msgstr "Erstelle..."
 
@@ -2705,8 +2718,8 @@ msgstr "Globale Ansicht löschen"
 #: src/app/routes/_authenticated/_option-groups/option-groups_.$id.tsx:160
 #: src/app/routes/_authenticated/_payment-methods/payment-methods_.$id.tsx:138
 #: src/app/routes/_authenticated/_product-variants/product-variants_.$id.tsx:226
-#: src/app/routes/_authenticated/_products/components/generate-variants-panel.tsx:190
-#: src/app/routes/_authenticated/_products/products_.$id.tsx:189
+#: src/app/routes/_authenticated/_products/components/generate-variants-panel.tsx:196
+#: src/app/routes/_authenticated/_products/products_.$id.tsx:219
 #: src/app/routes/_authenticated/_promotions/promotions_.$id.tsx:144
 #: src/app/routes/_authenticated/_roles/roles_.$id.tsx:84
 #: src/app/routes/_authenticated/_sellers/sellers_.$id.tsx:78
@@ -2818,6 +2831,8 @@ msgstr "Globale Ansicht erfolgreich umbenannt"
 msgid "No tags selected"
 msgstr "Keine Tags ausgewählt"
 
+#: src/app/routes/_authenticated/_products/components/generate-variants-panel.tsx:310
+#: src/app/routes/_authenticated/_products/components/generate-variants-panel.tsx:319
 #: src/lib/components/data-table/data-table-facet-value-faceted-filter.tsx:205
 msgid "Back"
 msgstr "Zurück"
@@ -2928,7 +2943,7 @@ msgid "Track"
 msgstr "Verfolgen"
 
 #: src/app/routes/_authenticated/_products/components/add-product-variant-dialog.tsx:322
-#: src/app/routes/_authenticated/_products/components/generate-variants-panel.tsx:301
+#: src/app/routes/_authenticated/_products/components/generate-variants-panel.tsx:333
 msgid "Create variant"
 msgstr "Variante erstellen"
 
@@ -3008,7 +3023,7 @@ msgstr ""
 msgid "Country"
 msgstr "Land"
 
-#: src/app/routes/_authenticated/_products/products_.$id.tsx:103
+#: src/app/routes/_authenticated/_products/products_.$id.tsx:97
 msgid "Simple product"
 msgstr ""
 
@@ -3231,7 +3246,7 @@ msgid "Yes"
 msgstr ""
 
 #: src/app/routes/_authenticated/_collections/collections_.$id.tsx:175
-#: src/app/routes/_authenticated/_products/products_.$id.tsx:216
+#: src/app/routes/_authenticated/_products/products_.$id.tsx:246
 msgid "Slug"
 msgstr "Slug"
 
@@ -3292,7 +3307,7 @@ msgstr "Zahlung abwickeln"
 #: src/app/routes/_authenticated/_channels/channels.tsx:15
 #: src/app/routes/_authenticated/_channels/channels.tsx:23
 #: src/app/routes/_authenticated/_option-groups/option-groups_.$id.tsx:216
-#: src/app/routes/_authenticated/_products/products_.$id.tsx:306
+#: src/app/routes/_authenticated/_products/products_.$id.tsx:343
 #: src/app/routes/_authenticated/_roles/roles_.$id.tsx:111
 #: src/lib/components/layout/channel-switcher.tsx:146
 msgid "Channels"
@@ -3318,8 +3333,8 @@ msgstr "{successfulRefundCount} Zahlung(en) wurden vor dem Fehler erstattet. Det
 msgid "Select item"
 msgstr "Artikel auswählen"
 
-#: src/app/routes/_authenticated/_products/products_.$id.tsx:55
-#: src/app/routes/_authenticated/_products/products_.$id.tsx:182
+#: src/app/routes/_authenticated/_products/products_.$id.tsx:57
+#: src/app/routes/_authenticated/_products/products_.$id.tsx:212
 msgid "New product"
 msgstr "Neues Produkt"
 
@@ -3511,7 +3526,7 @@ msgstr "Fehler beim Erstellen der Kundengruppe"
 msgid "Failed to create role"
 msgstr "Fehler beim Erstellen der Rolle"
 
-#: src/app/routes/_authenticated/_products/products_.$id.tsx:210
+#: src/app/routes/_authenticated/_products/products_.$id.tsx:240
 msgid "Product name"
 msgstr "Produktname"
 
@@ -3525,7 +3540,7 @@ msgstr "Erfüllungsstatus erfolgreich aktualisiert"
 #: src/app/routes/_authenticated/_option-groups/option-groups.tsx:38
 #: src/app/routes/_authenticated/_product-variants/product-variants_.$id.tsx:64
 #: src/app/routes/_authenticated/_products/products_.$id_.variants.tsx:66
-#: src/app/routes/_authenticated/_products/products_.$id.tsx:54
+#: src/app/routes/_authenticated/_products/products_.$id.tsx:56
 #: src/app/routes/_authenticated/_products/products.tsx:24
 #: src/app/routes/_authenticated/_products/products.tsx:47
 msgid "Products"
@@ -3702,7 +3717,7 @@ msgstr "Optionsgruppe entfernen"
 #: src/app/routes/_authenticated/_orders/components/add-surcharge-form.tsx:76
 #: src/app/routes/_authenticated/_orders/components/order-tax-summary.tsx:14
 #: src/app/routes/_authenticated/_payment-methods/payment-methods_.$id.tsx:171
-#: src/app/routes/_authenticated/_products/products_.$id.tsx:232
+#: src/app/routes/_authenticated/_products/products_.$id.tsx:262
 #: src/app/routes/_authenticated/_promotions/promotions_.$id.tsx:174
 #: src/app/routes/_authenticated/_roles/roles_.$id.tsx:94
 #: src/app/routes/_authenticated/_shipping-methods/shipping-methods_.$id.tsx:162
@@ -3837,7 +3852,7 @@ msgstr "Ihre Bestellübersicht"
 msgid "Upload"
 msgstr "Hochladen"
 
-#: src/app/routes/_authenticated/_products/products_.$id.tsx:118
+#: src/app/routes/_authenticated/_products/products_.$id.tsx:112
 msgid "Product with options"
 msgstr ""
 
@@ -4178,7 +4193,7 @@ msgstr "Alte E-Mail:"
 msgid "Save a view as \"Global\" to make it available to all users."
 msgstr "Speichern Sie eine Ansicht als \"Global\", um sie für alle Benutzer verfügbar zu machen."
 
-#: src/app/routes/_authenticated/_products/components/generate-variants-panel.tsx:173
+#: src/app/routes/_authenticated/_products/components/generate-variants-panel.tsx:179
 msgid "Failed to create variants"
 msgstr ""
 
@@ -4530,7 +4545,7 @@ msgstr "Bundesland / Provinz"
 #: src/app/routes/_authenticated/_payment-methods/payment-methods_.$id.tsx:147
 #: src/app/routes/_authenticated/_payment-methods/payment-methods.tsx:42
 #: src/app/routes/_authenticated/_product-variants/product-variants_.$id.tsx:235
-#: src/app/routes/_authenticated/_products/products_.$id.tsx:198
+#: src/app/routes/_authenticated/_products/products_.$id.tsx:228
 #: src/app/routes/_authenticated/_promotions/promotions_.$id.tsx:153
 #: src/app/routes/_authenticated/_system/scheduled-tasks.tsx:115
 #: src/app/routes/_authenticated/_system/scheduled-tasks.tsx:119
@@ -4757,6 +4772,10 @@ msgstr "Entfernen"
 msgid "Failed to update customer"
 msgstr "Fehler beim Aktualisieren des Kunden"
 
+#: src/app/routes/_authenticated/_products/products_.$id.tsx:306
+msgid "Remove option groups?"
+msgstr ""
+
 #: src/app/routes/_authenticated/_collections/components/collection-contents-preview-table.tsx:91
 msgid "This is a preview of the collection contents based on the current filter settings. Once you save the collection, the contents will be updated to reflect the new filter settings."
 msgstr "Dies ist eine Vorschau der Sammlungsinhalte basierend auf den aktuellen Filtereinstellungen. Sobald Sie die Sammlung speichern, werden die Inhalte aktualisiert, um die neuen Filtereinstellungen widerzuspiegeln."
@@ -4886,7 +4905,7 @@ msgstr ""
 msgid "Configure available languages for your store and channels"
 msgstr "Verfügbare Sprachen für Ihren Shop und Ihre Kanäle konfigurieren"
 
-#: src/app/routes/_authenticated/_products/products_.$id.tsx:166
+#: src/app/routes/_authenticated/_products/products_.$id.tsx:160
 msgid "Successfully created product"
 msgstr "Produkt erfolgreich erstellt"
 
@@ -5556,7 +5575,7 @@ msgstr "Optionswert zu {groupName} hinzufügen"
 #: src/app/routes/_authenticated/_product-variants/product-variants_.$id.tsx:271
 #: src/app/routes/_authenticated/_products/components/add-product-variant-dialog.tsx:292
 #: src/app/routes/_authenticated/_products/components/assign-facet-values-dialog.tsx:195
-#: src/app/routes/_authenticated/_products/components/generate-variants-panel.tsx:199
+#: src/app/routes/_authenticated/_products/components/generate-variants-panel.tsx:205
 #: src/app/routes/_authenticated/_products/products_.$id_.variants.tsx:351
 msgid "SKU"
 msgstr "SKU"
@@ -5737,7 +5756,7 @@ msgid "Failed to add customer to group"
 msgstr "Fehler beim Hinzufügen des Kunden zur Gruppe"
 
 #: src/app/routes/_authenticated/_products/products_.$id_.variants.tsx:275
-#: src/app/routes/_authenticated/_products/products_.$id.tsx:249
+#: src/app/routes/_authenticated/_products/products_.$id.tsx:279
 msgid "Manage variants"
 msgstr "Varianten verwalten"
 
@@ -5779,7 +5798,7 @@ msgstr "Telefonnummer"
 msgid "Private"
 msgstr "Privat"
 
-#: src/app/routes/_authenticated/_products/components/generate-variants-panel.tsx:195
+#: src/app/routes/_authenticated/_products/components/generate-variants-panel.tsx:201
 msgid "Variant"
 msgstr "Variante"
 

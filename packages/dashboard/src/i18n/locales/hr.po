@@ -302,7 +302,7 @@ msgstr "Varijanta proizvoda uspješno ažurirana"
 msgid "Failed to delete {failed} {entityName}: {allErrors}"
 msgstr "Brisanje {failed} {entityName} nije uspjelo: {allErrors}"
 
-#: src/app/routes/_authenticated/_products/products_.$id.tsx:166
+#: src/app/routes/_authenticated/_products/products_.$id.tsx:160
 msgid "Successfully updated product"
 msgstr "Proizvod uspješno ažuriran"
 
@@ -341,8 +341,9 @@ msgstr "Lokacija zaliha uspješno stvorena"
 #: src/app/routes/_authenticated/_products/components/add-option-group-dialog.tsx:78
 #: src/app/routes/_authenticated/_products/components/add-option-group-dialog.tsx:120
 #: src/app/routes/_authenticated/_products/components/add-product-variant-dialog.tsx:166
-#: src/app/routes/_authenticated/_products/components/generate-variants-panel.tsx:174
+#: src/app/routes/_authenticated/_products/components/generate-variants-panel.tsx:180
 #: src/app/routes/_authenticated/_products/products_.$id_.variants.tsx:112
+#: src/app/routes/_authenticated/_products/products_.$id.tsx:204
 msgid "Unknown error"
 msgstr "Nepoznata greška"
 
@@ -394,7 +395,7 @@ msgstr "Vrati na zalihu"
 msgid "Visibility"
 msgstr "Vidljivost"
 
-#: src/app/routes/_authenticated/_products/products_.$id.tsx:258
+#: src/app/routes/_authenticated/_products/products_.$id.tsx:288
 msgid "Product variants"
 msgstr ""
 
@@ -418,8 +419,8 @@ msgid "Choose your preferred display language and locale settings"
 msgstr ""
 
 #: src/app/routes/_authenticated/_products/products_.$id.tsx:89
-msgid "← Back"
-msgstr ""
+#~ msgid "← Back"
+#~ msgstr ""
 
 #: src/app/routes/_authenticated/_option-groups/components/option-group-bulk-actions.tsx:87
 msgid "Successfully removed {successCount} option groups from channel"
@@ -532,7 +533,7 @@ msgstr "Pretraži načine plaćanja..."
 msgid "Shipping address unset for order"
 msgstr "Adresa dostave uklonjena za narudžbu"
 
-#: src/app/routes/_authenticated/_products/components/generate-variants-panel.tsx:303
+#: src/app/routes/_authenticated/_products/components/generate-variants-panel.tsx:335
 msgid "Create {enabledCount} variants"
 msgstr ""
 
@@ -851,7 +852,7 @@ msgstr "Stvaranje kolekcije nije uspjelo"
 msgid "Go to first page"
 msgstr "Idi na prvu stranicu"
 
-#: src/app/routes/_authenticated/_products/products_.$id.tsx:174
+#: src/app/routes/_authenticated/_products/products_.$id.tsx:168
 msgid "Failed to create product"
 msgstr "Stvaranje proizvoda nije uspjelo"
 
@@ -875,7 +876,7 @@ msgstr "Adresa dostave postavljena za narudžbu"
 msgid "Focal Point"
 msgstr "Žarišna točka"
 
-#: src/app/routes/_authenticated/_products/products_.$id.tsx:105
+#: src/app/routes/_authenticated/_products/products_.$id.tsx:99
 msgid "Single variant, no options"
 msgstr ""
 
@@ -1006,7 +1007,7 @@ msgstr "Kolekcija uspješno stvorena"
 #: src/app/routes/_authenticated/_orders/components/shipping-method-selector.tsx:49
 #: src/app/routes/_authenticated/_product-variants/product-variants_.$id.tsx:298
 #: src/app/routes/_authenticated/_products/components/add-product-variant-dialog.tsx:298
-#: src/app/routes/_authenticated/_products/components/generate-variants-panel.tsx:202
+#: src/app/routes/_authenticated/_products/components/generate-variants-panel.tsx:208
 #: src/lib/components/layout/language-dialog.tsx:136
 msgid "Price"
 msgstr "Cijena"
@@ -1183,7 +1184,7 @@ msgstr ""
 msgid "No countries found"
 msgstr "Nisu pronađene države"
 
-#: src/app/routes/_authenticated/_products/components/generate-variants-panel.tsx:170
+#: src/app/routes/_authenticated/_products/components/generate-variants-panel.tsx:176
 msgid "Successfully created variants"
 msgstr ""
 
@@ -1627,7 +1628,7 @@ msgid "Private collections are not visible in the shop"
 msgstr "Privatne kolekcije nisu vidljive u trgovini"
 
 #: src/app/routes/_authenticated/_product-variants/product-variants_.$id.tsx:236
-#: src/app/routes/_authenticated/_products/products_.$id.tsx:199
+#: src/app/routes/_authenticated/_products/products_.$id.tsx:229
 msgid "When enabled, a product is available in the shop"
 msgstr "Kada je omogućeno, proizvod je dostupan u trgovini"
 
@@ -1687,6 +1688,10 @@ msgstr "Nema vrijednosti svojstava"
 msgid "A reason for the refund is required"
 msgstr "Potreban je razlog povrata"
 
+#: src/app/routes/_authenticated/_products/products_.$id.tsx:194
+msgid "Could not remove option group"
+msgstr ""
+
 #: src/app/routes/_authenticated/_tax-categories/tax-categories_.$id.tsx:77
 msgid "Failed to update tax category"
 msgstr "Ažuriranje porezne kategorije nije uspjelo"
@@ -1712,7 +1717,7 @@ msgstr "Povrat uspješno izvršen"
 #: src/app/routes/_authenticated/_payment-methods/payment-methods_.$id.tsx:138
 #: src/app/routes/_authenticated/_product-variants/product-variants_.$id.tsx:226
 #: src/app/routes/_authenticated/_products/components/assign-facet-values-dialog.tsx:276
-#: src/app/routes/_authenticated/_products/products_.$id.tsx:189
+#: src/app/routes/_authenticated/_products/products_.$id.tsx:219
 #: src/app/routes/_authenticated/_profile/profile.tsx:84
 #: src/app/routes/_authenticated/_promotions/promotions_.$id.tsx:144
 #: src/app/routes/_authenticated/_roles/roles_.$id.tsx:84
@@ -1809,6 +1814,10 @@ msgstr "Postavke stupaca"
 msgid "Code"
 msgstr "Kod"
 
+#: src/app/routes/_authenticated/_products/products_.$id.tsx:203
+msgid "Failed to remove option groups"
+msgstr ""
+
 #: src/app/routes/_authenticated/_orders/components/order-history/order-history-utils.tsx:97
 msgid "Order delivered"
 msgstr "Narudžba dostavljena"
@@ -1892,7 +1901,7 @@ msgid "Test Shipping Method"
 msgstr "Testiraj način dostave"
 
 #: src/app/routes/_authenticated/_product-variants/product-variants_.$id.tsx:465
-#: src/app/routes/_authenticated/_products/products_.$id.tsx:296
+#: src/app/routes/_authenticated/_products/products_.$id.tsx:333
 msgid "Facet Values"
 msgstr "Vrijednosti svojstava"
 
@@ -2296,7 +2305,7 @@ msgstr "Stranica {0} od {1}"
 msgid "Rate"
 msgstr "Stopa"
 
-#: src/app/routes/_authenticated/_products/products_.$id.tsx:120
+#: src/app/routes/_authenticated/_products/products_.$id.tsx:114
 msgid "Size, colour, etc."
 msgstr ""
 
@@ -2375,7 +2384,7 @@ msgstr "Kupac postavljen za narudžbu"
 msgid "Facets"
 msgstr "Svojstva"
 
-#: src/app/routes/_authenticated/_products/components/generate-variants-panel.tsx:205
+#: src/app/routes/_authenticated/_products/components/generate-variants-panel.tsx:211
 msgid "Stock on Hand"
 msgstr "Zaliha na skladištu"
 
@@ -2528,9 +2537,13 @@ msgstr "Preračunaj dostavu"
 #: src/app/routes/_authenticated/_assets/assets.tsx:40
 #: src/app/routes/_authenticated/_collections/collections_.$id.tsx:225
 #: src/app/routes/_authenticated/_product-variants/product-variants_.$id.tsx:482
-#: src/app/routes/_authenticated/_products/products_.$id.tsx:329
+#: src/app/routes/_authenticated/_products/products_.$id.tsx:366
 msgid "Assets"
 msgstr "Datoteke"
+
+#: src/app/routes/_authenticated/_products/products_.$id.tsx:307
+msgid "This will remove all option groups from this product and return to the variant setup choice."
+msgstr ""
 
 #: src/app/routes/_authenticated/_orders/components/order-detail-shared.tsx:299
 #: src/app/routes/_authenticated/_orders/orders_.$id_.modify.tsx:277
@@ -2574,7 +2587,7 @@ msgstr ""
 msgid "Only draft orders can be completed"
 msgstr "Samo nacrti narudžbi mogu biti dovršeni"
 
-#: src/app/routes/_authenticated/_products/products_.$id.tsx:174
+#: src/app/routes/_authenticated/_products/products_.$id.tsx:168
 msgid "Failed to update product"
 msgstr "Ažuriranje proizvoda nije uspjelo"
 
@@ -2625,7 +2638,7 @@ msgid "Successfully created administrator"
 msgstr "Administrator uspješno kreiran"
 
 #: src/app/routes/_authenticated/_option-groups/option-groups_.$id.tsx:198
-#: src/app/routes/_authenticated/_products/products_.$id.tsx:278
+#: src/app/routes/_authenticated/_products/products_.$id.tsx:315
 msgid "Product Options"
 msgstr "Opcije proizvoda"
 
@@ -2633,7 +2646,7 @@ msgstr "Opcije proizvoda"
 msgid "Select country"
 msgstr "Odaberi državu"
 
-#: src/app/routes/_authenticated/_products/components/generate-variants-panel.tsx:299
+#: src/app/routes/_authenticated/_products/components/generate-variants-panel.tsx:331
 msgid "Creating..."
 msgstr "Stvaranje..."
 
@@ -2705,8 +2718,8 @@ msgstr "Obriši globalni prikaz"
 #: src/app/routes/_authenticated/_option-groups/option-groups_.$id.tsx:160
 #: src/app/routes/_authenticated/_payment-methods/payment-methods_.$id.tsx:138
 #: src/app/routes/_authenticated/_product-variants/product-variants_.$id.tsx:226
-#: src/app/routes/_authenticated/_products/components/generate-variants-panel.tsx:190
-#: src/app/routes/_authenticated/_products/products_.$id.tsx:189
+#: src/app/routes/_authenticated/_products/components/generate-variants-panel.tsx:196
+#: src/app/routes/_authenticated/_products/products_.$id.tsx:219
 #: src/app/routes/_authenticated/_promotions/promotions_.$id.tsx:144
 #: src/app/routes/_authenticated/_roles/roles_.$id.tsx:84
 #: src/app/routes/_authenticated/_sellers/sellers_.$id.tsx:78
@@ -2818,6 +2831,8 @@ msgstr "Globalni prikaz uspješno preimenovan"
 msgid "No tags selected"
 msgstr "Nisu odabrane oznake"
 
+#: src/app/routes/_authenticated/_products/components/generate-variants-panel.tsx:310
+#: src/app/routes/_authenticated/_products/components/generate-variants-panel.tsx:319
 #: src/lib/components/data-table/data-table-facet-value-faceted-filter.tsx:205
 msgid "Back"
 msgstr "Natrag"
@@ -2928,7 +2943,7 @@ msgid "Track"
 msgstr "Prati"
 
 #: src/app/routes/_authenticated/_products/components/add-product-variant-dialog.tsx:322
-#: src/app/routes/_authenticated/_products/components/generate-variants-panel.tsx:301
+#: src/app/routes/_authenticated/_products/components/generate-variants-panel.tsx:333
 msgid "Create variant"
 msgstr "Stvori varijantu"
 
@@ -3008,7 +3023,7 @@ msgstr ""
 msgid "Country"
 msgstr "Država"
 
-#: src/app/routes/_authenticated/_products/products_.$id.tsx:103
+#: src/app/routes/_authenticated/_products/products_.$id.tsx:97
 msgid "Simple product"
 msgstr ""
 
@@ -3231,7 +3246,7 @@ msgid "Yes"
 msgstr ""
 
 #: src/app/routes/_authenticated/_collections/collections_.$id.tsx:175
-#: src/app/routes/_authenticated/_products/products_.$id.tsx:216
+#: src/app/routes/_authenticated/_products/products_.$id.tsx:246
 msgid "Slug"
 msgstr "URL naziv"
 
@@ -3292,7 +3307,7 @@ msgstr "Izvrši plaćanje"
 #: src/app/routes/_authenticated/_channels/channels.tsx:15
 #: src/app/routes/_authenticated/_channels/channels.tsx:23
 #: src/app/routes/_authenticated/_option-groups/option-groups_.$id.tsx:216
-#: src/app/routes/_authenticated/_products/products_.$id.tsx:306
+#: src/app/routes/_authenticated/_products/products_.$id.tsx:343
 #: src/app/routes/_authenticated/_roles/roles_.$id.tsx:111
 #: src/lib/components/layout/channel-switcher.tsx:146
 msgid "Channels"
@@ -3318,8 +3333,8 @@ msgstr "{successfulRefundCount} plaćanje/a vraćeno prije greške. Provjerite p
 msgid "Select item"
 msgstr "Odaberi stavku"
 
-#: src/app/routes/_authenticated/_products/products_.$id.tsx:55
-#: src/app/routes/_authenticated/_products/products_.$id.tsx:182
+#: src/app/routes/_authenticated/_products/products_.$id.tsx:57
+#: src/app/routes/_authenticated/_products/products_.$id.tsx:212
 msgid "New product"
 msgstr "Novi proizvod"
 
@@ -3511,7 +3526,7 @@ msgstr "Stvaranje grupe kupaca nije uspjelo"
 msgid "Failed to create role"
 msgstr "Stvaranje uloge nije uspjelo"
 
-#: src/app/routes/_authenticated/_products/products_.$id.tsx:210
+#: src/app/routes/_authenticated/_products/products_.$id.tsx:240
 msgid "Product name"
 msgstr "Naziv proizvoda"
 
@@ -3525,7 +3540,7 @@ msgstr "Stanje izvršenja uspješno ažurirano"
 #: src/app/routes/_authenticated/_option-groups/option-groups.tsx:38
 #: src/app/routes/_authenticated/_product-variants/product-variants_.$id.tsx:64
 #: src/app/routes/_authenticated/_products/products_.$id_.variants.tsx:66
-#: src/app/routes/_authenticated/_products/products_.$id.tsx:54
+#: src/app/routes/_authenticated/_products/products_.$id.tsx:56
 #: src/app/routes/_authenticated/_products/products.tsx:24
 #: src/app/routes/_authenticated/_products/products.tsx:47
 msgid "Products"
@@ -3702,7 +3717,7 @@ msgstr "Ukloni grupu opcija"
 #: src/app/routes/_authenticated/_orders/components/add-surcharge-form.tsx:76
 #: src/app/routes/_authenticated/_orders/components/order-tax-summary.tsx:14
 #: src/app/routes/_authenticated/_payment-methods/payment-methods_.$id.tsx:171
-#: src/app/routes/_authenticated/_products/products_.$id.tsx:232
+#: src/app/routes/_authenticated/_products/products_.$id.tsx:262
 #: src/app/routes/_authenticated/_promotions/promotions_.$id.tsx:174
 #: src/app/routes/_authenticated/_roles/roles_.$id.tsx:94
 #: src/app/routes/_authenticated/_shipping-methods/shipping-methods_.$id.tsx:162
@@ -3837,7 +3852,7 @@ msgstr "Sažetak vaših narudžbi"
 msgid "Upload"
 msgstr "Prenesi"
 
-#: src/app/routes/_authenticated/_products/products_.$id.tsx:118
+#: src/app/routes/_authenticated/_products/products_.$id.tsx:112
 msgid "Product with options"
 msgstr ""
 
@@ -4178,7 +4193,7 @@ msgstr "Stara e-pošta:"
 msgid "Save a view as \"Global\" to make it available to all users."
 msgstr "Spremite prikaz kao \"Globalni\" kako bi bio dostupan svim korisnicima."
 
-#: src/app/routes/_authenticated/_products/components/generate-variants-panel.tsx:173
+#: src/app/routes/_authenticated/_products/components/generate-variants-panel.tsx:179
 msgid "Failed to create variants"
 msgstr ""
 
@@ -4530,7 +4545,7 @@ msgstr "Država / Pokrajina"
 #: src/app/routes/_authenticated/_payment-methods/payment-methods_.$id.tsx:147
 #: src/app/routes/_authenticated/_payment-methods/payment-methods.tsx:42
 #: src/app/routes/_authenticated/_product-variants/product-variants_.$id.tsx:235
-#: src/app/routes/_authenticated/_products/products_.$id.tsx:198
+#: src/app/routes/_authenticated/_products/products_.$id.tsx:228
 #: src/app/routes/_authenticated/_promotions/promotions_.$id.tsx:153
 #: src/app/routes/_authenticated/_system/scheduled-tasks.tsx:115
 #: src/app/routes/_authenticated/_system/scheduled-tasks.tsx:119
@@ -4757,6 +4772,10 @@ msgstr "Ukloni"
 msgid "Failed to update customer"
 msgstr "Ažuriranje kupca nije uspjelo"
 
+#: src/app/routes/_authenticated/_products/products_.$id.tsx:306
+msgid "Remove option groups?"
+msgstr ""
+
 #: src/app/routes/_authenticated/_collections/components/collection-contents-preview-table.tsx:91
 msgid "This is a preview of the collection contents based on the current filter settings. Once you save the collection, the contents will be updated to reflect the new filter settings."
 msgstr "Ovo je pregled sadržaja kolekcije temeljen na trenutnim postavkama filtra. Nakon što spremite kolekciju, sadržaj će biti ažuriran kako bi odražavao nove postavke filtra."
@@ -4886,7 +4905,7 @@ msgstr ""
 msgid "Configure available languages for your store and channels"
 msgstr "Konfigurirajte dostupne jezike za svoju trgovinu i kanale"
 
-#: src/app/routes/_authenticated/_products/products_.$id.tsx:166
+#: src/app/routes/_authenticated/_products/products_.$id.tsx:160
 msgid "Successfully created product"
 msgstr "Proizvod uspješno stvoren"
 
@@ -5556,7 +5575,7 @@ msgstr "Dodaj vrijednost opcije u {groupName}"
 #: src/app/routes/_authenticated/_product-variants/product-variants_.$id.tsx:271
 #: src/app/routes/_authenticated/_products/components/add-product-variant-dialog.tsx:292
 #: src/app/routes/_authenticated/_products/components/assign-facet-values-dialog.tsx:195
-#: src/app/routes/_authenticated/_products/components/generate-variants-panel.tsx:199
+#: src/app/routes/_authenticated/_products/components/generate-variants-panel.tsx:205
 #: src/app/routes/_authenticated/_products/products_.$id_.variants.tsx:351
 msgid "SKU"
 msgstr "SKU"
@@ -5737,7 +5756,7 @@ msgid "Failed to add customer to group"
 msgstr "Dodavanje kupca u grupu nije uspjelo"
 
 #: src/app/routes/_authenticated/_products/products_.$id_.variants.tsx:275
-#: src/app/routes/_authenticated/_products/products_.$id.tsx:249
+#: src/app/routes/_authenticated/_products/products_.$id.tsx:279
 msgid "Manage variants"
 msgstr "Upravljaj varijantama"
 
@@ -5779,7 +5798,7 @@ msgstr "Telefonski broj"
 msgid "Private"
 msgstr "Privatno"
 
-#: src/app/routes/_authenticated/_products/components/generate-variants-panel.tsx:195
+#: src/app/routes/_authenticated/_products/components/generate-variants-panel.tsx:201
 msgid "Variant"
 msgstr "Varijanta"
 

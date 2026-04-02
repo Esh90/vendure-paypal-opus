@@ -51,7 +51,7 @@ const variantSchema = z
                 path: ['sku'],
             });
         }
-        if (data.price !== '' && (isNaN(Number(data.price)) || Number(data.price) < 0)) {
+        if (data.price !== '' && (Number.isNaN(Number(data.price)) || Number(data.price) < 0)) {
             ctx.addIssue({
                 code: z.ZodIssueCode.custom,
                 message: 'Price must be a non-negative number',
@@ -59,7 +59,7 @@ const variantSchema = z
             });
         }
         const stockNum = Number(data.stock);
-        if (data.stock !== '' && (isNaN(stockNum) || stockNum < 0 || !Number.isInteger(stockNum))) {
+        if (data.stock !== '' && (Number.isNaN(stockNum) || stockNum < 0 || !Number.isInteger(stockNum))) {
             ctx.addIssue({
                 code: z.ZodIssueCode.custom,
                 message: 'Stock must be a non-negative integer',

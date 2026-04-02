@@ -42,7 +42,11 @@ export function FulfillmentHandlerSelector({ value, onChange }: Readonly<Fulfill
 
     return (
         <div>
-            <Select onValueChange={onFulfillmentHandlerSelected} value={value ?? undefined}>
+            <Select
+                items={fulfillmentHandlers ? Object.fromEntries(fulfillmentHandlers.map(fh => [fh.code, fh.description])) : undefined}
+                onValueChange={(value) => { if (value != null) onFulfillmentHandlerSelected(value) }}
+                value={value ?? undefined}
+            >
                 <SelectTrigger>
                     <SelectValue placeholder={t`Select a fulfillment handler`} />
                 </SelectTrigger>

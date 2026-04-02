@@ -18,7 +18,7 @@ export function BooleanDisplayBadge({
 }) {
     const { t } = useLingui();
     return (
-        <Badge variant={value ? 'success' : 'destructive'}>
+        <Badge variant={value ? 'success' : 'secondary'}>
             {value ? (labelTrue ?? t`Enabled`) : (labelFalse ?? t`Disabled`)}
         </Badge>
     );

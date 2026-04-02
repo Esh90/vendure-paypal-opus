@@ -14,12 +14,6 @@ export function AssetProperties({ asset }: Readonly<AssetPropertiesProps>) {
         <div className="space-y-4">
             <div>
                 <Label>
-                    <Trans>Name</Trans>
-                </Label>
-                <p className="truncate text-sm text-muted-foreground">{asset.name}</p>
-            </div>
-            <div>
-                <Label>
                     <Trans>Source File</Trans>
                 </Label>
                 <a

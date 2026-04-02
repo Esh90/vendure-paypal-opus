@@ -79,11 +79,9 @@ export function ProductVariantSelector({ onProductVariantSelect }: Readonly<Prod
 
     return (
         <Popover open={open} onOpenChange={setOpen}>
-            <PopoverTrigger asChild>
-                <Button variant="outline" role="combobox" className="w-full">
+            <PopoverTrigger render={<Button variant="outline" role="combobox" className="w-full" />}>
                     <Trans>Add item to order</Trans>
                     <Plus className="opacity-50" />
-                </Button>
             </PopoverTrigger>
             <PopoverContent className="p-0">
                 <Command shouldFilter={false}>

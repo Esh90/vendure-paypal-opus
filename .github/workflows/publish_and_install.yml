@@ -152,7 +152,6 @@ jobs:
               run: |
                 cd ~/install/test-app
                 New-Item -ItemType Directory -Force -Path src/plugins/test-plugin
-                Copy-Item "$env:GITHUB_WORKSPACE/.github/workflows/scripts/vite.config.mts" -Destination "./vite.config.mts"
                 Copy-Item "$env:GITHUB_WORKSPACE/.github/workflows/scripts/test-plugin/*" -Destination "src/plugins/test-plugin/" -Recurse -Force
                 Copy-Item "$env:GITHUB_WORKSPACE/.github/workflows/scripts/setup-test-plugin.js" -Destination "./setup-test-plugin.js"
             - name: Copy files (Unix)
@@ -160,7 +159,6 @@ jobs:
               run: |
                 cd ~/install/test-app
                 mkdir -p src/plugins/test-plugin
-                cp "$GITHUB_WORKSPACE/.github/workflows/scripts/vite.config.mts" ./vite.config.mts
                 cp -r "$GITHUB_WORKSPACE/.github/workflows/scripts/test-plugin/." src/plugins/test-plugin/
                 cp "$GITHUB_WORKSPACE/.github/workflows/scripts/setup-test-plugin.js" ./setup-test-plugin.js
             - name: Run setup script
@@ -173,12 +171,14 @@ jobs:
               with:
                   path: ~/.cache/ms-playwright
                   key: playwright-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+                  restore-keys: |
+                      playwright-${{ runner.os }}-
             - name: Install Playwright
               run: |
-                cd $GITHUB_WORKSPACE
-                npm install playwright
-                npx playwright install-deps
-                npx playwright install chromium
+                  cd ~/install/test-app
+                  npm install --no-save playwright
+                  npx playwright install chromium
+                  npx playwright install-deps chromium
             - name: Start dashboard and run tests
               run: |
                 cd ~/install/test-app
@@ -198,9 +198,9 @@ jobs:
                     exit 1
                 fi
                 # Wait for the dashboard to be available
-                wait-on http://localhost:5173 --timeout 120000
+                wait-on http://localhost:5173/dashboard --timeout 120000
                 # Run the dashboard tests
-                node $GITHUB_WORKSPACE/.github/workflows/scripts/dashboard-tests.js
+                NODE_PATH=~/install/test-app/node_modules node $GITHUB_WORKSPACE/.github/workflows/scripts/dashboard-tests.js
                 # Clean up dashboard process
                 kill $DASHBOARD_PID 2>/dev/null || true
                 # Clean up dev server process

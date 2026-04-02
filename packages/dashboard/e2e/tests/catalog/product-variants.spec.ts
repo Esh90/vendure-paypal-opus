@@ -359,14 +359,21 @@ test.describe('variant option group edit link', () => {
         await expect(page).toHaveURL(/\/product-variants\/[^/]+$/);
 
         // The Options block should be visible with edit icons
-        await expect(page.getByText('Options', { exact: true })).toBeVisible({ timeout: 10_000 });
+        const optionsBlock = page.getByRole('main');
+        await expect(optionsBlock.getByText('Options', { exact: true })).toBeVisible({
+            timeout: 10_000,
+        });
 
-        // Click the edit link (pencil icon) on the first option badge
-        const optionBadge = page.locator('[data-slot="badge"]').first();
-        await optionBadge.getByRole('link').click();
+        // Click the edit link (pencil icon) on the first option badge, capturing its group name
+        const firstBadge = optionsBlock.locator('[data-slot="badge"]').first();
+        const badgeText = await firstBadge.innerText();
+        const groupName = badgeText.split(':')[0].trim();
+        await firstBadge.getByRole('link').click();
 
-        // Should navigate to the option group detail page, not a 404
+        // Should navigate to the option group detail page with the correct group
         await expect(page).toHaveURL(/\/option-groups\/[^/]+$/);
-        await expect(page.locator('text=Not Found')).toHaveCount(0);
+        await expect(page.getByRole('heading', { level: 1 })).toContainText(groupName, {
+            timeout: 10_000,
+        });
     });
 });

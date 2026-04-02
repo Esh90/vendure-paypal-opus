@@ -337,3 +337,36 @@ test.describe('manage product variants', () => {
         await page.close();
     });
 });
+
+// Regression: the edit icon on the variant detail Options badge should navigate
+// to the option group detail page, not a broken route.
+test.describe('variant option group edit link', () => {
+    test('should navigate to option group detail when clicking edit icon on variant page', async ({
+        page,
+    }) => {
+        // Navigate to product variants list and click a Laptop variant (seed data, has options)
+        await page.goto('/product-variants');
+        await expect(page.getByRole('heading', { name: 'Product Variants' })).toBeVisible({
+            timeout: 10_000,
+        });
+
+        // Click a variant that has options (Laptop variants have screen size + RAM)
+        await page
+            .locator('table')
+            .getByRole('button', { name: /Laptop/ })
+            .first()
+            .click();
+        await expect(page).toHaveURL(/\/product-variants\/[^/]+$/);
+
+        // The Options block should be visible with edit icons
+        await expect(page.getByText('Options', { exact: true })).toBeVisible({ timeout: 10_000 });
+
+        // Click the edit link (pencil icon) on the first option badge
+        const optionBadge = page.locator('[data-slot="badge"]').first();
+        await optionBadge.getByRole('link').click();
+
+        // Should navigate to the option group detail page, not a 404
+        await expect(page).toHaveURL(/\/option-groups\/[^/]+$/);
+        await expect(page.locator('text=Not Found')).toHaveCount(0);
+    });
+});

@@ -327,13 +327,9 @@ export function GenerateVariantsPanel({
                         disabled={createVariantsMutation.isPending || enabledCount === 0}
                     >
                         <Save className="mr-2 h-4 w-4" />
-                        {createVariantsMutation.isPending ? (
-                            <Trans>Creating...</Trans>
-                        ) : enabledCount === 1 ? (
-                            <Trans>Create variant</Trans>
-                        ) : (
-                            <Trans>Create {enabledCount} variants</Trans>
-                        )}
+                        {createVariantsMutation.isPending && <Trans>Creating...</Trans>}
+                        {!createVariantsMutation.isPending && enabledCount === 1 && <Trans>Create variant</Trans>}
+                        {!createVariantsMutation.isPending && enabledCount !== 1 && <Trans>Create {enabledCount} variants</Trans>}
                     </Button>
                 </div>
             </div>

@@ -66,12 +66,12 @@ function NoVariantsPrompt({
     productName,
     onOptionGroupCreated,
     onVariantCreated,
-}: {
+}: Readonly<{
     productId: string;
     productName: string;
     onOptionGroupCreated: () => void;
     onVariantCreated: () => void;
-}) {
+}>) {
     const [mode, setMode] = useState<'choose' | 'single'>('choose');
 
     if (mode === 'single') {

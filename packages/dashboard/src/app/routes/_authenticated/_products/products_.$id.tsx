@@ -97,7 +97,7 @@ function NoVariantsPrompt({
             <button
                 type="button"
                 onClick={() => setMode('single')}
-                className="flex flex-col items-center gap-2 rounded-md border border-border p-6 text-center transition-colors hover:border-primary hover:bg-accent cursor-pointer"
+                className="flex flex-col items-center gap-2 rounded-md border border-dashed border-border p-6 text-center transition-colors hover:border-primary hover:bg-accent cursor-pointer"
             >
                 <Package className="h-8 w-8 text-muted-foreground" />
                 <span className="font-medium"><Trans>Simple product</Trans></span>
@@ -112,7 +112,7 @@ function NoVariantsPrompt({
                 trigger={
                     <button
                         type="button"
-                        className="flex w-full flex-col items-center gap-2 rounded-md border border-border p-6 text-center transition-colors hover:border-primary hover:bg-accent cursor-pointer"
+                        className="flex w-full flex-col items-center gap-2 rounded-md border border-dashed border-border p-6 text-center transition-colors hover:border-primary hover:bg-accent cursor-pointer"
                     >
                         <Layers className="h-8 w-8 text-muted-foreground" />
                         <span className="font-medium"><Trans>Product with options</Trans></span>

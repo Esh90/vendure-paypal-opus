@@ -3,6 +3,12 @@ import { z as z3 } from 'zod/v3';
 
 import { z, zodResolver } from './zod.js';
 
+const resolverOptions = {
+    fields: {},
+    shouldUseNativeValidation: false,
+    criteriaMode: 'firstError' as const,
+};
+
 describe('zod re-exports', () => {
     describe('z (schema builder)', () => {
         it('should create and validate a basic object schema', () => {
@@ -28,12 +34,13 @@ describe('zod re-exports', () => {
         });
 
         it('should support z.infer for type extraction', () => {
-            const schema = z.object({ name: z.string() });
+            const schema = z.object({ name: z.string(), count: z.number() });
             type Inferred = z.infer<typeof schema>;
 
-            // Compile-time check — if z.infer is broken this file won't compile
-            const value: Inferred = { name: 'test' };
-            expect(value.name).toBe('test');
+            // Compile-time check — if z.infer is broken this file won't compile.
+            // Runtime: verify the parsed output matches the inferred type shape.
+            const parsed: Inferred = schema.parse({ name: 'test', count: 42 });
+            expect(parsed).toEqual({ name: 'test', count: 42 });
         });
     });
 
@@ -52,32 +59,30 @@ describe('zod re-exports', () => {
             });
 
             const resolver = zodResolver(schema);
-            const result = await resolver({ email: 'user@test.com', password: 'securepass' }, undefined, {
-                fields: {},
-                shouldUseNativeValidation: false,
-                criteriaMode: 'firstError' as const,
-            });
+            const result = await resolver(
+                { email: 'user@test.com', password: 'securepass' },
+                undefined,
+                resolverOptions,
+            );
 
             expect(result.errors).toEqual({});
             expect(result.values).toEqual({ email: 'user@test.com', password: 'securepass' });
         });
 
-        it('should resolve invalid data with field errors', async () => {
+        it('should resolve invalid data with specific field errors', async () => {
             const schema = z.object({
                 email: z.string().min(1),
                 password: z.string().min(8),
             });
 
             const resolver = zodResolver(schema);
-            const result = await resolver({ email: '', password: 'short' }, undefined, {
-                fields: {},
-                shouldUseNativeValidation: false,
-                criteriaMode: 'firstError' as const,
-            });
+            const result = await resolver({ email: '', password: 'short' }, undefined, resolverOptions);
 
             expect(result.values).toEqual({});
             expect(result.errors.email).toBeDefined();
+            expect(result.errors.email?.type).toBe('too_small');
             expect(result.errors.password).toBeDefined();
+            expect(result.errors.password?.type).toBe('too_small');
         });
 
         it('should work with refine for custom validation', async () => {
@@ -89,19 +94,10 @@ describe('zod re-exports', () => {
 
             const resolver = zodResolver(schema);
 
-            const valid = await resolver({ price: '10.50' }, undefined, {
-                fields: {},
-                shouldUseNativeValidation: false,
-                criteriaMode: 'firstError' as const,
-            });
+            const valid = await resolver({ price: '10.50' }, undefined, resolverOptions);
             expect(valid.errors).toEqual({});
 
-            const invalid = await resolver({ price: 'not-a-number' }, undefined, {
-                fields: {},
-                shouldUseNativeValidation: false,
-                criteriaMode: 'firstError' as const,
-            });
-            expect(invalid.errors.price).toBeDefined();
+            const invalid = await resolver({ price: 'not-a-number' }, undefined, resolverOptions);
             expect(invalid.errors.price?.message).toBe('Must be a non-negative number');
         });
     });
@@ -118,11 +114,11 @@ describe('zod re-exports', () => {
             });
 
             const resolver = zodResolver(schema);
-            const result = await resolver({ name: 'John', email: 'john@example.com' }, undefined, {
-                fields: {},
-                shouldUseNativeValidation: false,
-                criteriaMode: 'firstError' as const,
-            });
+            const result = await resolver(
+                { name: 'John', email: 'john@example.com' },
+                undefined,
+                resolverOptions,
+            );
 
             expect(result.errors).toEqual({});
             expect(result.values).toEqual({ name: 'John', email: 'john@example.com' });
@@ -135,16 +131,11 @@ describe('zod re-exports', () => {
             });
 
             const resolver = zodResolver(schema);
-            const result = await resolver({ name: 'J', count: -1 }, undefined, {
-                fields: {},
-                shouldUseNativeValidation: false,
-                criteriaMode: 'firstError' as const,
-            });
+            const result = await resolver({ name: 'J', count: -1 }, undefined, resolverOptions);
 
             expect(result.values).toEqual({});
-            expect(result.errors.name).toBeDefined();
             expect(result.errors.name?.message).toBe('Name too short');
-            expect(result.errors.count).toBeDefined();
+            expect(result.errors.count?.type).toBe('too_small');
         });
 
         it('should handle zod v3 schemas with optional, nullable, and default modifiers', async () => {
@@ -156,11 +147,7 @@ describe('zod re-exports', () => {
             });
 
             const resolver = zodResolver(schema);
-            const result = await resolver({ required: 'value', nullable: null }, undefined, {
-                fields: {},
-                shouldUseNativeValidation: false,
-                criteriaMode: 'firstError' as const,
-            });
+            const result = await resolver({ required: 'value', nullable: null }, undefined, resolverOptions);
 
             expect(result.errors).toEqual({});
             expect(result.values.required).toBe('value');
@@ -183,10 +170,9 @@ describe('zod re-exports', () => {
             const result = await resolver(
                 { password: 'securepass', confirmPassword: 'different' },
                 undefined,
-                { fields: {}, shouldUseNativeValidation: false, criteriaMode: 'firstError' as const },
+                resolverOptions,
             );
 
-            expect(result.errors.confirmPassword).toBeDefined();
             expect(result.errors.confirmPassword?.message).toBe('Passwords do not match');
         });
 
@@ -205,16 +191,16 @@ describe('zod re-exports', () => {
             const valid = await resolver(
                 { options: [{ name: 'Color', values: ['Red', 'Blue'] }] },
                 undefined,
-                { fields: {}, shouldUseNativeValidation: false, criteriaMode: 'firstError' as const },
+                resolverOptions,
             );
             expect(valid.errors).toEqual({});
 
-            const invalid = await resolver({ options: [{ name: '', values: [] }] }, undefined, {
-                fields: {},
-                shouldUseNativeValidation: false,
-                criteriaMode: 'firstError' as const,
-            });
-            expect(Object.keys(invalid.errors).length).toBeGreaterThan(0);
+            const invalid = await resolver(
+                { options: [{ name: '', values: [] }] },
+                undefined,
+                resolverOptions,
+            );
+            expect(Object.keys(invalid.errors).some(k => k.includes('options'))).toBe(true);
         });
     });
 });

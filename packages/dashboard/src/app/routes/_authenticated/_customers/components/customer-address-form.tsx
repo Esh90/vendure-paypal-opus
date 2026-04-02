@@ -8,11 +8,10 @@ import { Input } from '@/vdb/components/ui/input.js';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/vdb/components/ui/select.js';
 import { api } from '@/vdb/graphql/api.js';
 import { graphql, ResultOf } from '@/vdb/graphql/graphql.js';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { z, zodResolver } from '@/vdb/lib/zod.js';
 import { Trans, useLingui } from '@lingui/react/macro';
 import { useQuery } from '@tanstack/react-query';
 import { Controller, useForm } from 'react-hook-form';
-import { z } from 'zod/v3';
 import { addressFragment } from '../customers.graphql.js';
 
 // Query document to fetch available countries
@@ -28,7 +27,6 @@ const getAvailableCountriesDocument = graphql(`
     }
 `);
 
-// Define the form schema using zod
 const addressFormSchema = z.object({
     id: z.string(),
     fullName: z.string().optional(),
@@ -63,7 +61,6 @@ export function CustomerAddressForm({ address, onSubmit, onCancel }: Readonly<Cu
         staleTime: 1000 * 60 * 60 * 24, // 24 hours
     });
 
-    // Set up form with react-hook-form and zod
     const form = useForm<AddressFormValues>({
         resolver: zodResolver(addressFormSchema),
         values: {

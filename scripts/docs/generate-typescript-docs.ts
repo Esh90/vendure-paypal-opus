@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-import fs from 'fs';
+import fs from 'node:fs';
 import path, { extname } from 'path';
 
 import { generateTypescriptDocs, type DocsSectionConfig } from '@vendure-io/docs-generator';
@@ -61,8 +61,8 @@ generateTypescriptDocs(sections, {
     packagePrefix: '@vendure',
     repoRoot,
     outputRoot,
-    isWatchMode: watchMode,
 });
+
 
 if (watchMode) {
     console.log(`Watching for changes to source files...`);

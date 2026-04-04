@@ -148,6 +148,15 @@ describe('Stock level partitionKey', () => {
     });
 
     it('updating a partitioned stock level does not affect others', async () => {
+        // Capture initial state before update
+        const { productVariant: before } = await adminClient.query(getStockLevelsForVariantDocument, {
+            id: variantId,
+        });
+        const beforeLevels = before?.stockLevels ?? [];
+        const initialDefaultStock = beforeLevels.find(sl => sl.partitionKey === '')?.stockOnHand;
+        const initialBatch2Stock = beforeLevels.find(sl => sl.partitionKey === 'BATCH-002')?.stockOnHand;
+
+        // Update only BATCH-001
         await adminClient.query(setStockLevelWithPartitionDocument, {
             input: {
                 id: variantId,
@@ -171,7 +180,7 @@ describe('Stock level partitionKey', () => {
         const defaultLevel = levels.find(sl => sl.partitionKey === '');
 
         expect(batch1?.stockOnHand).toBe(99); // Updated
-        expect(batch2?.stockOnHand).toBe(30); // Unchanged
-        expect(defaultLevel?.stockOnHand).toBeGreaterThanOrEqual(0); // Unchanged
+        expect(batch2?.stockOnHand).toBe(initialBatch2Stock); // Unchanged
+        expect(defaultLevel?.stockOnHand).toBe(initialDefaultStock); // Unchanged
     });
 });

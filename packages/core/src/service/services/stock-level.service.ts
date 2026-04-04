@@ -32,7 +32,11 @@ export class StockLevelService {
     /**
      * @description
      * Returns the StockLevel for the given {@link ProductVariant} and {@link StockLocation}.
-     * If a `partitionKey` is provided, the lookup will match on that specific partition.
+     *
+     * When `partitionKey` is omitted or `undefined`, the default partition (empty string `''`)
+     * is used — this preserves the standard single-StockLevel-per-variant-location behavior.
+     * When an explicit `partitionKey` is provided, the lookup targets that specific partition,
+     * enabling use cases such as batch/lot tracking.
      */
     async getStockLevel(
         ctx: RequestContext,
@@ -40,11 +44,12 @@ export class StockLevelService {
         stockLocationId: ID,
         partitionKey?: string,
     ): Promise<StockLevel> {
+        const pk = partitionKey ?? '';
         const stockLevel = await this.connection.getRepository(ctx, StockLevel).findOne({
             where: {
                 productVariantId,
                 stockLocationId,
-                ...(partitionKey != null ? { partitionKey } : {}),
+                partitionKey: pk,
             },
         });
         if (stockLevel) {
@@ -56,7 +61,7 @@ export class StockLevelService {
                 stockLocationId,
                 stockOnHand: 0,
                 stockAllocated: 0,
-                ...(partitionKey != null ? { partitionKey } : {}),
+                partitionKey: pk,
             }),
         );
     }
@@ -90,7 +95,14 @@ export class StockLevelService {
     /**
      * @description
      * Updates the `stockOnHand` for the given {@link ProductVariant} and {@link StockLocation}.
-     * If a `partitionKey` is provided, only the matching partitioned StockLevel will be updated.
+     *
+     * When `partitionKey` is omitted, the default partition (empty string `''`) is targeted.
+     * If no StockLevel exists for the resolved partition, a new one is created with
+     * `stockOnHand` set to `change` and `stockAllocated` set to `0`.
+     *
+     * @see {@link updateStockAllocatedForLocation} which has different creation semantics —
+     * it will **not** create a new StockLevel if the partition does not exist, treating
+     * allocation to a non-existent partition as a no-op (logic error).
      */
     async updateStockOnHandForLocation(
         ctx: RequestContext,
@@ -99,11 +111,12 @@ export class StockLevelService {
         change: number,
         partitionKey?: string,
     ) {
+        const pk = partitionKey ?? '';
         const stockLevel = await this.connection.getRepository(ctx, StockLevel).findOne({
             where: {
                 productVariantId,
                 stockLocationId,
-                ...(partitionKey != null ? { partitionKey } : {}),
+                partitionKey: pk,
             },
         });
         if (!stockLevel) {
@@ -113,7 +126,7 @@ export class StockLevelService {
                     stockLocationId,
                     stockOnHand: change,
                     stockAllocated: 0,
-                    ...(partitionKey != null ? { partitionKey } : {}),
+                    partitionKey: pk,
                 }),
             );
         }
@@ -127,7 +140,12 @@ export class StockLevelService {
     /**
      * @description
      * Updates the `stockAllocated` for the given {@link ProductVariant} and {@link StockLocation}.
-     * If a `partitionKey` is provided, only the matching partitioned StockLevel will be updated.
+     *
+     * When `partitionKey` is omitted, the default partition (empty string `''`) is targeted.
+     * Unlike {@link updateStockOnHandForLocation}, this method will **not** create a new
+     * StockLevel if no matching partition exists — it will be a no-op. This is intentional:
+     * allocating stock to a non-existent partition indicates a logic error in the calling code,
+     * whereas receiving stock (updating stockOnHand) may legitimately create new partitions.
      */
     async updateStockAllocatedForLocation(
         ctx: RequestContext,
@@ -136,11 +154,12 @@ export class StockLevelService {
         change: number,
         partitionKey?: string,
     ) {
+        const pk = partitionKey ?? '';
         const stockLevel = await this.connection.getRepository(ctx, StockLevel).findOne({
             where: {
                 productVariantId,
                 stockLocationId,
-                ...(partitionKey != null ? { partitionKey } : {}),
+                partitionKey: pk,
             },
         });
         if (stockLevel) {

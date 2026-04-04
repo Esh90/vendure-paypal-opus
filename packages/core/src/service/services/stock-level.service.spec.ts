@@ -67,10 +67,11 @@ describe('StockLevelService - partitionKey', () => {
             expect(result.partitionKey).toBe('');
         });
 
-        it('returns existing StockLevel without partitionKey filter', async () => {
-            await service.getStockLevel(ctx, variantId, locationId);
+        it('returns existing default-partition StockLevel on second call', async () => {
+            const first = await service.getStockLevel(ctx, variantId, locationId);
             const result = await service.getStockLevel(ctx, variantId, locationId);
-            expect(result.id).toBe(1);
+            expect(result.id).toBe(first.id);
+            expect(result.partitionKey).toBe('');
             expect(repo.save).toHaveBeenCalledTimes(1);
         });
 

@@ -280,4 +280,20 @@ describe('DashboardWidgetDefinition - requiresPermissions', () => {
         const widget = registry.get('multi-perm-widget');
         expect(widget?.requiresPermissions).toEqual(['ReadOrder', 'ReadCatalog']);
     });
+
+    it('preserves an empty requiresPermissions array (public widget)', () => {
+        const DummyComponent = () => null;
+        registerDashboardWidget({
+            id: 'empty-perm-widget',
+            name: 'Empty Perm Widget',
+            component: DummyComponent,
+            defaultSize: { w: 6, h: 3 },
+            requiresPermissions: [],
+        });
+
+        const registry = getDashboardWidgetRegistry();
+        const widget = registry.get('empty-perm-widget');
+        expect(widget).toBeDefined();
+        expect(widget?.requiresPermissions).toEqual([]);
+    });
 });

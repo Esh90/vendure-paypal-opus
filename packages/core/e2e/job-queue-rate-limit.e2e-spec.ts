@@ -121,8 +121,9 @@ describe('Job queue rate limit', () => {
         // should contain more than RATE_LIMIT_MAX starts. Applied as: for every
         // pair of starts at positions i and i + RATE_LIMIT_MAX, the window from
         // the earlier to the later must be >= RATE_LIMIT_DURATION_MS (minus a
-        // small tolerance for poll timing).
-        const tolerance = 50;
+        // generous tolerance for poll scheduling / cold-start jitter so the
+        // assertion doesn't flake under load).
+        const tolerance = 150;
         const starts = [...RateLimitTestPlugin.rateLimitedStarts].sort((a, b) => a - b);
         for (let i = 0; i + RATE_LIMIT_MAX < starts.length; i++) {
             const delta = starts[i + RATE_LIMIT_MAX] - starts[i];

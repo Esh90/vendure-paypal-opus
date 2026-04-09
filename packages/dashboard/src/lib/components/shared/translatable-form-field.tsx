@@ -1,11 +1,14 @@
+import React, { useEffect, useMemo } from 'react';
 import { OverriddenFormComponent } from '@/vdb/framework/form-engine/overridden-form-component.js';
 import { LocationWrapper } from '@/vdb/framework/layout-engine/location-wrapper.js';
+import { useChannel } from '@/vdb/hooks/use-channel.js';
 import { useLocalFormat } from '@/vdb/hooks/use-local-format.js';
 import { useUserSettings } from '@/vdb/hooks/use-user-settings.js';
+import { getLocaleFallbackPlaceholder } from '@/vdb/utils/get-locale-fallback-placeholder.js';
 import { Trans } from '@lingui/react/macro';
-import { useEffect } from 'react';
 import { Controller, ControllerProps, FieldPath, FieldValues, useFormContext } from 'react-hook-form';
-import { FormControl, FormDescription, FormItem, FormLabel, FormMessage } from '../ui/form.js';
+import { Field, FieldDescription, FieldError, FieldLabel } from '../ui/field.js';
+import { applyControlProps } from './apply-control-props.js';
 import { FormFieldWrapper } from './form-field-wrapper.js';
 
 export type TranslatableEntity = FieldValues & {
@@ -36,17 +39,17 @@ export type TranslatableFormFieldProps<TFieldValues extends TranslatableEntity |
     name: TFieldValues extends TranslatableEntity
         ? keyof Omit<NonNullable<TFieldValues['translations']>[number], 'languageCode'>
         : TFieldValues extends TranslatableEntity[]
-            ? keyof Omit<NonNullable<TFieldValues[number]['translations']>[number], 'languageCode'>
-            : never;
+          ? keyof Omit<NonNullable<TFieldValues[number]['translations']>[number], 'languageCode'>
+          : never;
 };
 
 export const TranslatableFormField = <
     TFieldValues extends TranslatableEntity | TranslatableEntity[] = TranslatableEntity,
 >({
-      name,
-      label,
-      ...props
-  }: TranslatableFormFieldProps<TFieldValues>) => {
+    name,
+    label,
+    ...props
+}: TranslatableFormFieldProps<TFieldValues>) => {
     const { formatLanguageName } = useLocalFormat();
     const { contentLanguage } = useUserSettings().settings;
     const { watch } = useFormContext();
@@ -59,12 +62,12 @@ export const TranslatableFormField = <
     const index = isNewTranslation ? translations?.length : existingIndex;
     if (index === undefined || index === -1) {
         return (
-            <FormItem>
-                {label && <FormLabel>{label}</FormLabel>}
+            <Field>
+                {label && <FieldLabel>{label}</FieldLabel>}
                 <div className="text-sm text-muted-foreground">
                     <Trans>No translation found for {formatLanguageName(contentLanguage)}</Trans>
                 </div>
-            </FormItem>
+            </Field>
         );
     }
     const translationName = `translations.${index}.${String(name)}` as FieldPath<TFieldValues>;
@@ -149,37 +152,52 @@ export type TranslatableFormFieldWrapperProps<
 export const TranslatableFormFieldWrapper = <
     TFieldValues extends TranslatableEntity | TranslatableEntity[] = TranslatableEntity,
 >({
-      name,
-      label,
-      description,
-      render,
-      renderFormControl,
-      ...props
-  }: TranslatableFormFieldWrapperProps<TFieldValues>) => {
+    label,
+    description,
+    renderFormControl = true,
+    ...controllerProps
+}: TranslatableFormFieldWrapperProps<TFieldValues>) => {
+    const { name, render, ...rest } = controllerProps;
+    const { activeChannel } = useChannel();
+    const { contentLanguage } = useUserSettings().settings;
+    const { watch } = useFormContext();
+    const translations = watch('translations');
+    const defaultLanguageCode = activeChannel?.defaultLanguageCode;
+
+    const fallbackPlaceholder = useMemo(
+        () => getLocaleFallbackPlaceholder(translations, defaultLanguageCode, contentLanguage, String(name)),
+        [translations, defaultLanguageCode, contentLanguage, name],
+    );
+
     return (
         <LocationWrapper identifier={name as string}>
             <TranslatableFormField
-                label={label}
-                control={props.control}
+                {...rest}
                 name={name}
-                render={renderArgs => (
-                    <FormItem>
-                        {label && <FormLabel>{label}</FormLabel>}
-                        {renderFormControl ? (
-                            <FormControl>
-                                <OverriddenFormComponent field={renderArgs.field} fieldName={name as string}>
-                                    {render(renderArgs)}
-                                </OverriddenFormComponent>
-                            </FormControl>
-                        ) : (
+                label={label}
+                render={renderArgs => {
+                    const { fieldState } = renderArgs;
+                    const fieldId = `field-${String(name)}`;
+                    const controlProps: Record<string, unknown> = {
+                        id: fieldId,
+                        'aria-invalid': fieldState.invalid || undefined,
+                    };
+                    if (fallbackPlaceholder) {
+                        controlProps.placeholder = fallbackPlaceholder;
+                    }
+                    return (
+                        <Field data-invalid={fieldState.invalid || undefined}>
+                            {label && <FieldLabel htmlFor={fieldId}>{label}</FieldLabel>}
                             <OverriddenFormComponent field={renderArgs.field} fieldName={name as string}>
-                                {render(renderArgs)}
+                                {renderFormControl
+                                    ? applyControlProps(render(renderArgs), controlProps)
+                                    : render(renderArgs)}
                             </OverriddenFormComponent>
-                        )}
-                        {description && <FormDescription>{description}</FormDescription>}
-                        <FormMessage />
-                    </FormItem>
-                )}
+                            {description && <FieldDescription>{description}</FieldDescription>}
+                            {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                        </Field>
+                    );
+                }}
             />
         </LocationWrapper>
     );

@@ -8,8 +8,9 @@ import { ErrorPage } from '@/vdb/components/shared/error-page.js';
 import { FormFieldWrapper } from '@/vdb/components/shared/form-field-wrapper.js';
 import { TaxCategorySelector } from '@/vdb/components/shared/tax-category-selector.js';
 import { TranslatableFormFieldWrapper } from '@/vdb/components/shared/translatable-form-field.js';
+import { Badge } from '@/vdb/components/ui/badge.js';
 import { Button } from '@/vdb/components/ui/button.js';
-import { FormControl, FormDescription, FormItem, FormLabel, FormMessage } from '@/vdb/components/ui/form.js';
+import { Field, FieldLabel } from '@/vdb/components/ui/field.js';
 import { Input } from '@/vdb/components/ui/input.js';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/vdb/components/ui/select.js';
 import { Separator } from '@/vdb/components/ui/separator.js';
@@ -32,9 +33,9 @@ import { api } from '@/vdb/graphql/api.js';
 import { useChannel } from '@/vdb/hooks/use-channel.js';
 import { Trans, useLingui } from '@lingui/react/macro';
 import { useQuery } from '@tanstack/react-query';
-import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import { VariablesOf } from 'gql.tada';
-import { Trash } from 'lucide-react';
+import { Edit2, Trash } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { AddCurrencyDropdown } from './components/add-currency-dropdown.js';
@@ -238,6 +239,23 @@ function ProductVariantDetailPage() {
                         )}
                     />
                 </PageBlock>
+                {entity?.options && entity.options.length > 0 && (
+                    <PageBlock column="side" blockId="options" title={<Trans>Options</Trans>}>
+                        <div className="flex flex-wrap gap-1.5">
+                            {entity.options.map(option => (
+                                <Badge key={option.id} variant="secondary" className="text-xs" title={option.code}>
+                                    <span>{option.group.name}: {option.name}</span>
+                                    <Link
+                                        to={`/option-groups/${option.group.id}`}
+                                        className="ml-1.5 inline-flex"
+                                    >
+                                        <Edit2 className="h-3 w-3" />
+                                    </Link>
+                                </Badge>
+                            ))}
+                        </div>
+                    </PageBlock>
+                )}
                 <PageBlock column="main" blockId="main-form">
                     <DetailFormGrid>
                         <TranslatableFormFieldWrapper
@@ -336,8 +354,14 @@ function ProductVariantDetailPage() {
                             control={form.control}
                             name="trackInventory"
                             label={<Trans>Stock levels</Trans>}
+                            renderFormControl={false}
                             render={({ field }) => (
                                 <Select
+                                    items={{
+                                        INHERIT: t`Inherit from global settings`,
+                                        TRUE: t`Track`,
+                                        FALSE: t`Do not track`,
+                                    }}
                                     onValueChange={val => {
                                         if (val) {
                                             field.onChange(val);
@@ -345,11 +369,9 @@ function ProductVariantDetailPage() {
                                     }}
                                     value={field.value}
                                 >
-                                    <FormControl>
-                                        <SelectTrigger className="">
-                                            <SelectValue placeholder="Track inventory" />
-                                        </SelectTrigger>
-                                    </FormControl>
+                                    <SelectTrigger className="">
+                                        <SelectValue placeholder="Track inventory" />
+                                    </SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="INHERIT">
                                             <Trans>Inherit from global settings</Trans>
@@ -423,12 +445,12 @@ function ProductVariantDetailPage() {
                                     render={({ field }) => <NumberInput {...field} value={field.value} />}
                                 />
                                 <div>
-                                    <FormItem>
-                                        <FormLabel>
+                                    <Field>
+                                        <FieldLabel>
                                             <Trans>Allocated</Trans>
-                                        </FormLabel>
+                                        </FieldLabel>
                                         <div className="text-sm pt-1.5">{stockAllocated}</div>
-                                    </FormItem>
+                                    </Field>
                                 </div>
                             </DetailFormGrid>
                         );
@@ -458,28 +480,24 @@ function ProductVariantDetailPage() {
                     />
                 </PageBlock>
                 <PageBlock column="side" blockId="assets" title={<Trans>Assets</Trans>}>
-                    <FormItem>
-                        <FormControl>
-                            <EntityAssets
-                                assets={entity?.assets}
-                                featuredAsset={entity?.featuredAsset}
-                                compact={true}
-                                value={form.getValues()}
-                                onChange={value => {
-                                    form.setValue('featuredAssetId', value.featuredAssetId ?? undefined, {
-                                        shouldDirty: true,
-                                        shouldValidate: true,
-                                    });
-                                    form.setValue('assetIds', value.assetIds ?? undefined, {
-                                        shouldDirty: true,
-                                        shouldValidate: true,
-                                    });
-                                }}
-                            />
-                        </FormControl>
-                        <FormDescription></FormDescription>
-                        <FormMessage />
-                    </FormItem>
+                    <Field>
+                        <EntityAssets
+                            assets={entity?.assets}
+                            featuredAsset={entity?.featuredAsset}
+                            compact={true}
+                            value={form.getValues()}
+                            onChange={value => {
+                                form.setValue('featuredAssetId', value.featuredAssetId ?? undefined, {
+                                    shouldDirty: true,
+                                    shouldValidate: true,
+                                });
+                                form.setValue('assetIds', value.assetIds ?? undefined, {
+                                    shouldDirty: true,
+                                    shouldValidate: true,
+                                });
+                            }}
+                        />
+                    </Field>
                 </PageBlock>
             </PageLayout>
         </Page>

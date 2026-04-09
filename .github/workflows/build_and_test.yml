@@ -27,9 +27,9 @@ concurrency:
     group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
     cancel-in-progress: true
 
-# NOTE: The Elasticsearch and Redis service definitions are duplicated across the e2e-* jobs
+# NOTE: The Redis service definition is duplicated across the e2e-* jobs
 # because GitHub Actions does not support YAML anchors or service definition reuse.
-# When updating these services (version bumps, env changes, health checks), update ALL four copies:
+# When updating the service (version bumps, env changes, health checks), update ALL four copies:
 # e2e-sqljs, e2e-mariadb, e2e-mysql, e2e-postgres.
 jobs:
     codegen:
@@ -84,8 +84,8 @@ jobs:
                   else
                     echo "changed=false" >> "$GITHUB_OUTPUT"
                   fi
-    dashboard-e2e:
-        name: dashboard e2e
+    dashboard-i18n:
+        name: dashboard i18n sync
         needs: dashboard-changes
         if: needs.dashboard-changes.outputs.changed == 'true'
         runs-on: ubuntu-latest
@@ -94,14 +94,33 @@ jobs:
         steps:
             - uses: actions/checkout@v4
             - uses: ./.github/actions/setup
+            - name: Check i18n catalogs are in sync
+              working-directory: packages/dashboard
+              run: bash scripts/check-i18n-sync.sh
+    dashboard-e2e:
+        name: dashboard e2e (${{ matrix.shard }})
+        needs: dashboard-changes
+        if: needs.dashboard-changes.outputs.changed == 'true'
+        runs-on: ubuntu-latest
+        permissions:
+            contents: read
+        strategy:
+            fail-fast: false
+            matrix:
+                shard: [1, 2, 3, 4]
+        steps:
+            - uses: actions/checkout@v4
+            - uses: ./.github/actions/setup
             - name: Build
-              run: npx lerna run ci
+              run: npx lerna run ci --scope @vendure/testing --include-dependencies
             - name: Cache Playwright browsers
               id: playwright-cache
               uses: actions/cache@v4
               with:
                   path: ~/.cache/ms-playwright
                   key: playwright-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+                  restore-keys: |
+                      playwright-${{ runner.os }}-
             - name: Install Playwright browsers
               if: steps.playwright-cache.outputs.cache-hit != 'true'
               run: npx playwright install chromium
@@ -110,7 +129,7 @@ jobs:
               run: npx playwright install-deps chromium
               working-directory: packages/dashboard
             - name: Dashboard e2e tests
-              run: npm run e2e:pw
+              run: npm run e2e:pw -- --shard=${{ matrix.shard }}/4
               working-directory: packages/dashboard
     sonarqube:
         name: SonarQube
@@ -132,28 +151,6 @@ jobs:
         permissions:
             contents: read
         services:
-            elastic:
-                image: docker.elastic.co/elasticsearch/elasticsearch:9.1.0
-                env:
-                    node.name: es
-                    cluster.name: es-docker-cluster
-                    xpack.security.enabled: false
-                    xpack.security.http.ssl.enabled: false
-                    xpack.security.transport.ssl.enabled: false
-                    xpack.license.self_generated.type: basic
-                    discovery.type: single-node
-                    bootstrap.memory_lock: true
-                    ES_JAVA_OPTS: -Xms512m -Xmx512m
-                    # Elasticsearch will force read-only mode when total available disk space is less than 5%. Since we will
-                    # be running on a shared Azure instance with 84GB SSD, we easily go below 5% available even when there are still
-                    # > 3GB free. So we set this value to an absolute one rather than a percentage to prevent all the Elasticsearch
-                    # e2e tests from failing.
-                    cluster.routing.allocation.disk.watermark.low: 500mb
-                    cluster.routing.allocation.disk.watermark.high: 200mb
-                    cluster.routing.allocation.disk.watermark.flood_stage: 100mb
-                ports:
-                    - 9200
-                options: --health-cmd="curl --silent --fail localhost:9200/_cluster/health" --health-interval=10s --health-timeout=5s --health-retries=3
             redis:
                 image: redis:7.4.1
                 ports:
@@ -171,7 +168,6 @@ jobs:
               run: npx lerna run ci
             - name: e2e tests
               env:
-                  E2E_ELASTIC_PORT: ${{ job.services.elastic.ports['9200'] }}
                   E2E_REDIS_PORT: ${{ job.services.redis.ports['6379'] }}
                   DB: sqljs
               run: npm run e2e
@@ -190,24 +186,6 @@ jobs:
                 ports:
                     - 3306
                 options: --health-cmd="mariadb-admin ping -h localhost -u vendure -ppassword" --health-interval=10s --health-timeout=5s --health-retries=3
-            elastic:
-                image: docker.elastic.co/elasticsearch/elasticsearch:9.1.0
-                env:
-                    node.name: es
-                    cluster.name: es-docker-cluster
-                    xpack.security.enabled: false
-                    xpack.security.http.ssl.enabled: false
-                    xpack.security.transport.ssl.enabled: false
-                    xpack.license.self_generated.type: basic
-                    discovery.type: single-node
-                    bootstrap.memory_lock: true
-                    ES_JAVA_OPTS: -Xms512m -Xmx512m
-                    cluster.routing.allocation.disk.watermark.low: 500mb
-                    cluster.routing.allocation.disk.watermark.high: 200mb
-                    cluster.routing.allocation.disk.watermark.flood_stage: 100mb
-                ports:
-                    - 9200
-                options: --health-cmd="curl --silent --fail localhost:9200/_cluster/health" --health-interval=10s --health-timeout=5s --health-retries=3
             redis:
                 image: redis:7.4.1
                 ports:
@@ -226,7 +204,6 @@ jobs:
             - name: e2e tests
               env:
                   E2E_MARIADB_PORT: ${{ job.services.mariadb.ports['3306'] }}
-                  E2E_ELASTIC_PORT: ${{ job.services.elastic.ports['9200'] }}
                   E2E_REDIS_PORT: ${{ job.services.redis.ports['6379'] }}
                   DB: mariadb
               run: npm run e2e
@@ -243,24 +220,6 @@ jobs:
                 ports:
                     - 3306
                 options: --health-cmd="mysqladmin ping --silent" --health-interval=10s --health-timeout=20s --health-retries=10
-            elastic:
-                image: docker.elastic.co/elasticsearch/elasticsearch:9.1.0
-                env:
-                    node.name: es
-                    cluster.name: es-docker-cluster
-                    xpack.security.enabled: false
-                    xpack.security.http.ssl.enabled: false
-                    xpack.security.transport.ssl.enabled: false
-                    xpack.license.self_generated.type: basic
-                    discovery.type: single-node
-                    bootstrap.memory_lock: true
-                    ES_JAVA_OPTS: -Xms512m -Xmx512m
-                    cluster.routing.allocation.disk.watermark.low: 500mb
-                    cluster.routing.allocation.disk.watermark.high: 200mb
-                    cluster.routing.allocation.disk.watermark.flood_stage: 100mb
-                ports:
-                    - 9200
-                options: --health-cmd="curl --silent --fail localhost:9200/_cluster/health" --health-interval=10s --health-timeout=5s --health-retries=3
             redis:
                 image: redis:7.4.1
                 ports:
@@ -279,7 +238,6 @@ jobs:
             - name: e2e tests
               env:
                   E2E_MYSQL_PORT: ${{ job.services.mysql.ports['3306'] }}
-                  E2E_ELASTIC_PORT: ${{ job.services.elastic.ports['9200'] }}
                   E2E_REDIS_PORT: ${{ job.services.redis.ports['6379'] }}
                   DB: mysql
               run: npm run e2e
@@ -297,24 +255,6 @@ jobs:
                 ports:
                     - 5432
                 options: --health-cmd=pg_isready --health-interval=10s --health-timeout=5s --health-retries=3
-            elastic:
-                image: docker.elastic.co/elasticsearch/elasticsearch:9.1.0
-                env:
-                    node.name: es
-                    cluster.name: es-docker-cluster
-                    xpack.security.enabled: false
-                    xpack.security.http.ssl.enabled: false
-                    xpack.security.transport.ssl.enabled: false
-                    xpack.license.self_generated.type: basic
-                    discovery.type: single-node
-                    bootstrap.memory_lock: true
-                    ES_JAVA_OPTS: -Xms512m -Xmx512m
-                    cluster.routing.allocation.disk.watermark.low: 500mb
-                    cluster.routing.allocation.disk.watermark.high: 200mb
-                    cluster.routing.allocation.disk.watermark.flood_stage: 100mb
-                ports:
-                    - 9200
-                options: --health-cmd="curl --silent --fail localhost:9200/_cluster/health" --health-interval=10s --health-timeout=5s --health-retries=3
             redis:
                 image: redis:7.4.1
                 ports:
@@ -333,7 +273,6 @@ jobs:
             - name: e2e tests
               env:
                   E2E_POSTGRES_PORT: ${{ job.services.postgres.ports['5432'] }}
-                  E2E_ELASTIC_PORT: ${{ job.services.elastic.ports['9200'] }}
                   E2E_REDIS_PORT: ${{ job.services.redis.ports['6379'] }}
                   DB: postgres
               run: npm run e2e

@@ -8,7 +8,7 @@ import type { TypedDocumentNode } from '@graphql-typed-document-node/core';
 import { Trans } from '@lingui/react/macro';
 import { AnyRoute, useNavigate } from '@tanstack/react-router';
 import { ResultOf, VariablesOf } from 'gql.tada';
-import { toast } from 'sonner';
+import { toast } from '@/vdb/components/ui/sonner.js';
 import { ControllerRenderProps, FieldPath, FieldValues } from 'react-hook-form';
 import {
     FieldInfo,
@@ -178,7 +178,7 @@ export function DetailPage<
     const translations = updateFields.find(fieldInfo => fieldInfo.name === 'translations');
 
     return (
-        <Page pageId={pageId} form={form} submitHandler={submitHandler}>
+        <Page pageId={pageId} form={form} submitHandler={submitHandler} entity={entity}>
             <PageTitle>{title(entity)}</PageTitle>
             <PageActionBar>
                 <PageActionBarRight>

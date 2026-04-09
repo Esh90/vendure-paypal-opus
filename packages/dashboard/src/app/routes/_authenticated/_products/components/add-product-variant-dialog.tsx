@@ -4,6 +4,7 @@ import { Button } from '@/vdb/components/ui/button.js';
 import {
     Dialog,
     DialogContent,
+    DialogDescription,
     DialogFooter,
     DialogHeader,
     DialogTitle,
@@ -14,14 +15,13 @@ import { Input } from '@/vdb/components/ui/input.js';
 import { api } from '@/vdb/graphql/api.js';
 import { graphql, ResultOf, VariablesOf } from '@/vdb/graphql/graphql.js';
 import { useChannel } from '@/vdb/hooks/use-channel.js';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { z, zodResolver } from '@/vdb/lib/zod.js';
 import { Trans, useLingui } from '@lingui/react/macro';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { Plus } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import * as z from 'zod';
 import { createProductOptionDocument, createProductVariantsDocument } from '../products.graphql.js';
 import { ProductOptionSelect } from './product-option-select.js';
 
@@ -220,17 +220,18 @@ export function AddProductVariantDialog({
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-                <Button variant="outline">
-                    <Plus className="mr-2 h-4 w-4" />
-                    <Trans>Add variant</Trans>
-                </Button>
+            <DialogTrigger render={<Button variant="outline" />}>
+                <Plus className="mr-2 h-4 w-4" />
+                <Trans>Add variant</Trans>
             </DialogTrigger>
             <DialogContent>
                 <DialogHeader>
                     <DialogTitle>
                         <Trans>Add product variant</Trans>
                     </DialogTitle>
+                    <DialogDescription className="sr-only">
+                        <Trans>Create a new product variant with options, pricing, and stock</Trans>
+                    </DialogDescription>
                 </DialogHeader>
                 <Form {...form}>
                     <form

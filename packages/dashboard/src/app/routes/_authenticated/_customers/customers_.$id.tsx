@@ -13,7 +13,10 @@ import {
 } from '@/vdb/components/ui/dialog.js';
 import { Input } from '@/vdb/components/ui/input.js';
 import { NEW_ENTITY_PATH } from '@/vdb/constants.js';
-import {    CustomFieldsPageBlock,
+import { addCustomFields } from '@/vdb/framework/document-introspection/add-custom-fields.js';
+import { ActionBarItem } from '@/vdb/framework/layout-engine/action-bar-item-wrapper.js';
+import {
+    CustomFieldsPageBlock,
     DetailFormGrid,
     Page,
     PageActionBar,
@@ -21,7 +24,6 @@ import {    CustomFieldsPageBlock,
     PageLayout,
     PageTitle,
 } from '@/vdb/framework/layout-engine/page-layout.js';
-import { ActionBarItem } from '@/vdb/framework/layout-engine/action-bar-item-wrapper.js';
 import { detailPageRouteLoader } from '@/vdb/framework/page/detail-page-route-loader.js';
 import { useDetailPage } from '@/vdb/framework/page/use-detail-page.js';
 import { api } from '@/vdb/graphql/api.js';
@@ -51,7 +53,10 @@ export const Route = createFileRoute('/_authenticated/_customers/customers_/$id'
     component: CustomerDetailPage,
     loader: detailPageRouteLoader({
         pageId,
-        queryDocument: customerDetailDocument,
+        queryDocument: () =>
+            addCustomFields(customerDetailDocument, {
+                includeNestedFragments: ['Address'],
+            }),
         breadcrumb: (isNew, entity) => [
             { path: '/customers', label: <Trans>Customers</Trans> },
             isNew ? <Trans>New customer</Trans> : `${entity?.firstName} ${entity?.lastName}`,
@@ -69,7 +74,9 @@ function CustomerDetailPage() {
 
     const { form, submitHandler, entity, isPending, refreshEntity, resetForm } = useDetailPage({
         pageId,
-        queryDocument: customerDetailDocument,
+        queryDocument: addCustomFields(customerDetailDocument, {
+            includeNestedFragments: ['Address'],
+        }),
         createDocument: createCustomerDocument,
         updateDocument: updateCustomerDocument,
         setValuesForUpdate: entity => {
@@ -212,12 +219,10 @@ function CustomerDetailPage() {
                             </DetailFormGrid>
 
                             <Dialog open={newAddressOpen} onOpenChange={setNewAddressOpen}>
-                                <DialogTrigger asChild>
-                                    <Button variant="outline">
-                                        <Plus className="w-4 h-4" /> <Trans>Add new address</Trans>
-                                    </Button>
+                                <DialogTrigger render={<Button variant="outline" />}>
+                                    <Plus className="w-4 h-4" /> <Trans>Add new address</Trans>
                                 </DialogTrigger>
-                                <DialogContent>
+                                <DialogContent className="max-h-[90vh] overflow-y-auto">
                                     <DialogHeader>
                                         <DialogTitle>
                                             <Trans>Add new address</Trans>

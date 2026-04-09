@@ -9,6 +9,7 @@ import { Logger } from '../config/logger/vendure-logger';
 import { InjectableJobQueueStrategy } from './injectable-job-queue-strategy';
 import { Job } from './job';
 import { QueueNameProcessStorage } from './queue-name-process-storage';
+import { LocalRateLimiter, parseDuration } from './rate-limiter';
 import { JobData } from './types';
 
 /**
@@ -20,6 +21,32 @@ import { JobData } from './types';
  * @docsPage types
  */
 export type BackoffStrategy = (queueName: string, attemptsMade: number, job: Job) => number;
+
+/**
+ * @description
+ * Describes a rate limit for a job queue — at most `max` jobs will be started
+ * per sliding window of length `duration`.
+ *
+ * The `duration` can be specified as a number of milliseconds or as a shorthand
+ * string (`'500ms'`, `'30s'`, `'5m'`, `'1h'`, `'2d'`).
+ *
+ * @since 3.7.0
+ * @docsCategory JobQueue
+ * @docsPage types
+ */
+export interface RateLimit {
+    /**
+     * @description
+     * Maximum number of jobs permitted to start within `duration`.
+     */
+    max: number;
+    /**
+     * @description
+     * Length of the sliding window — either a number in ms or a shorthand
+     * string like `'1h'`, `'30s'`, `'500ms'`.
+     */
+    duration: number | string;
+}
 
 export interface PollingJobQueueStrategyConfig {
     /**
@@ -77,6 +104,44 @@ export interface PollingJobQueueStrategyConfig {
      * @default 20_000
      */
     gracefulShutdownTimeout?: number;
+    /**
+     * @description
+     * Configures a rate limit for one or more job queues. When set, at most
+     * `max` jobs will be _started_ per sliding window of length `duration`
+     * for each matching queue. This is useful when a job handler interacts
+     * with an external system which imposes its own rate limit (e.g. a
+     * transactional email provider).
+     *
+     * A value of `undefined` (or a function which returns `undefined`)
+     * disables rate limiting for that queue, which is the default.
+     *
+     * **Multi-worker behavior:** for the {@link SqlJobQueueStrategy}, a
+     * cross-worker check is performed within the same transaction used to
+     * claim the next job, so multiple horizontally-scaled workers coordinate
+     * via the database. Because the check is not globally locked, a transient
+     * overshoot of up to `(numWorkers - 1)` jobs per window is possible. Jobs
+     * are counted by their `startedAt` timestamp (not `settledAt`), so a
+     * crashed worker's job continues to consume its budget slot until the
+     * window rolls forward, which is the desired shed-load behavior.
+     *
+     * For the {@link InMemoryJobQueueStrategy} the rate limit is strictly
+     * in-process, which matches its single-process design.
+     *
+     * @example
+     * ```ts
+     * DefaultJobQueuePlugin.init({
+     *   rateLimit: (queueName) => {
+     *     if (queueName === 'send-marketing-email') {
+     *       return { max: 60, duration: '1h' };
+     *     }
+     *     return undefined;
+     *   },
+     * })
+     * ```
+     *
+     * @since 3.7.0
+     */
+    rateLimit?: RateLimit | ((queueName: string) => RateLimit | undefined);
 }
 
 const STOP_SIGNAL = Symbol('STOP_SIGNAL');
@@ -91,6 +156,7 @@ class ActiveQueue<Data extends JobData<Data> = object> {
     private subscription: Subscription;
     private readonly pollInterval: number;
     private readonly concurrency: number;
+    private readonly rateLimiter?: LocalRateLimiter;
 
     constructor(
         private readonly queueName: string,
@@ -105,6 +171,10 @@ class ActiveQueue<Data extends JobData<Data> = object> {
             typeof this.jobQueueStrategy.concurrency === 'function'
                 ? this.jobQueueStrategy.concurrency(queueName)
                 : this.jobQueueStrategy.concurrency;
+        const rateLimit = this.jobQueueStrategy.resolveRateLimit(queueName);
+        if (rateLimit) {
+            this.rateLimiter = new LocalRateLimiter(rateLimit.max, parseDuration(rateLimit.duration));
+        }
     }
 
     start() {
@@ -115,11 +185,23 @@ class ActiveQueue<Data extends JobData<Data> = object> {
         });
         this.running = true;
         const runNextJobs = async () => {
+            let nextPollDelay: number | undefined;
             try {
                 const runningJobsCount = this.activeJobs.length;
                 for (let i = runningJobsCount; i < this.concurrency; i++) {
+                    if (this.rateLimiter) {
+                        const waitMs = this.rateLimiter.check();
+                        if (waitMs > 0) {
+                            // Cap the wait at pollInterval so the existing poll cadence is
+                            // preserved as the upper bound — this keeps us responsive to
+                            // state changes (cancellations, stop signals, etc.).
+                            nextPollDelay = Math.min(waitMs, this.pollInterval);
+                            break;
+                        }
+                    }
                     const nextJob = await this.jobQueueStrategy.next(this.queueName);
                     if (nextJob) {
+                        this.rateLimiter?.record();
                         this.activeJobs.push(nextJob);
                         await this.jobQueueStrategy.update(nextJob);
                         const onProgress = (job: Job) => this.jobQueueStrategy.update(job);
@@ -174,7 +256,7 @@ class ActiveQueue<Data extends JobData<Data> = object> {
                 ]);
             }
             if (this.running) {
-                this.timer = setTimeout(runNextJobs, this.pollInterval);
+                this.timer = setTimeout(runNextJobs, nextPollDelay ?? this.pollInterval);
             }
         };
 
@@ -266,6 +348,7 @@ export abstract class PollingJobQueueStrategy extends InjectableJobQueueStrategy
     public setRetries: (queueName: string, job: Job) => number;
     public backOffStrategy?: BackoffStrategy;
     public gracefulShutdownTimeout: number;
+    public rateLimit?: RateLimit | ((queueName: string) => RateLimit | undefined);
 
     protected activeQueues = new QueueNameProcessStorage<ActiveQueue<any>>();
 
@@ -280,12 +363,30 @@ export abstract class PollingJobQueueStrategy extends InjectableJobQueueStrategy
             this.backOffStrategy = concurrencyOrConfig.backoffStrategy ?? (() => 1000);
             this.setRetries = concurrencyOrConfig.setRetries ?? ((_, job) => job.retries);
             this.gracefulShutdownTimeout = concurrencyOrConfig.gracefulShutdownTimeout ?? 20_000;
+            this.rateLimit = concurrencyOrConfig.rateLimit;
         } else {
             this.concurrency = concurrencyOrConfig ?? 1;
             this.pollInterval = maybePollInterval ?? 200;
             this.setRetries = (_, job) => job.retries;
             this.gracefulShutdownTimeout = 20_000;
         }
+    }
+
+    /**
+     * @description
+     * Resolves the configured {@link RateLimit} for a given queue, or returns
+     * `undefined` if no rate limit is configured for that queue.
+     *
+     * @internal
+     */
+    resolveRateLimit(queueName: string): RateLimit | undefined {
+        if (!this.rateLimit) {
+            return undefined;
+        }
+        if (typeof this.rateLimit === 'function') {
+            return this.rateLimit(queueName);
+        }
+        return this.rateLimit;
     }
 
     async start<Data extends JobData<Data> = object>(

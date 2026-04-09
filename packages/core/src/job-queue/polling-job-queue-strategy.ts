@@ -74,7 +74,7 @@ export interface PollingJobQueueStrategyConfig {
      * @description
      * The interval in ms between polling the database for new jobs.
      *
-     * @description 200
+     * @default 200
      */
     pollInterval?: number | ((queueName: string) => number);
     /**
@@ -108,24 +108,14 @@ export interface PollingJobQueueStrategyConfig {
      * @description
      * Configures a rate limit for one or more job queues. When set, at most
      * `max` jobs will be _started_ per sliding window of length `duration`
-     * for each matching queue. This is useful when a job handler interacts
-     * with an external system which imposes its own rate limit (e.g. a
-     * transactional email provider).
+     * for each matching queue. A value of `undefined` (or a function which
+     * returns `undefined`) disables rate limiting for that queue, which is
+     * the default.
      *
-     * A value of `undefined` (or a function which returns `undefined`)
-     * disables rate limiting for that queue, which is the default.
-     *
-     * **Multi-worker behavior:** for the {@link SqlJobQueueStrategy}, a
-     * cross-worker check is performed within the same transaction used to
-     * claim the next job, so multiple horizontally-scaled workers coordinate
-     * via the database. Because the check is not globally locked, a transient
-     * overshoot of up to `(numWorkers - 1)` jobs per window is possible. Jobs
-     * are counted by their `startedAt` timestamp (not `settledAt`), so a
-     * crashed worker's job continues to consume its budget slot until the
-     * window rolls forward, which is the desired shed-load behavior.
-     *
-     * For the {@link InMemoryJobQueueStrategy} the rate limit is strictly
-     * in-process, which matches its single-process design.
+     * Concrete strategies may extend this behavior — for example, the
+     * {@link SqlJobQueueStrategy} adds a cross-worker check so that
+     * horizontally-scaled workers coordinate via the database. See the
+     * `DefaultJobQueueOptions.rateLimit` docs for operational details.
      *
      * @example
      * ```ts

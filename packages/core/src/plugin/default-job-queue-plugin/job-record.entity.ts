@@ -6,6 +6,10 @@ import { VendureEntity } from '../../entity/base/base.entity';
 
 // createdAt is coming from base entity VendureEntity and is not explicitly defined here
 @Index(['createdAt'])
+// Composite index used by the rate-limit COUNT query in SqlJobQueueStrategy.
+// That query runs on every poll for every rate-limited queue, so an index
+// is necessary once the job_record table grows.
+@Index(['queueName', 'startedAt'])
 @Entity()
 export class JobRecord extends VendureEntity {
     constructor(input: DeepPartial<JobRecord>) {

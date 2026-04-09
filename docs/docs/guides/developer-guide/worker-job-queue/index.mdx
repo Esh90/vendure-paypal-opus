@@ -169,10 +169,10 @@ which uses an efficient push-based strategy built on Redis.
 
 ### Rate limiting
 
-Since v3.7.0, both the `DefaultJobQueuePlugin` and `BullMQJobQueuePlugin` expose a first-class
-`rateLimit` option that lets you say "process at most N jobs per time window" for a given queue.
-This is useful when a job handler calls a rate-limited downstream system — for example a
-transactional email provider that allows at most 60 messages per hour.
+Since v3.7.0, the `DefaultJobQueuePlugin` exposes a first-class `rateLimit` option that lets
+you say "process at most N jobs per time window" for a given queue. This is useful when a job
+handler calls a rate-limited downstream system — for example a transactional email provider
+that allows at most 60 messages per hour.
 
 ```ts
 import { DefaultJobQueuePlugin, VendureConfig } from '@vendure/core';
@@ -208,18 +208,30 @@ can run in parallel, but across any rolling 1-hour window no more than 60 jobs w
 #### Multi-worker behavior
 
 When running multiple horizontally-scaled Vendure worker instances against the same database,
-the `DefaultJobQueuePlugin` coordinates the rate limit across all workers by counting jobs that
-have been _started_ (`startedAt`) within the window. Counting starts — rather than completions —
-means that if a worker crashes mid-job, that job still consumes its budget slot until the window
-rolls forward, which is the desired shed-load behavior against an unreliable downstream.
+the `DefaultJobQueuePlugin` coordinates the rate limit across all workers by counting jobs whose
+`startedAt` timestamp falls inside the window. Counting starts — rather than completions — means
+that if a worker crashes mid-job, that job still consumes its budget slot until the window rolls
+forward, which is the desired shed-load behavior against an unreliable downstream.
 
 Because the cross-worker count is not globally locked, a transient overshoot of up to
-`(numWorkers - 1)` jobs per window is possible under heavy contention. If your downstream requires
-strict enforcement with zero overshoot, set the rate limit slightly below the downstream's hard
-ceiling to leave headroom.
+`(numWorkers - 1)` jobs per window is possible under heavy contention. If your downstream
+requires strict enforcement with zero overshoot, set the rate limit slightly below the
+downstream's hard ceiling to leave headroom.
 
-When using the `BullMQJobQueuePlugin`, the cross-worker coordination is handled natively by
-BullMQ's [rate limiter](https://docs.bullmq.io/guide/rate-limiting) via Redis.
+#### Long-running jobs
+
+Because the limiter counts starts, a job that takes longer than `duration` to complete will
+have its slot recycled while it is still running. For example, with
+`{ max: 1, duration: '1s' }` and a handler that takes 3 seconds, a second job will start at
+`t=1s` while the first is still in flight. Set `concurrency: 1` on the same queue if you need
+at-most-one-in-flight semantics in addition to a rate limit.
+
+:::note
+Rate limiting is not yet supported by the `BullMQJobQueuePlugin`. BullMQ's native worker
+`limiter` is queue-global and all Vendure jobs share a single BullMQ queue, so forwarding it
+naively would throttle unrelated queues. A BullMQ-specific implementation is tracked as a
+follow-up.
+:::
 
 ## Using Job Queues in a plugin
 

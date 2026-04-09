@@ -126,11 +126,28 @@ export interface DefaultJobQueueOptions {
      * A value of `undefined` (or a function which returns `undefined`) disables
      * rate limiting for that queue, which is the default.
      *
-     * The SQL strategy coordinates across horizontally-scaled workers by
-     * performing a count of recently-started jobs within the same transaction
-     * used to claim the next job. Because the count is not globally locked,
-     * a transient overshoot of up to `(numWorkers - 1)` jobs per window is
-     * possible under contention.
+     * **Multi-worker coordination.** The SQL strategy counts recently-started
+     * jobs within the same transaction used to claim the next job, so multiple
+     * horizontally-scaled workers coordinate via the database. Because the
+     * count is not globally locked, a transient overshoot of up to
+     * `(numWorkers - 1)` jobs per window is possible under contention — size
+     * `max` slightly below the downstream's hard ceiling if strict enforcement
+     * matters.
+     *
+     * **Counting `startedAt`, not `settledAt`.** Jobs are counted from their
+     * `startedAt` timestamp so that a crashed worker's job continues to consume
+     * its budget slot until the window rolls forward — this is the correct
+     * shed-load behavior against a rate-limited downstream. A corollary is
+     * that a long-running job which outlives its `duration` window will have
+     * its slot recycled while it is still running: with
+     * `{ max: 1, duration: '1s' }` and a handler that takes 3 seconds, a
+     * second job will start at `t=1s` while the first is still in flight.
+     * Set `concurrency: 1` if you need at-most-one-in-flight semantics in
+     * addition to rate limiting.
+     *
+     * **Indexing.** The `JobRecord` entity carries a composite
+     * `(queueName, startedAt)` index so the count query stays efficient as
+     * the table grows.
      *
      * @example
      * ```ts

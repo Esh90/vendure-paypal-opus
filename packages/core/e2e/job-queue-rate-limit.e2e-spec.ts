@@ -145,11 +145,13 @@ describe('Job queue rate limit', () => {
 
         expect(RateLimitTestPlugin.unlimitedCompleted.length).toBe(jobCount);
 
-        // Without a rate limit, the entire batch should drain well under the
-        // RATE_LIMIT_DURATION_MS window that would otherwise cap throughput to
-        // RATE_LIMIT_MAX.
+        // Without a rate limit, 10 trivial jobs with concurrency=5 should
+        // drain in well under half the rate-limit window. If this assertion
+        // fails, it likely means the unlimited queue is somehow getting
+        // throttled — e.g. a regression in `resolveRateLimit()` that returns
+        // a default limit instead of `undefined`.
         const starts = [...RateLimitTestPlugin.unlimitedCompleted].sort((a, b) => a - b);
         const drainSpan = starts[starts.length - 1] - starts[0];
-        expect(drainSpan).toBeLessThan(RATE_LIMIT_DURATION_MS * 2);
+        expect(drainSpan).toBeLessThan(RATE_LIMIT_DURATION_MS / 2);
     });
 });

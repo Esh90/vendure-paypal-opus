@@ -307,6 +307,7 @@ jobs:
     all-passed:
         name: all-passed
         runs-on: ubuntu-latest
+        permissions: {}
         if: always()
         needs:
             - detect-changes

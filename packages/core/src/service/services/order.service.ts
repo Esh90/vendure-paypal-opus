@@ -2129,8 +2129,10 @@ export class OrderService {
 
         // Filter out auto-applied promotions that have exceeded their usage limits.
         // Coupon-based promotions are already validated in validateCouponCode().
+        // Safe to cache per-request: the active promotion list (allPromotions) is stable
+        // within a single request, so the exhausted set won't change mid-request.
         const customerId = order.customerId;
-        const cacheKey = `exhausted-promotions-${ctx.channelId}-${customerId ?? 'guest'}`;
+        const cacheKey = CacheKey.ExhaustedPromotions(ctx.channelId, customerId);
         const exhaustedIds = await this.requestCache.get(ctx, cacheKey, () =>
             this.promotionService.getExhaustedPromotionIds(ctx, allPromotions, customerId),
         );

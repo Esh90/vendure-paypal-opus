@@ -1660,7 +1660,6 @@ describe('Promotions applied to Orders', () => {
     });
 
     // https://github.com/vendurehq/vendure/issues/4353
-    // https://github.com/vendurehq/vendure/issues/4353
     describe('usage limit for auto-applied promotions (no coupon code)', () => {
         async function createNewActiveOrder() {
             const { addItemToOrder } = await shopClient.query(addItemToOrderDocument, {

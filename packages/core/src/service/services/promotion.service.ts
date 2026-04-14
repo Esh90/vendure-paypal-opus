@@ -352,7 +352,6 @@ export class PromotionService {
         const exhaustedIds = new Set<string>();
 
         const withUsageLimit = promotions.filter(p => !p.couponCode && p.usageLimit != null);
-        const withPerCustomerLimit = promotions.filter(p => !p.couponCode && p.perCustomerUsageLimit != null);
 
         if (withUsageLimit.length) {
             const usageCounts = await this.getUsageCountsBatch(
@@ -370,6 +369,10 @@ export class PromotionService {
         // perCustomerUsageLimit can only be checked if we know the customer.
         // For guest checkouts without a customer, we skip this check
         // (matching the existing behavior in validateCouponCode).
+        // Skip promotions already exhausted by the global usageLimit check above.
+        const withPerCustomerLimit = promotions.filter(
+            p => !p.couponCode && p.perCustomerUsageLimit != null && !exhaustedIds.has(p.id.toString()),
+        );
         if (customerId && withPerCustomerLimit.length) {
             const perCustomerCounts = await this.getUsageCountsBatch(
                 ctx,

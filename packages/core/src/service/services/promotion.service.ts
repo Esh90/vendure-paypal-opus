@@ -406,10 +406,13 @@ export class PromotionService {
         promotionIds: ID[],
         customerId?: ID,
     ): Promise<Map<string, number>> {
+        if (!promotionIds.length) {
+            return new Map();
+        }
         const qb = this.placedOrdersWithPromotionQb(ctx)
             .select('promotion.id', 'promotionId')
             .addSelect('COUNT(DISTINCT order.id)', 'usageCount')
-            .where('promotion.id IN (:...promotionIds)', { promotionIds })
+            .andWhere('promotion.id IN (:...promotionIds)', { promotionIds })
             .groupBy('promotion.id');
         if (customerId) {
             qb.andWhere('order.customer = :customerId', { customerId });

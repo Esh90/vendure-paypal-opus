@@ -1660,15 +1660,10 @@ describe('Promotions applied to Orders', () => {
     });
 
     // https://github.com/vendurehq/vendure/issues/4353
+    // https://github.com/vendurehq/vendure/issues/4353
     describe('usage limit for auto-applied promotions (no coupon code)', () => {
-        const orderGuard: ErrorResultGuard<CodegenShop.TestOrderWithPaymentsFragment> =
-            createErrorResultGuard(input => !!input.lines);
-
         async function createNewActiveOrder() {
-            const { addItemToOrder } = await shopClient.query<
-                CodegenShop.AddItemToOrderMutation,
-                CodegenShop.AddItemToOrderMutationVariables
-            >(ADD_ITEM_TO_ORDER, {
+            const { addItemToOrder } = await shopClient.query(addItemToOrderDocument, {
                 productVariantId: getVariantBySlug('item-5000').id,
                 quantity: 1,
             });
@@ -1676,7 +1671,8 @@ describe('Promotions applied to Orders', () => {
         }
 
         describe('usageLimit', () => {
-            let promoWithUsageLimit: Codegen.PromotionFragment;
+            let promoWithUsageLimit: PromotionFragment;
+            let completedOrderId: string;
 
             beforeAll(async () => {
                 promoWithUsageLimit = await createPromotion({
@@ -1697,16 +1693,12 @@ describe('Promotions applied to Orders', () => {
                 const order = await createNewActiveOrder();
                 orderResultGuard.assertSuccess(order);
 
-                const { activeOrder } =
-                    await shopClient.query<CodegenShop.GetActiveOrderQuery>(GET_ACTIVE_ORDER);
+                const { activeOrder } = await shopClient.query(getActiveOrderDocument);
                 expect(activeOrder!.discounts.length).toBe(1);
                 expect(activeOrder!.discounts[0].description).toBe('Auto-applied with usage limit');
                 expect(activeOrder!.totalWithTax).toBe(0);
 
-                await shopClient.query<
-                    CodegenShop.SetCustomerForOrderMutation,
-                    CodegenShop.SetCustomerForOrderMutationVariables
-                >(SET_CUSTOMER, {
+                await shopClient.query(setCustomerDocument, {
                     input: {
                         emailAddress: 'auto-limit-guest@test.com',
                         firstName: 'Auto',
@@ -1715,24 +1707,45 @@ describe('Promotions applied to Orders', () => {
                 });
                 await proceedToArrangingPayment(shopClient);
                 const result = await addPaymentToOrder(shopClient, testSuccessfulPaymentMethod);
-                orderGuard.assertSuccess(result);
+                orderResultGuard.assertSuccess(result);
                 expect(result.state).toBe('PaymentSettled');
                 expect(result.active).toBe(false);
+                completedOrderId = result.id;
             });
 
             it('does not auto-apply promotion after usage limit is reached', async () => {
                 await shopClient.asAnonymousUser();
                 await createNewActiveOrder();
 
-                const { activeOrder } =
-                    await shopClient.query<CodegenShop.GetActiveOrderQuery>(GET_ACTIVE_ORDER);
+                const { activeOrder } = await shopClient.query(getActiveOrderDocument);
                 expect(activeOrder!.discounts.length).toBe(0);
                 expect(activeOrder!.totalWithTax).toBe(6000);
+            });
+
+            // #4353 — cancelled orders should not count toward usage limits
+            it('cancelled orders do not count against usage limit', async () => {
+                const { cancelOrder } = await adminClient.query(cancelOrderDocument, {
+                    input: {
+                        orderId: completedOrderId,
+                        cancelShipping: true,
+                        reason: 'test',
+                    },
+                });
+                orderResultGuard.assertSuccess(cancelOrder);
+                expect(cancelOrder.state).toBe('Cancelled');
+
+                await shopClient.asAnonymousUser();
+                await createNewActiveOrder();
+
+                const { activeOrder } = await shopClient.query(getActiveOrderDocument);
+                expect(activeOrder!.discounts.length).toBe(1);
+                expect(activeOrder!.discounts[0].description).toBe('Auto-applied with usage limit');
+                expect(activeOrder!.totalWithTax).toBe(0);
             });
         });
 
         describe('perCustomerUsageLimit', () => {
-            let promoWithPerCustomerLimit: Codegen.PromotionFragment;
+            let promoWithPerCustomerLimit: PromotionFragment;
 
             beforeAll(async () => {
                 promoWithPerCustomerLimit = await createPromotion({
@@ -1757,15 +1770,14 @@ describe('Promotions applied to Orders', () => {
                 const order = await createNewActiveOrder();
                 orderResultGuard.assertSuccess(order);
 
-                const { activeOrder } =
-                    await shopClient.query<CodegenShop.GetActiveOrderQuery>(GET_ACTIVE_ORDER);
+                const { activeOrder } = await shopClient.query(getActiveOrderDocument);
                 expect(activeOrder!.discounts.length).toBe(1);
                 expect(activeOrder!.discounts[0].description).toBe('Auto-applied with per-customer limit');
                 expect(activeOrder!.totalWithTax).toBe(0);
 
                 await proceedToArrangingPayment(shopClient);
                 const result = await addPaymentToOrder(shopClient, testSuccessfulPaymentMethod);
-                orderGuard.assertSuccess(result);
+                orderResultGuard.assertSuccess(result);
                 expect(result.state).toBe('PaymentSettled');
                 expect(result.active).toBe(false);
             });
@@ -1774,8 +1786,7 @@ describe('Promotions applied to Orders', () => {
                 await logInAsRegisteredCustomer();
                 await createNewActiveOrder();
 
-                const { activeOrder } =
-                    await shopClient.query<CodegenShop.GetActiveOrderQuery>(GET_ACTIVE_ORDER);
+                const { activeOrder } = await shopClient.query(getActiveOrderDocument);
                 expect(activeOrder!.discounts.length).toBe(0);
                 expect(activeOrder!.totalWithTax).toBe(6000);
             });
@@ -1784,8 +1795,7 @@ describe('Promotions applied to Orders', () => {
                 await shopClient.asUserWithCredentials('trevor_donnelly7@hotmail.com', 'test');
                 await createNewActiveOrder();
 
-                const { activeOrder } =
-                    await shopClient.query<CodegenShop.GetActiveOrderQuery>(GET_ACTIVE_ORDER);
+                const { activeOrder } = await shopClient.query(getActiveOrderDocument);
                 expect(activeOrder!.discounts.length).toBe(1);
                 expect(activeOrder!.discounts[0].description).toBe('Auto-applied with per-customer limit');
                 expect(activeOrder!.totalWithTax).toBe(0);

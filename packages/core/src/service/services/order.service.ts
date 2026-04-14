@@ -2129,7 +2129,7 @@ export class OrderService {
 
         // Filter out auto-applied promotions that have exceeded their usage limits.
         // Coupon-based promotions are already validated in validateCouponCode().
-        const customerId = order.customer?.id;
+        const customerId = order.customerId;
         const cacheKey = `exhausted-promotions-${ctx.channelId}-${customerId ?? 'guest'}`;
         const exhaustedIds = await this.requestCache.get(ctx, cacheKey, () =>
             this.promotionService.getExhaustedPromotionIds(ctx, allPromotions, customerId),

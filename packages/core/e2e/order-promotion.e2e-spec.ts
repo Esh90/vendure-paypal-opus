@@ -26,6 +26,7 @@ import {
     createTestEnvironment,
     E2E_DEFAULT_CHANNEL_TOKEN,
     ErrorResultGuard,
+    SimpleGraphQLClient,
 } from '@vendure/testing';
 import path from 'path';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
@@ -1656,6 +1657,71 @@ describe('Promotions applied to Orders', () => {
                 expect(applyCouponCode.totalWithTax).toBe(0);
                 expect(applyCouponCode.couponCodes).toEqual([TEST_COUPON_CODE]);
             });
+        });
+
+        // https://github.com/vendurehq/vendure/issues/OSS-457
+        describe('concurrent usage (race condition)', () => {
+            const RACE_COUPON_CODE = 'RACE_TEST';
+            const CONCURRENT_ATTEMPTS = 5;
+
+            beforeAll(async () => {
+                promoWithUsageLimit = await createPromotion({
+                    enabled: true,
+                    name: 'Race condition test coupon',
+                    couponCode: RACE_COUPON_CODE,
+                    usageLimit: 1,
+                    conditions: [],
+                    actions: [freeOrderAction],
+                });
+            });
+
+            afterAll(async () => {
+                await deletePromotion(promoWithUsageLimit.id);
+            });
+
+            // Pessimistic locking only works on real databases (Postgres, MySQL).
+            // SQLite/sql.js serializes writes at the engine level but not reads,
+            // so the lock has no effect in the e2e test runner's default sql.js mode.
+            it.skipIf(!process.env.DB || process.env.DB === 'sqljs')(
+                'prevents concurrent coupon code usage beyond the limit',
+                async () => {
+                    const config = testConfig();
+                    const shopApiUrl = `http://localhost:${String(config.apiOptions.port)}/${String(config.apiOptions.shopApiPath)}`;
+
+                    // Create N independent clients, each with their own session and active order
+                    const clients: SimpleGraphQLClient[] = [];
+                    for (let i = 0; i < CONCURRENT_ATTEMPTS; i++) {
+                        const client = new SimpleGraphQLClient(config, shopApiUrl);
+                        await client.asAnonymousUser();
+                        await client.query(addItemToOrderDocument, {
+                            productVariantId: getVariantBySlug('item-5000').id,
+                            quantity: 1,
+                        });
+                        clients.push(client);
+                    }
+
+                    // Fire concurrent applyCouponCode from all clients simultaneously
+                    const results = await Promise.all(
+                        clients.map(async client => {
+                            try {
+                                const { applyCouponCode } = await client.query(applyCouponCodeDocument, {
+                                    couponCode: RACE_COUPON_CODE,
+                                });
+                                return applyCouponCode;
+                            } catch {
+                                return { errorCode: 'CLIENT_ERROR' };
+                            }
+                        }),
+                    );
+
+                    const successes = results.filter((r: any) => r.couponCodes?.includes(RACE_COUPON_CODE));
+
+                    // With usageLimit: 1, at most 1 should succeed.
+                    // Without the pessimistic lock fix, multiple concurrent requests
+                    // could all read usageCount=0 and all succeed.
+                    expect(successes.length).toBeLessThanOrEqual(1);
+                },
+            );
         });
     });
 

@@ -245,6 +245,7 @@ export class PromotionService {
         ctx: RequestContext,
         couponCode: string,
         customerId?: ID,
+        excludeOrderId?: ID,
     ): Promise<JustErrorResults<ApplyCouponCodeResult> | Promotion> {
         const promotion = await this.connection.getRepository(ctx, Promotion).findOne({
             where: {
@@ -272,7 +273,7 @@ export class PromotionService {
             }
         }
         if (promotion.usageLimit !== null) {
-            const usageCount = await this.countPromotionUsages(ctx, promotion.id);
+            const usageCount = await this.countPromotionUsages(ctx, promotion.id, excludeOrderId);
             if (promotion.usageLimit <= usageCount) {
                 return new CouponCodeLimitError({ couponCode, limit: promotion.usageLimit });
             }
@@ -356,17 +357,41 @@ export class PromotionService {
         return qb.getCount();
     }
 
-    private async countPromotionUsages(ctx: RequestContext, promotionId: ID): Promise<number> {
-        const qb = this.connection
+    /**
+     * Counts the number of times a promotion has been used, including orders
+     * currently in the ArrangingPayment state (excluding the given order).
+     * The ArrangingPayment count prevents concurrent checkouts from bypassing
+     * the usage limit via a TOCTOU race condition.
+     * See https://github.com/vendurehq/vendure/issues/OSS-457
+     */
+    async countPromotionUsages(ctx: RequestContext, promotionId: ID, excludeOrderId?: ID): Promise<number> {
+        const completedQb = this.connection
             .getRepository(ctx, Order)
             .createQueryBuilder('order')
-            .leftJoin('order.promotions', 'promotion')
+            .innerJoin('order.promotions', 'promotion')
             .where('promotion.id = :promotionId', { promotionId })
             .andWhere('order.state != :state', { state: 'Cancelled' as OrderState })
             .andWhere('order.active = :active', { active: false })
             .andWhere('order.type != :type', { type: OrderType.Seller });
 
-        return qb.getCount();
+        const pendingPaymentQb = this.connection
+            .getRepository(ctx, Order)
+            .createQueryBuilder('order')
+            .innerJoin('order.promotions', 'promotion')
+            .where('promotion.id = :promotionId', { promotionId })
+            .andWhere('order.state = :state', { state: 'ArrangingPayment' as OrderState })
+            .andWhere('order.type != :type', { type: OrderType.Seller });
+
+        if (excludeOrderId) {
+            completedQb.andWhere('order.id != :excludeOrderId', { excludeOrderId });
+            pendingPaymentQb.andWhere('order.id != :excludeOrderId', { excludeOrderId });
+        }
+
+        const [completedCount, pendingCount] = await Promise.all([
+            completedQb.getCount(),
+            pendingPaymentQb.getCount(),
+        ]);
+        return completedCount + pendingCount;
     }
 
     private calculatePriorityScore(input: CreatePromotionInput | UpdatePromotionInput): number {

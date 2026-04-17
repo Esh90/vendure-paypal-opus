@@ -46,7 +46,7 @@ import { FindOptionsUtils } from 'typeorm/find-options/FindOptionsUtils';
 import { RequestContext } from '../../api/common/request-context';
 import { RelationPaths } from '../../api/decorators/relations.decorator';
 import { RequestContextCacheService } from '../../cache/request-context-cache.service';
-import { CacheKey } from '../../common/constants';
+import { CacheKey, TRANSACTION_MANAGER_KEY } from '../../common/constants';
 import { ErrorResultUnion, isGraphQlErrorResult, JustErrorResults } from '../../common/error/error-result';
 import { EntityNotFoundError, InternalServerError, UserInputError } from '../../common/error/errors';
 import {
@@ -1409,11 +1409,18 @@ export class OrderService {
         if (!this.canAddPaymentToOrder(order)) {
             return new OrderPaymentStateError();
         }
-        order.payments = await this.getOrderPayments(ctx, order.id);
-        const amountToPay = order.totalWithTax - totalCoveredByPayments(order);
+        // Re-validate coupon codes with a pessimistic lock at payment time to prevent
+        // concurrent checkouts from bypassing usage limits (TOCTOU race condition).
+        // If a coupon is no longer valid, it is removed and the order recalculated.
+        // See https://github.com/vendurehq/vendure/issues/OSS-457
+        const couponsRemoved = await this.revalidateCouponCodesForOrder(ctx, order);
+        // Re-fetch order if coupons were removed, so totals reflect recalculated prices
+        const freshOrder = couponsRemoved ? await this.getOrderOrThrow(ctx, orderId) : order;
+        freshOrder.payments = await this.getOrderPayments(ctx, freshOrder.id);
+        const amountToPay = freshOrder.totalWithTax - totalCoveredByPayments(freshOrder);
         const payment = await this.paymentService.createPayment(
             ctx,
-            order,
+            freshOrder,
             amountToPay,
             input.method,
             input.metadata,
@@ -1427,7 +1434,7 @@ export class OrderService {
             .getRepository(ctx, Order)
             .createQueryBuilder()
             .relation('payments')
-            .of(order)
+            .of(freshOrder)
             .add(payment);
 
         if (payment.state === 'Error') {
@@ -1437,7 +1444,7 @@ export class OrderService {
             return new PaymentDeclinedError({ paymentErrorMessage: payment.errorMessage || '' });
         }
 
-        return assertFound(this.findOne(ctx, order.id));
+        return assertFound(this.findOne(ctx, freshOrder.id));
     }
 
     /**
@@ -1446,6 +1453,52 @@ export class OrderService {
      * 1. the Order is in the `ArrangingPayment` state or
      * 2. the Order's current state can transition to `PaymentAuthorized` and `PaymentSettled`
      */
+    /**
+     * Re-validates all coupon codes on the order with a pessimistic lock on
+     * the Promotion rows. This serializes concurrent payment attempts so that
+     * only one order can "claim" a usage-limited coupon at a time.
+     * If a coupon is no longer valid (e.g. usage limit reached), it is removed
+     * from the order and the order totals are recalculated.
+     * Returns true if any coupons were removed, false otherwise.
+     * See https://github.com/vendurehq/vendure/issues/OSS-457
+     */
+    private async revalidateCouponCodesForOrder(ctx: RequestContext, order: Order): Promise<boolean> {
+        let removedAny = false;
+        const transactionManager = (ctx as any)[TRANSACTION_MANAGER_KEY];
+        const qr = transactionManager?.queryRunner;
+        for (const couponCode of [...order.couponCodes]) {
+            // Acquire a pessimistic write lock on the promotion row within the
+            // resolver's @Transaction() to serialize concurrent payment attempts.
+            // The lock is held until the resolver transaction commits.
+            // See https://github.com/vendurehq/vendure/issues/OSS-457
+            if (qr?.isTransactionActive) {
+                try {
+                    await qr.query(
+                        `SELECT id FROM promotion WHERE "couponCode" = $1 AND enabled = true FOR UPDATE`,
+                        [couponCode],
+                    );
+                } catch (e: unknown) {
+                    const message = e instanceof Error ? e.message : String(e);
+                    Logger.warn(`Failed to acquire coupon lock: ${message}`, 'OrderService');
+                }
+            }
+            const validationResult = await this.promotionService.validateCouponCode(
+                ctx,
+                couponCode,
+                order.customer?.id,
+                order.id,
+            );
+            if (isGraphQlErrorResult(validationResult)) {
+                order.couponCodes = order.couponCodes.filter(c => c !== couponCode);
+                removedAny = true;
+            }
+        }
+        if (removedAny) {
+            await this.applyPriceAdjustments(ctx, order);
+        }
+        return removedAny;
+    }
+
     private canAddPaymentToOrder(order: Order): boolean {
         if (order.state === 'ArrangingPayment') {
             return true;
@@ -1478,10 +1531,17 @@ export class OrderService {
         if (order.state !== 'ArrangingAdditionalPayment' && order.state !== 'ArrangingPayment') {
             return new ManualPaymentStateError();
         }
-        const existingPayments = await this.getOrderPayments(ctx, order.id);
-        order.payments = existingPayments;
-        const amount = order.totalWithTax - totalCoveredByPayments(order);
-        const modifications = await this.getOrderModifications(ctx, order.id);
+        // Re-validate coupon codes with a pessimistic lock at payment time.
+        // See https://github.com/vendurehq/vendure/issues/OSS-457
+        const manualCouponsRemoved = await this.revalidateCouponCodesForOrder(ctx, order);
+        // Re-fetch order so totals reflect any recalculated prices
+        const freshManualOrder = manualCouponsRemoved
+            ? await this.getOrderOrThrow(ctx, input.orderId)
+            : order;
+        const existingPayments = await this.getOrderPayments(ctx, freshManualOrder.id);
+        freshManualOrder.payments = existingPayments;
+        const amount = freshManualOrder.totalWithTax - totalCoveredByPayments(freshManualOrder);
+        const modifications = await this.getOrderModifications(ctx, freshManualOrder.id);
         const unsettledModifications = modifications.filter(m => !m.isSettled);
         if (0 < unsettledModifications.length) {
             const outstandingModificationsTotal = summate(unsettledModifications, 'priceChange');
@@ -1492,18 +1552,18 @@ export class OrderService {
             }
         }
 
-        const payment = await this.paymentService.createManualPayment(ctx, order, amount, input);
+        const payment = await this.paymentService.createManualPayment(ctx, freshManualOrder, amount, input);
         await this.connection
             .getRepository(ctx, Order)
             .createQueryBuilder('order')
             .relation('payments')
-            .of(order)
+            .of(freshManualOrder)
             .add(payment);
         for (const modification of unsettledModifications) {
             modification.payment = payment;
             await this.connection.getRepository(ctx, OrderModification).save(modification);
         }
-        return assertFound(this.findOne(ctx, order.id));
+        return assertFound(this.findOne(ctx, freshManualOrder.id));
     }
 
     /**

@@ -33,7 +33,7 @@ export const useExtendedRouter = (
                 console.error(
                     `[Dashboard] Could not find authenticated route with id ` +
                         `"${AUTHENTICATED_ROUTE_PREFIX}" in the route tree. Extension routes ` +
-                        `marked as authenticated will not be registered. This usually indicates a drift ` +
+                        `will not be registered. This usually indicates a drift ` +
                         `between AUTHENTICATED_ROUTE_PREFIX (src/lib/constants.ts) and the ` +
                         `route id generated from src/app/routes/_authenticated.tsx.`,
                 );

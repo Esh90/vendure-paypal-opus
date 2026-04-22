@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import {
     AddPaymentToOrderResult,
     ApplyCouponCodeResult,
+    CurrencyCode,
     PaymentInput,
     PaymentMethodQuote,
     RemoveOrderItemsResult,
@@ -552,6 +553,56 @@ export class OrderService {
                 note,
             },
         });
+        return updatedOrder;
+    }
+
+    /**
+     * @description
+     * Updates the currency code of an Order. This will recalculate all prices
+     * in the new currency using `applyPriceAdjustments`.
+     *
+     * @since 3.3.0
+     */
+    async updateOrderCurrency(
+        ctx: RequestContext,
+        orderId: ID,
+        currencyCode: CurrencyCode,
+        relations?: RelationPaths<Order>,
+    ): Promise<ErrorResultUnion<UpdateOrderItemsResult, Order>> {
+        const order = await this.getOrderOrThrow(ctx, orderId);
+        const validationError = this.assertAddingItemsState(order);
+        if (validationError) {
+            return validationError;
+        }
+
+        if (order.currencyCode === currencyCode) {
+            return order;
+        }
+
+        const channel = await this.channelService.getChannelFromToken(ctx.channel.token);
+        if (!channel.availableCurrencyCodes.includes(currencyCode)) {
+            throw new UserInputError('error.currency-not-available', { currencyCode });
+        }
+
+        const previousCurrencyCode = order.currencyCode;
+
+        const newCurrencyCtx = ctx.copy();
+        (newCurrencyCtx as any)._currencyCode = currencyCode;
+
+        order.currencyCode = currencyCode;
+
+        await this.historyService.createHistoryEntryForOrder({
+            ctx,
+            orderId: order.id,
+            type: HistoryEntryType.ORDER_CURRENCY_UPDATED,
+            data: {
+                previousCurrency: previousCurrencyCode,
+                newCurrency: currencyCode,
+            },
+        });
+
+        const updatedOrder = await this.applyPriceAdjustments(newCurrencyCtx, order, order.lines, relations);
+        await this.eventBus.publish(new OrderEvent(ctx, updatedOrder, 'updated'));
         return updatedOrder;
     }
 
@@ -1901,7 +1952,7 @@ export class OrderService {
                     return existingOrder;
                 }
 
-                const mergeResult = this.orderMerger.merge(txCtx, freshGuestOrder, existingOrder);
+                const mergeResult = await this.orderMerger.merge(txCtx, freshGuestOrder, existingOrder);
                 const { orderToDelete, linesToInsert, linesToDelete, linesToModify } = mergeResult;
                 let { order } = mergeResult;
                 if (orderToDelete) {
@@ -2073,8 +2124,19 @@ export class OrderService {
         updatedOrderLines?: OrderLine[],
         relations?: RelationPaths<Order>,
     ): Promise<Order> {
-        const promotions = await this.promotionService.getActivePromotionsInChannel(ctx);
+        const allPromotions = await this.promotionService.getActivePromotionsInChannel(ctx);
         const activePromotionsPre = await this.promotionService.getActivePromotionsOnOrder(ctx, order.id);
+
+        // Filter out auto-applied promotions that have exceeded their usage limits.
+        // Coupon-based promotions are already validated in validateCouponCode().
+        // Safe to cache per-request: the active promotion list (allPromotions) is stable
+        // within a single request, so the exhausted set won't change mid-request.
+        const customerId = order.customerId;
+        const cacheKey = CacheKey.ExhaustedPromotions(ctx.channelId, customerId);
+        const exhaustedIds = await this.requestCache.get(ctx, cacheKey, () =>
+            this.promotionService.getExhaustedPromotionIds(ctx, allPromotions, customerId),
+        );
+        const promotions = allPromotions.filter(p => !exhaustedIds.has(p.id.toString()));
 
         // When changing the Order's currencyCode (on account of passing
         // a different currencyCode into the RequestContext), we need to make sure

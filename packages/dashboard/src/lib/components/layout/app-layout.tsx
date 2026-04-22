@@ -4,6 +4,7 @@ import { GeneratedBreadcrumbs } from '@/vdb/components/layout/generated-breadcru
 import { PermissionGuard } from '@/vdb/components/shared/permission-guard.js';
 import { Separator } from '@/vdb/components/ui/separator.js';
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/vdb/components/ui/sidebar.js';
+import { getLayoutConfig } from '@/vdb/framework/extension-api/logic/layout-config.js';
 import {
     DashboardToolbarItemDefinition,
     ToolbarItemPosition,
@@ -133,8 +134,11 @@ function ToolbarItems() {
 }
 
 export function AppLayout() {
+    const { sidebar: sidebarConfig } = getLayoutConfig();
+    const defaultOpen = sidebarConfig?.defaultOpen;
+
     return (
-        <SidebarProvider>
+        <SidebarProvider {...(defaultOpen !== undefined ? { defaultOpen } : {})}>
             <AppSidebar />
             <SidebarInset>
                 <div className="container mx-auto">

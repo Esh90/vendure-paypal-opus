@@ -8,6 +8,7 @@ import {
     DashboardDataTableExtensionDefinition,
     DashboardDetailFormExtensionDefinition,
     DashboardHistoryEntryComponent,
+    DashboardLayoutConfig,
     DashboardLoginExtensions,
     DashboardNavSectionDefinition,
     DashboardPageBlockDefinition,
@@ -23,7 +24,7 @@ import {
  * Every type of customisation of the dashboard can be defined here, including:
  *
  * - Navigation (nav sections and routes)
- * - Layout (action bar items and page blocks)
+ * - Layout (action bar items, page blocks, and sidebar configuration)
  * - Widgets for the Insights page
  * - Form components
  * - Data tables
@@ -128,4 +129,29 @@ export interface DashboardExtension {
      * @since 3.5.3
      */
     toolbarItems?: DashboardToolbarItemDefinition[];
+    /**
+     * @description
+     * Declarative configuration for the dashboard layout, such as sidebar
+     * position, visual variant, collapsibility, and default open state.
+     *
+     * If multiple extensions set layout properties, the last registered
+     * extension wins (with a warning in dev mode).
+     *
+     * @example
+     * ```ts
+     * defineDashboardExtension({
+     *     layout: {
+     *         sidebar: {
+     *             side: 'right',
+     *             variant: 'floating',
+     *             collapsible: 'offcanvas',
+     *             defaultOpen: false,
+     *         },
+     *     },
+     * });
+     * ```
+     *
+     * @since 3.7.0
+     */
+    layout?: DashboardLayoutConfig;
 }

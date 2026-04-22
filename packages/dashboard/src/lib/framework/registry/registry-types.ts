@@ -2,6 +2,7 @@ import {
     BulkAction,
     DashboardActionBarItem,
     DashboardHistoryEntryComponent,
+    DashboardLayoutConfig,
     DashboardLoginExtensions,
     DashboardPageBlockDefinition,
     DashboardToolbarItemDefinition,
@@ -32,4 +33,5 @@ export interface GlobalRegistryContents {
     historyEntries: Map<string, DashboardHistoryEntryComponent['component']>;
     navMenuModifiers: Array<(config: NavMenuConfig) => NavMenuConfig>;
     dashboardToolbarItemRegistry: Map<string, DashboardToolbarItemDefinition>;
+    dashboardLayoutConfig: DashboardLayoutConfig;
 }

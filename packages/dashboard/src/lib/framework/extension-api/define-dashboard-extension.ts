@@ -8,6 +8,7 @@ import {
     registerDetailFormExtensions,
     registerFormComponentExtensions,
     registerHistoryEntryComponents,
+    registerLayoutConfigExtensions,
     registerLayoutExtensions,
     registerLoginExtensions,
     registerNavigationExtensions,
@@ -18,6 +19,7 @@ import {
 globalRegistry.register('extensionSourceChangeCallbacks', new Set<() => void>());
 globalRegistry.register('registerDashboardExtensionCallbacks', new Set<() => void>());
 globalRegistry.register('navMenuModifiers', []);
+globalRegistry.register('dashboardLayoutConfig', {});
 
 export function onExtensionSourceChange(callback: () => void) {
     globalRegistry.get('extensionSourceChangeCallbacks').add(callback);
@@ -61,7 +63,7 @@ export function executeDashboardExtensionCallbacks() {
  * Every type of customisation of the dashboard can be defined here, including:
  *
  * - Navigation (nav sections and routes)
- * - Layout (action bar items and page blocks)
+ * - Layout (action bar items, page blocks, and sidebar configuration)
  * - Widgets
  * - Form components (custom form components, input components, and display components)
  * - Data tables
@@ -120,6 +122,9 @@ export function defineDashboardExtension(extension: DashboardExtension) {
 
         // Register toolbar extensions
         registerToolbarExtensions(extension.toolbarItems);
+
+        // Register layout config extensions (sidebar position, variant, etc.)
+        registerLayoutConfigExtensions(extension.layout);
 
         // Execute extension source change callbacks
         const callbacks = globalRegistry.get('extensionSourceChangeCallbacks');

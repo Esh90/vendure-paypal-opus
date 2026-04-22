@@ -16,7 +16,8 @@ import {
     defineDashboardExtension,
     executeDashboardExtensionCallbacks,
 } from './define-dashboard-extension.js';
-import { DashboardWidgetDefinition } from './types/index.js';
+import { getLayoutConfig } from './logic/layout-config.js';
+import { DashboardLayoutConfig, DashboardWidgetDefinition } from './types/index.js';
 
 function resetNavState() {
     setNavMenuConfig({ sections: [] });
@@ -295,5 +296,158 @@ describe('DashboardWidgetDefinition - requiresPermissions', () => {
         const widget = registry.get('empty-perm-widget');
         expect(widget).toBeDefined();
         expect(widget?.requiresPermissions).toEqual([]);
+    });
+});
+
+function resetLayoutConfigState() {
+    (globalRegistry as any).registry.set('registerDashboardExtensionCallbacks', new Set<() => void>());
+    (globalRegistry as any).registry.set('dashboardLayoutConfig', {} as DashboardLayoutConfig);
+}
+
+describe('defineDashboardExtension - layout config', () => {
+    beforeEach(() => {
+        resetNavState();
+        resetLayoutConfigState();
+    });
+
+    it('returns an empty config by default', () => {
+        const config = getLayoutConfig();
+        expect(config).toEqual({});
+    });
+
+    it('registers sidebar.side', () => {
+        defineDashboardExtension({
+            layout: { sidebar: { side: 'right' } },
+        });
+        executeDashboardExtensionCallbacks();
+
+        const config = getLayoutConfig();
+        expect(config.sidebar?.side).toBe('right');
+    });
+
+    it('registers sidebar.variant', () => {
+        defineDashboardExtension({
+            layout: { sidebar: { variant: 'floating' } },
+        });
+        executeDashboardExtensionCallbacks();
+
+        const config = getLayoutConfig();
+        expect(config.sidebar?.variant).toBe('floating');
+    });
+
+    it('registers sidebar.collapsible', () => {
+        defineDashboardExtension({
+            layout: { sidebar: { collapsible: 'offcanvas' } },
+        });
+        executeDashboardExtensionCallbacks();
+
+        const config = getLayoutConfig();
+        expect(config.sidebar?.collapsible).toBe('offcanvas');
+    });
+
+    it('registers sidebar.defaultOpen', () => {
+        defineDashboardExtension({
+            layout: { sidebar: { defaultOpen: false } },
+        });
+        executeDashboardExtensionCallbacks();
+
+        const config = getLayoutConfig();
+        expect(config.sidebar?.defaultOpen).toBe(false);
+    });
+
+    it('registers all sidebar properties at once', () => {
+        defineDashboardExtension({
+            layout: {
+                sidebar: {
+                    side: 'right',
+                    variant: 'inset',
+                    collapsible: 'none',
+                    defaultOpen: false,
+                },
+            },
+        });
+        executeDashboardExtensionCallbacks();
+
+        const config = getLayoutConfig();
+        expect(config.sidebar).toEqual({
+            side: 'right',
+            variant: 'inset',
+            collapsible: 'none',
+            defaultOpen: false,
+        });
+    });
+
+    it('merges non-overlapping sidebar properties from multiple extensions', () => {
+        defineDashboardExtension({
+            layout: { sidebar: { side: 'right' } },
+        });
+        defineDashboardExtension({
+            layout: { sidebar: { variant: 'floating' } },
+        });
+        executeDashboardExtensionCallbacks();
+
+        const config = getLayoutConfig();
+        expect(config.sidebar?.side).toBe('right');
+        expect(config.sidebar?.variant).toBe('floating');
+    });
+
+    it('last-write-wins when multiple extensions set the same property', () => {
+        const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {
+            /* noop */
+        });
+
+        defineDashboardExtension({
+            layout: { sidebar: { side: 'left' } },
+        });
+        defineDashboardExtension({
+            layout: { sidebar: { side: 'right' } },
+        });
+        executeDashboardExtensionCallbacks();
+
+        const config = getLayoutConfig();
+        expect(config.sidebar?.side).toBe('right');
+        expect(warnSpy).toHaveBeenCalledWith(
+            expect.stringContaining('Multiple extensions are setting layout.sidebar.side'),
+        );
+
+        warnSpy.mockRestore();
+    });
+
+    it('does not warn when extensions set different properties', () => {
+        const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {
+            /* noop */
+        });
+
+        defineDashboardExtension({
+            layout: { sidebar: { side: 'right' } },
+        });
+        defineDashboardExtension({
+            layout: { sidebar: { variant: 'floating' } },
+        });
+        executeDashboardExtensionCallbacks();
+
+        expect(warnSpy).not.toHaveBeenCalled();
+
+        warnSpy.mockRestore();
+    });
+
+    it('ignores extensions without a layout property', () => {
+        defineDashboardExtension({
+            navSections: [{ id: 'test', title: 'Test' }],
+        });
+        executeDashboardExtensionCallbacks();
+
+        const config = getLayoutConfig();
+        expect(config).toEqual({});
+    });
+
+    it('ignores extensions with an empty layout object', () => {
+        defineDashboardExtension({
+            layout: {},
+        });
+        executeDashboardExtensionCallbacks();
+
+        const config = getLayoutConfig();
+        expect(config.sidebar).toBeUndefined();
     });
 });

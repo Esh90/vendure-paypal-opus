@@ -7,6 +7,7 @@ import {
     SidebarHeader,
     SidebarRail,
 } from '@/vdb/components/ui/sidebar.js';
+import { getLayoutConfig } from '@/vdb/framework/extension-api/logic/layout-config.js';
 import { useDashboardExtensions } from '@/vdb/framework/extension-api/use-dashboard-extensions.js';
 import { getNavMenuConfig } from '@/vdb/framework/nav-menu/nav-menu-extensions.js';
 import { useDisplayLocale } from '@/vdb/hooks/use-display-locale.js';
@@ -17,10 +18,15 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     const { extensionsLoaded } = useDashboardExtensions();
     const { isRTL } = useDisplayLocale();
     const { sections } = getNavMenuConfig();
+    const { sidebar: sidebarConfig } = getLayoutConfig();
+
+    const side = sidebarConfig?.side ?? (isRTL ? 'right' : 'left');
+    const variant = sidebarConfig?.variant ?? 'sidebar';
+    const collapsible = sidebarConfig?.collapsible ?? 'icon';
 
     return (
         extensionsLoaded && (
-            <Sidebar collapsible="icon" {...props} side={isRTL ? 'right' : 'left'}>
+            <Sidebar collapsible={collapsible} variant={variant} {...props} side={side}>
                 <SidebarHeader>
                     <ChannelSwitcher />
                 </SidebarHeader>
@@ -30,7 +36,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 <SidebarFooter>
                     <NavUser />
                 </SidebarFooter>
-                <SidebarRail />
+                {collapsible !== 'none' && <SidebarRail />}
             </Sidebar>
         )
     );

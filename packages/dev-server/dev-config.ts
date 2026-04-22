@@ -24,6 +24,7 @@ import { TelemetryPlugin } from '@vendure/telemetry-plugin';
 import 'dotenv/config';
 import path from 'path';
 import { DataSourceOptions } from 'typeorm';
+import { LayoutTestPlugin } from './test-plugins/layout-test/layout-test-plugin';
 import { NavModifierPlugin } from './test-plugins/nav-modifier-plugin/nav-modifier-plugin';
 import { FieldTestPlugin } from './test-plugins/field-test/field-test-plugin';
 import { ReviewsPlugin } from './test-plugins/reviews/reviews-plugin';
@@ -123,6 +124,7 @@ export const devConfig: VendureConfig = {
         ReviewsPlugin,
         FieldTestPlugin,
         NavModifierPlugin,
+        LayoutTestPlugin,
         GraphiqlPlugin.init(),
         AssetServerPlugin.init({
             route: 'assets',

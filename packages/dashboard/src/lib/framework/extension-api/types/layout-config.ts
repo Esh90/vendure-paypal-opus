@@ -9,7 +9,7 @@
  *
  * @docsCategory extensions-api
  * @docsPage Layout Config
- * @since 3.6.2
+ * @since 3.6.3
  */
 export interface DashboardSidebarConfig {
     /**
@@ -50,7 +50,7 @@ export interface DashboardSidebarConfig {
  *
  * @docsCategory extensions-api
  * @docsPage Layout Config
- * @since 3.6.2
+ * @since 3.6.3
  */
 export interface DashboardTopbarConfig {
     /**
@@ -138,7 +138,7 @@ export interface DashboardTopbarConfig {
  * @docsCategory extensions-api
  * @docsPage Layout Config
  * @docsWeight 0
- * @since 3.6.2
+ * @since 3.6.3
  */
 export interface DashboardLayoutConfig {
     /**

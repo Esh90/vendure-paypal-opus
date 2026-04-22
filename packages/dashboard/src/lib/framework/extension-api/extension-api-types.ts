@@ -131,21 +131,41 @@ export interface DashboardExtension {
     toolbarItems?: DashboardToolbarItemDefinition[];
     /**
      * @description
-     * Declarative configuration for the dashboard layout, such as sidebar
-     * position, visual variant, collapsibility, and default open state.
+     * Declarative configuration for the dashboard layout, including:
+     * - **Navigation style**: Choose between sidebar (default) or topbar navigation
+     * - **Sidebar config**: Position, variant, collapsibility, and default open state
+     * - **Topbar config**: Stickiness, height, label visibility, admin grouping, and auto-collapse behavior
      *
-     * If multiple extensions set layout properties, the last registered
+     * On mobile devices, the sidebar layout is always used regardless of the `navigationStyle` setting.
+     *
+     * If multiple extensions set the same layout property, the last registered
      * extension wins (with a warning in dev mode).
      *
      * @example
      * ```ts
+     * // Sidebar mode with customization
      * defineDashboardExtension({
      *     layout: {
+     *         navigationStyle: 'sidebar',
      *         sidebar: {
      *             side: 'right',
      *             variant: 'floating',
      *             collapsible: 'offcanvas',
      *             defaultOpen: false,
+     *         },
+     *     },
+     * });
+     *
+     * // Topbar mode with customization
+     * defineDashboardExtension({
+     *     layout: {
+     *         navigationStyle: 'topbar',
+     *         topbar: {
+     *             sticky: true,
+     *             height: 'compact',
+     *             showLabels: true,
+     *             adminGrouping: 'grouped',
+     *             autoCollapse: true,
      *         },
      *     },
      * });

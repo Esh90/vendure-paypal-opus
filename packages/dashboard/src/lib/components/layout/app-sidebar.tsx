@@ -20,7 +20,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     const { sections } = getNavMenuConfig();
     const { sidebar: sidebarConfig } = getLayoutConfig();
 
-    const side = sidebarConfig?.side ?? (isRTL ? 'right' : 'left');
+    const side = isRTL ? 'right' : 'left';
     const variant = sidebarConfig?.variant ?? 'sidebar';
     const collapsible = sidebarConfig?.collapsible ?? 'icon';
 

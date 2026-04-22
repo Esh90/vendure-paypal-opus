@@ -66,6 +66,7 @@ export * from './components/date-range-picker.js';
 export * from './components/labeled-data.js';
 export * from './components/layout/app-layout.js';
 export * from './components/layout/app-sidebar.js';
+export * from './components/layout/app-topbar.js';
 export * from './components/layout/channel-switcher.js';
 export * from './components/layout/content-language-selector.js';
 export * from './components/layout/dev-mode-indicator.js';

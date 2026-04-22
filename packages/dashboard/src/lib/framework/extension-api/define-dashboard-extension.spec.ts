@@ -315,16 +315,6 @@ describe('defineDashboardExtension - layout config', () => {
         expect(config).toEqual({});
     });
 
-    it('registers sidebar.side', () => {
-        defineDashboardExtension({
-            layout: { sidebar: { side: 'right' } },
-        });
-        executeDashboardExtensionCallbacks();
-
-        const config = getLayoutConfig();
-        expect(config.sidebar?.side).toBe('right');
-    });
-
     it('registers sidebar.variant', () => {
         defineDashboardExtension({
             layout: { sidebar: { variant: 'floating' } },
@@ -359,7 +349,6 @@ describe('defineDashboardExtension - layout config', () => {
         defineDashboardExtension({
             layout: {
                 sidebar: {
-                    side: 'right',
                     variant: 'inset',
                     collapsible: 'none',
                     defaultOpen: false,
@@ -370,7 +359,6 @@ describe('defineDashboardExtension - layout config', () => {
 
         const config = getLayoutConfig();
         expect(config.sidebar).toEqual({
-            side: 'right',
             variant: 'inset',
             collapsible: 'none',
             defaultOpen: false,
@@ -379,7 +367,7 @@ describe('defineDashboardExtension - layout config', () => {
 
     it('merges non-overlapping sidebar properties from multiple extensions', () => {
         defineDashboardExtension({
-            layout: { sidebar: { side: 'right' } },
+            layout: { sidebar: { collapsible: 'offcanvas' } },
         });
         defineDashboardExtension({
             layout: { sidebar: { variant: 'floating' } },
@@ -387,7 +375,7 @@ describe('defineDashboardExtension - layout config', () => {
         executeDashboardExtensionCallbacks();
 
         const config = getLayoutConfig();
-        expect(config.sidebar?.side).toBe('right');
+        expect(config.sidebar?.collapsible).toBe('offcanvas');
         expect(config.sidebar?.variant).toBe('floating');
     });
 
@@ -397,17 +385,17 @@ describe('defineDashboardExtension - layout config', () => {
         });
 
         defineDashboardExtension({
-            layout: { sidebar: { side: 'left' } },
+            layout: { sidebar: { variant: 'sidebar' } },
         });
         defineDashboardExtension({
-            layout: { sidebar: { side: 'right' } },
+            layout: { sidebar: { variant: 'floating' } },
         });
         executeDashboardExtensionCallbacks();
 
         const config = getLayoutConfig();
-        expect(config.sidebar?.side).toBe('right');
+        expect(config.sidebar?.variant).toBe('floating');
         expect(warnSpy).toHaveBeenCalledWith(
-            expect.stringContaining('Multiple extensions are setting layout.sidebar.side'),
+            expect.stringContaining('Multiple extensions are setting layout.sidebar.variant'),
         );
 
         warnSpy.mockRestore();
@@ -419,7 +407,7 @@ describe('defineDashboardExtension - layout config', () => {
         });
 
         defineDashboardExtension({
-            layout: { sidebar: { side: 'right' } },
+            layout: { sidebar: { collapsible: 'offcanvas' } },
         });
         defineDashboardExtension({
             layout: { sidebar: { variant: 'floating' } },
@@ -449,5 +437,232 @@ describe('defineDashboardExtension - layout config', () => {
 
         const config = getLayoutConfig();
         expect(config.sidebar).toBeUndefined();
+    });
+
+    it('registers navigationStyle', () => {
+        defineDashboardExtension({
+            layout: { navigationStyle: 'topbar' },
+        });
+        executeDashboardExtensionCallbacks();
+
+        const config = getLayoutConfig();
+        expect(config.navigationStyle).toBe('topbar');
+    });
+
+    it('defaults navigationStyle to undefined when not set', () => {
+        defineDashboardExtension({
+            layout: { sidebar: { variant: 'floating' } },
+        });
+        executeDashboardExtensionCallbacks();
+
+        const config = getLayoutConfig();
+        expect(config.navigationStyle).toBeUndefined();
+    });
+
+    it('last-write-wins when multiple extensions set navigationStyle', () => {
+        const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {
+            /* noop */
+        });
+
+        defineDashboardExtension({
+            layout: { navigationStyle: 'sidebar' },
+        });
+        defineDashboardExtension({
+            layout: { navigationStyle: 'topbar' },
+        });
+        executeDashboardExtensionCallbacks();
+
+        const config = getLayoutConfig();
+        expect(config.navigationStyle).toBe('topbar');
+        expect(warnSpy).toHaveBeenCalledWith(
+            expect.stringContaining('Multiple extensions are setting layout.navigationStyle'),
+        );
+
+        warnSpy.mockRestore();
+    });
+
+    it('does not warn when only one extension sets navigationStyle', () => {
+        const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {
+            /* noop */
+        });
+
+        defineDashboardExtension({
+            layout: { navigationStyle: 'topbar' },
+        });
+        executeDashboardExtensionCallbacks();
+
+        expect(warnSpy).not.toHaveBeenCalled();
+
+        warnSpy.mockRestore();
+    });
+
+    it('can set both navigationStyle and sidebar config independently', () => {
+        defineDashboardExtension({
+            layout: { navigationStyle: 'topbar' },
+        });
+        defineDashboardExtension({
+            layout: { sidebar: { variant: 'floating' } },
+        });
+        executeDashboardExtensionCallbacks();
+
+        const config = getLayoutConfig();
+        expect(config.navigationStyle).toBe('topbar');
+        expect(config.sidebar?.variant).toBe('floating');
+    });
+
+    it('registers topbar.sticky', () => {
+        defineDashboardExtension({
+            layout: { topbar: { sticky: false } },
+        });
+        executeDashboardExtensionCallbacks();
+
+        const config = getLayoutConfig();
+        expect(config.topbar?.sticky).toBe(false);
+    });
+
+    it('registers topbar.height', () => {
+        defineDashboardExtension({
+            layout: { topbar: { height: 'compact' } },
+        });
+        executeDashboardExtensionCallbacks();
+
+        const config = getLayoutConfig();
+        expect(config.topbar?.height).toBe('compact');
+    });
+
+    it('registers topbar.showLabels', () => {
+        defineDashboardExtension({
+            layout: { topbar: { showLabels: false } },
+        });
+        executeDashboardExtensionCallbacks();
+
+        const config = getLayoutConfig();
+        expect(config.topbar?.showLabels).toBe(false);
+    });
+
+    it('registers topbar.adminGrouping', () => {
+        defineDashboardExtension({
+            layout: { topbar: { adminGrouping: 'inline' } },
+        });
+        executeDashboardExtensionCallbacks();
+
+        const config = getLayoutConfig();
+        expect(config.topbar?.adminGrouping).toBe('inline');
+    });
+
+    it('registers topbar.autoCollapse', () => {
+        defineDashboardExtension({
+            layout: { topbar: { autoCollapse: false } },
+        });
+        executeDashboardExtensionCallbacks();
+
+        const config = getLayoutConfig();
+        expect(config.topbar?.autoCollapse).toBe(false);
+    });
+
+    it('registers all topbar properties at once', () => {
+        defineDashboardExtension({
+            layout: {
+                topbar: {
+                    sticky: false,
+                    height: 'compact',
+                    showLabels: false,
+                    adminGrouping: 'inline',
+                    autoCollapse: false,
+                },
+            },
+        });
+        executeDashboardExtensionCallbacks();
+
+        const config = getLayoutConfig();
+        expect(config.topbar).toEqual({
+            sticky: false,
+            height: 'compact',
+            showLabels: false,
+            adminGrouping: 'inline',
+            autoCollapse: false,
+        });
+    });
+
+    it('merges non-overlapping topbar properties from multiple extensions', () => {
+        defineDashboardExtension({
+            layout: { topbar: { sticky: false } },
+        });
+        defineDashboardExtension({
+            layout: { topbar: { height: 'compact' } },
+        });
+        executeDashboardExtensionCallbacks();
+
+        const config = getLayoutConfig();
+        expect(config.topbar?.sticky).toBe(false);
+        expect(config.topbar?.height).toBe('compact');
+    });
+
+    it('last-write-wins when multiple extensions set the same topbar property', () => {
+        const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {
+            /* noop */
+        });
+
+        defineDashboardExtension({
+            layout: { topbar: { height: 'default' } },
+        });
+        defineDashboardExtension({
+            layout: { topbar: { height: 'compact' } },
+        });
+        executeDashboardExtensionCallbacks();
+
+        const config = getLayoutConfig();
+        expect(config.topbar?.height).toBe('compact');
+        expect(warnSpy).toHaveBeenCalledWith(
+            expect.stringContaining('Multiple extensions are setting layout.topbar.height'),
+        );
+
+        warnSpy.mockRestore();
+    });
+
+    it('does not warn when extensions set different topbar properties', () => {
+        const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {
+            /* noop */
+        });
+
+        defineDashboardExtension({
+            layout: { topbar: { sticky: false } },
+        });
+        defineDashboardExtension({
+            layout: { topbar: { height: 'compact' } },
+        });
+        executeDashboardExtensionCallbacks();
+
+        expect(warnSpy).not.toHaveBeenCalled();
+
+        warnSpy.mockRestore();
+    });
+
+    it('can set navigationStyle, sidebar, and topbar config independently', () => {
+        defineDashboardExtension({
+            layout: { navigationStyle: 'topbar' },
+        });
+        defineDashboardExtension({
+            layout: { sidebar: { variant: 'floating' } },
+        });
+        defineDashboardExtension({
+            layout: { topbar: { height: 'compact' } },
+        });
+        executeDashboardExtensionCallbacks();
+
+        const config = getLayoutConfig();
+        expect(config.navigationStyle).toBe('topbar');
+        expect(config.sidebar?.variant).toBe('floating');
+        expect(config.topbar?.height).toBe('compact');
+    });
+
+    it('defaults topbar to undefined when not set', () => {
+        defineDashboardExtension({
+            layout: { navigationStyle: 'topbar' },
+        });
+        executeDashboardExtensionCallbacks();
+
+        const config = getLayoutConfig();
+        expect(config.topbar).toBeUndefined();
     });
 });

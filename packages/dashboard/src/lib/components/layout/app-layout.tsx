@@ -1,4 +1,5 @@
 import { AppSidebar } from '@/vdb/components/layout/app-sidebar.js';
+import { AppTopbar } from '@/vdb/components/layout/app-topbar.js';
 import { DevModeIndicator } from '@/vdb/components/layout/dev-mode-indicator.js';
 import { GeneratedBreadcrumbs } from '@/vdb/components/layout/generated-breadcrumbs.js';
 import { PermissionGuard } from '@/vdb/components/shared/permission-guard.js';
@@ -10,6 +11,8 @@ import {
     ToolbarItemPosition,
 } from '@/vdb/framework/extension-api/types/toolbar.js';
 import { getToolbarItemRegistry } from '@/vdb/framework/toolbar/toolbar-extensions.js';
+import { useDisplayLocale } from '@/vdb/hooks/use-display-locale.js';
+import { useIsMobile } from '@/vdb/hooks/use-mobile.js';
 import { useUserSettings } from '@/vdb/hooks/use-user-settings.js';
 import { Outlet } from '@tanstack/react-router';
 import React from 'react';
@@ -133,30 +136,78 @@ function ToolbarItems() {
     );
 }
 
-export function AppLayout() {
+function TopbarLayout() {
+    return (
+        <div className="flex min-h-svh flex-col">
+            <AppTopbar />
+            <div className="container mx-auto flex-1">
+                <header className="flex h-12 shrink-0 items-center gap-2">
+                    <div className="flex items-center justify-between gap-2 px-4 w-full">
+                        <div className="flex items-center justify-start gap-2 min-w-0 overflow-hidden">
+                            <GeneratedBreadcrumbs />
+                        </div>
+                        <div className="flex items-center justify-end gap-2 shrink-0">
+                            <ToolbarItems />
+                        </div>
+                    </div>
+                </header>
+                <Outlet />
+            </div>
+        </div>
+    );
+}
+
+function SidebarLayout() {
     const { sidebar: sidebarConfig } = getLayoutConfig();
+    const { isRTL } = useDisplayLocale();
     const defaultOpen = sidebarConfig?.defaultOpen;
+    const side = isRTL ? 'right' : 'left';
+
+    const sidebarElement = <AppSidebar />;
+    const insetElement = (
+        <SidebarInset>
+            <div className="container mx-auto">
+                <header className="border-b border-border flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
+                    <div className="flex items-center justify-between gap-2 px-4 w-full">
+                        <div className="flex items-center justify-start gap-2 min-w-0 overflow-hidden">
+                            <SidebarTrigger className="-ml-1 shrink-0" />
+                            <Separator orientation="vertical" className="mr-2 shrink-0" />
+                            <GeneratedBreadcrumbs />
+                        </div>
+                        <div className="flex items-center justify-end gap-2 shrink-0">
+                            <ToolbarItems />
+                        </div>
+                    </div>
+                </header>
+                <Outlet />
+            </div>
+        </SidebarInset>
+    );
 
     return (
         <SidebarProvider {...(defaultOpen !== undefined ? { defaultOpen } : {})}>
-            <AppSidebar />
-            <SidebarInset>
-                <div className="container mx-auto">
-                    <header className="border-b border-border flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
-                        <div className="flex items-center justify-between gap-2 px-4 w-full">
-                            <div className="flex items-center justify-start gap-2 min-w-0 overflow-hidden">
-                                <SidebarTrigger className="-ml-1 shrink-0" />
-                                <Separator orientation="vertical" className="mr-2 shrink-0" />
-                                <GeneratedBreadcrumbs />
-                            </div>
-                            <div className="flex items-center justify-end gap-2 shrink-0">
-                                <ToolbarItems />
-                            </div>
-                        </div>
-                    </header>
-                    <Outlet />
-                </div>
-            </SidebarInset>
+            {side === 'right' ? (
+                <>
+                    {insetElement}
+                    {sidebarElement}
+                </>
+            ) : (
+                <>
+                    {sidebarElement}
+                    {insetElement}
+                </>
+            )}
         </SidebarProvider>
     );
+}
+
+export function AppLayout() {
+    const { navigationStyle } = getLayoutConfig();
+    const isMobile = useIsMobile();
+
+    if (navigationStyle === 'topbar' && !isMobile) {
+        return <TopbarLayout />;
+    }
+
+    return <SidebarLayout />;
 }

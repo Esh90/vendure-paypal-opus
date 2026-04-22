@@ -67,11 +67,9 @@ class TestGuestCheckoutStrategy implements GuestCheckoutStrategy {
                 },
             });
             if (existing) {
-                const newCustomer = await this.connection
-                    .getRepository(ctx, Customer)
-                    .save(new Customer(input));
+                const newCustomer = new Customer(input);
                 await this.channelService.assignToCurrentChannel(newCustomer, ctx);
-                return newCustomer;
+                return this.connection.getRepository(ctx, Customer).save(newCustomer);
             }
         }
         const errorOnExistingUser = !TestGuestCheckoutStrategy.allowGuestCheckoutForRegisteredCustomers;

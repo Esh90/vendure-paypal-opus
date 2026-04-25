@@ -1,17 +1,20 @@
 import type { DocsPackageManifestInput, FileInfo } from '@vendure-io/docs-provider';
-import { applyLastModifiedDates, createNestedNavigationFromFolder, resolveManifest } from '@vendure-io/docs-provider';
-import { dirname, join } from 'path';
-import { fileURLToPath } from 'url';
-import { lastModifiedDates } from './dates.generated.js';
+import { createNestedNavigationFromFolder, resolveManifest } from '@vendure-io/docs-provider';
+import { readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const packageRoot = dirname(dirname(fileURLToPath(import.meta.url)));
+const repoRoot = dirname(packageRoot);
+const lernaJson = JSON.parse(readFileSync(join(repoRoot, 'lerna.json'), 'utf-8'));
+
 const file = (relativePath: string) => join(packageRoot, relativePath);
 const folder = (relativePath: string) => join(packageRoot, relativePath);
 
 const manifestInput: DocsPackageManifestInput = {
     id: 'core',
     name: 'Vendure Core Documentation',
-    version: '3.5.2',
+    version: lernaJson.version,
     vendureVersion: 'v3',
     basePath: packageRoot,
     navigation: [
@@ -40,51 +43,13 @@ const manifestInput: DocsPackageManifestInput = {
         {
             title: 'Core Concepts',
             slug: 'core-concepts',
+            file: file('docs/guides/core-concepts/index.mdx'),
             children: [
+                // Merchandising
                 {
-                    title: 'Auth',
-                    slug: 'auth',
-                    file: file('docs/guides/core-concepts/auth/index.mdx'),
-                },
-                {
-                    title: 'Channels',
-                    slug: 'channels',
-                    file: file('docs/guides/core-concepts/channels/index.mdx'),
-                },
-                {
-                    title: 'Collections',
-                    slug: 'collections',
-                    file: file('docs/guides/core-concepts/collections/index.mdx'),
-                },
-                {
-                    title: 'Customers',
-                    slug: 'customers',
-                    file: file('docs/guides/core-concepts/customers/index.mdx'),
-                },
-                {
-                    title: 'Email',
-                    slug: 'email',
-                    file: file('docs/guides/core-concepts/email/index.mdx'),
-                },
-                {
-                    title: 'Images & Assets',
-                    slug: 'images-assets',
-                    file: file('docs/guides/core-concepts/images-assets/index.mdx'),
-                },
-                {
-                    title: 'Money',
-                    slug: 'money',
-                    file: file('docs/guides/core-concepts/money/index.mdx'),
-                },
-                {
-                    title: 'Orders',
-                    slug: 'orders',
-                    file: file('docs/guides/core-concepts/orders/index.mdx'),
-                },
-                {
-                    title: 'Payment',
-                    slug: 'payment',
-                    file: file('docs/guides/core-concepts/payment/index.mdx'),
+                    title: 'Pricing',
+                    slug: 'pricing',
+                    file: file('docs/guides/core-concepts/pricing/index.mdx'),
                 },
                 {
                     title: 'Products',
@@ -97,19 +62,126 @@ const manifestInput: DocsPackageManifestInput = {
                     file: file('docs/guides/core-concepts/promotions/index.mdx'),
                 },
                 {
-                    title: 'Shipping',
-                    slug: 'shipping',
-                    file: file('docs/guides/core-concepts/shipping/index.mdx'),
+                    title: 'Assets',
+                    slug: 'images-assets',
+                    file: file('docs/guides/core-concepts/images-assets/index.mdx'),
+                },
+                // Product Discovery
+                {
+                    title: 'Search',
+                    slug: 'search',
+                    file: file('docs/guides/core-concepts/search/index.mdx'),
                 },
                 {
-                    title: 'Stock Control',
+                    title: 'Facets & Filters',
+                    slug: 'facets-filters',
+                    file: file('docs/guides/core-concepts/facets-filters/index.mdx'),
+                },
+                {
+                    title: 'Collections',
+                    slug: 'collections',
+                    file: file('docs/guides/core-concepts/collections/index.mdx'),
+                },
+                // Cart & Purchase
+                {
+                    title: 'Cart',
+                    slug: 'cart',
+                    file: file('docs/guides/core-concepts/cart/index.mdx'),
+                },
+                {
+                    title: 'Payment',
+                    slug: 'payment',
+                    file: file('docs/guides/core-concepts/payment/index.mdx'),
+                },
+                {
+                    title: 'Customers',
+                    slug: 'customers',
+                    file: file('docs/guides/core-concepts/customers/index.mdx'),
+                },
+                // Order Management
+                {
+                    title: 'Orders',
+                    slug: 'orders',
+                    file: file('docs/guides/core-concepts/orders/index.mdx'),
+                },
+                {
+                    title: 'Fulfillment',
+                    slug: 'fulfillment',
+                    file: file('docs/guides/core-concepts/fulfillment/index.mdx'),
+                },
+                {
+                    title: 'Inventory',
                     slug: 'stock-control',
                     file: file('docs/guides/core-concepts/stock-control/index.mdx'),
+                },
+                // Internationalization
+                {
+                    title: 'Currency',
+                    slug: 'money',
+                    file: file('docs/guides/core-concepts/money/index.mdx'),
+                },
+                {
+                    title: 'Zones',
+                    slug: 'zones',
+                    file: file('docs/guides/core-concepts/zones/index.mdx'),
+                },
+                {
+                    title: 'Language',
+                    slug: 'language',
+                    file: file('docs/guides/core-concepts/language/index.mdx'),
                 },
                 {
                     title: 'Taxes',
                     slug: 'taxes',
                     file: file('docs/guides/core-concepts/taxes/index.mdx'),
+                },
+                // User Access
+                {
+                    title: 'User Management',
+                    slug: 'user-management',
+                    file: file('docs/guides/core-concepts/user-management/index.mdx'),
+                },
+                {
+                    title: 'Roles',
+                    slug: 'roles',
+                    file: file('docs/guides/core-concepts/roles/index.mdx'),
+                },
+                {
+                    title: 'Permissions',
+                    slug: 'permissions',
+                    file: file('docs/guides/core-concepts/permissions/index.mdx'),
+                },
+                // System Integration
+                {
+                    title: 'Job Queue',
+                    slug: 'job-queue',
+                    file: file('docs/guides/core-concepts/job-queue/index.mdx'),
+                },
+                {
+                    title: 'Healthchecks',
+                    slug: 'healthchecks',
+                    file: file('docs/guides/core-concepts/healthchecks/index.mdx'),
+                },
+                // Overview pages (not on homepage grid but retained)
+                {
+                    title: 'Auth',
+                    slug: 'auth',
+                    file: file('docs/guides/core-concepts/auth/index.mdx'),
+                },
+                {
+                    title: 'Channels',
+                    slug: 'channels',
+                    file: file('docs/guides/core-concepts/channels/index.mdx'),
+                },
+                {
+                    title: 'Email',
+                    slug: 'email',
+                    file: file('docs/guides/core-concepts/email/index.mdx'),
+                },
+                {
+                    title: 'Shipping',
+                    slug: 'shipping',
+                    file: file('docs/guides/core-concepts/shipping/index.mdx'),
                 },
             ],
         },
@@ -173,6 +245,11 @@ const manifestInput: DocsPackageManifestInput = {
                     title: 'Security',
                     slug: 'security',
                     file: file('docs/guides/developer-guide/security/index.mdx'),
+                },
+                {
+                    title: 'API Keys',
+                    slug: 'api-keys',
+                    file: file('docs/guides/developer-guide/api-keys/index.mdx'),
                 },
                 {
                     title: 'Strategies & Configurable Operations',
@@ -291,6 +368,11 @@ const manifestInput: DocsPackageManifestInput = {
                     slug: 'nest-devtools',
                     file: file('docs/guides/developer-guide/nest-devtools/index.mdx'),
                 },
+                {
+                    title: 'Telemetry',
+                    slug: 'telemetry',
+                    file: file('docs/guides/developer-guide/telemetry/index.mdx'),
+                },
             ],
         },
         {
@@ -367,6 +449,11 @@ const manifestInput: DocsPackageManifestInput = {
                     title: 'Extending Overview',
                     slug: 'extending-overview',
                     file: file('docs/guides/extending-the-dashboard/extending-overview/index.mdx'),
+                },
+                {
+                    title: 'Public API & Imports',
+                    slug: 'public-api',
+                    file: file('docs/guides/extending-the-dashboard/public-api/index.mdx'),
                 },
                 {
                     title: 'Creating Pages',
@@ -795,17 +882,6 @@ const manifestInput: DocsPackageManifestInput = {
                             ),
                         },
                         {
-                            title: 'ElasticsearchPlugin',
-                            slug: 'elasticsearch-plugin',
-                            file: file('docs/reference/core-plugins/elasticsearch-plugin/index.mdx'),
-                            children: createNestedNavigationFromFolder(
-                                folder('docs/reference/core-plugins/elasticsearch-plugin'),
-                                {
-                                    filter: (info: FileInfo) => info.filename !== 'index.mdx',
-                                },
-                            ),
-                        },
-                        {
                             title: 'EmailPlugin',
                             slug: 'email-plugin',
                             file: file('docs/reference/core-plugins/email-plugin/index.mdx'),
@@ -844,39 +920,6 @@ const manifestInput: DocsPackageManifestInput = {
                             file: file('docs/reference/core-plugins/job-queue-plugin/index.mdx'),
                             children: createNestedNavigationFromFolder(
                                 folder('docs/reference/core-plugins/job-queue-plugin'),
-                                {
-                                    filter: (info: FileInfo) => info.filename !== 'index.mdx',
-                                },
-                            ),
-                        },
-                        {
-                            title: 'PaymentsPlugin',
-                            slug: 'payments-plugin',
-                            file: file('docs/reference/core-plugins/payments-plugin/index.mdx'),
-                            children: createNestedNavigationFromFolder(
-                                folder('docs/reference/core-plugins/payments-plugin'),
-                                {
-                                    filter: (info: FileInfo) => info.filename !== 'index.mdx',
-                                },
-                            ),
-                        },
-                        {
-                            title: 'SentryPlugin',
-                            slug: 'sentry-plugin',
-                            file: file('docs/reference/core-plugins/sentry-plugin/index.mdx'),
-                            children: createNestedNavigationFromFolder(
-                                folder('docs/reference/core-plugins/sentry-plugin'),
-                                {
-                                    filter: (info: FileInfo) => info.filename !== 'index.mdx',
-                                },
-                            ),
-                        },
-                        {
-                            title: 'StellatePlugin',
-                            slug: 'stellate-plugin',
-                            file: file('docs/reference/core-plugins/stellate-plugin/index.mdx'),
-                            children: createNestedNavigationFromFolder(
-                                folder('docs/reference/core-plugins/stellate-plugin'),
                                 {
                                     filter: (info: FileInfo) => info.filename !== 'index.mdx',
                                 },
@@ -952,11 +995,40 @@ const manifestInput: DocsPackageManifestInput = {
                     title: 'Catalog',
                     slug: 'catalog',
                     file: file('docs/user-guide/catalog/index.mdx'),
+                    children: [
+                        {
+                            title: 'Products',
+                            slug: 'products',
+                            file: file('docs/user-guide/catalog/products.mdx'),
+                        },
+                        {
+                            title: 'Facets',
+                            slug: 'facets',
+                            file: file('docs/user-guide/catalog/facets.mdx'),
+                        },
+                        {
+                            title: 'Collections',
+                            slug: 'collections',
+                            file: file('docs/user-guide/catalog/collections.mdx'),
+                        },
+                    ],
                 },
                 {
                     title: 'Orders',
                     slug: 'orders',
                     file: file('docs/user-guide/orders/index.mdx'),
+                    children: [
+                        {
+                            title: 'Orders',
+                            slug: 'orders',
+                            file: file('docs/user-guide/orders/orders.mdx'),
+                        },
+                        {
+                            title: 'Draft Orders',
+                            slug: 'draft-orders',
+                            file: file('docs/user-guide/orders/draft-orders.mdx'),
+                        },
+                    ],
                 },
                 {
                     title: 'Customers',
@@ -972,24 +1044,57 @@ const manifestInput: DocsPackageManifestInput = {
                     title: 'Settings',
                     slug: 'settings',
                     file: file('docs/user-guide/settings/index.mdx'),
+                    children: [
+                        {
+                            title: 'Global Settings',
+                            slug: 'global-settings',
+                            file: file('docs/user-guide/settings/global-settings.mdx'),
+                        },
+                        {
+                            title: 'Administrators & Roles',
+                            slug: 'administrators-roles',
+                            file: file('docs/user-guide/settings/administrators-roles.mdx'),
+                        },
+                        {
+                            title: 'Channels',
+                            slug: 'channels',
+                            file: file('docs/user-guide/settings/channels.mdx'),
+                        },
+                        {
+                            title: 'Countries & Zones',
+                            slug: 'countries-zones',
+                            file: file('docs/user-guide/settings/countries-zones.mdx'),
+                        },
+                        {
+                            title: 'Payment Methods',
+                            slug: 'payment-methods',
+                            file: file('docs/user-guide/settings/payment-methods.mdx'),
+                        },
+                        {
+                            title: 'Shipping Methods',
+                            slug: 'shipping-methods',
+                            file: file('docs/user-guide/settings/shipping-methods.mdx'),
+                        },
+                        {
+                            title: 'Taxes',
+                            slug: 'taxes',
+                            file: file('docs/user-guide/settings/taxes.mdx'),
+                        },
+                    ],
+                },
+                {
+                    title: 'Localization',
+                    slug: 'localization',
+                    file: file('docs/user-guide/localization/index.mdx'),
                 },
             ],
         },
     ],
     github: {
-        repository: 'vendure-ecommerce/vendure',
+        repository: 'vendurehq/vendure',
         branch: 'master',
-        docsPath: 'docs/docs',
+        docsPath: 'docs',
     },
 };
 
-const resolvedManifest = resolveManifest(manifestInput);
-
-export const manifest = {
-    ...resolvedManifest,
-    navigation: applyLastModifiedDates(
-        resolvedManifest.navigation,
-        lastModifiedDates,
-        { basePath: 'docs' }
-    ),
-};
+export const manifest = resolveManifest(manifestInput);

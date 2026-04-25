@@ -1,5 +1,5 @@
 import type { TypedDocumentNode } from '@graphql-typed-document-node/core';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { zodResolver } from '@/vdb/lib/zod.js';
 import { VariablesOf } from 'gql.tada';
 import { FormEvent } from 'react';
 import { useForm } from 'react-hook-form';
@@ -7,7 +7,12 @@ import { useChannel } from '../../hooks/use-channel.js';
 import { useServerConfig } from '../../hooks/use-server-config.js';
 import { getOperationVariablesFields } from '../document-introspection/get-document-structure.js';
 import { createFormSchemaFromFields, getDefaultValuesFromFields } from './form-schema-tools.js';
-import { removeEmptyIdFields, transformRelationFields } from './utils.js';
+import {
+    convertEmptyStringsToNull,
+    removeEmptyIdFields,
+    stripNullNullableFields,
+    transformRelationFields,
+} from './utils.js';
 
 export type WithLooseCustomFields<T> = T extends { customFields?: any }
     ? Omit<T, 'customFields'> & { customFields?: T['customFields'] | unknown }
@@ -135,7 +140,14 @@ export function useGeneratedForm<
             }
 
             const onSubmitWrapper = (values: any) => {
-                onSubmit(removeEmptyIdFields(values, updateFields));
+                let processed = convertEmptyStringsToNull(
+                    removeEmptyIdFields(values, updateFields),
+                    updateFields,
+                );
+                if (!entity) {
+                    processed = stripNullNullableFields(processed, updateFields);
+                }
+                onSubmit(processed);
             };
             form.handleSubmit(onSubmitWrapper)(event);
         };

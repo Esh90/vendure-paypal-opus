@@ -44,6 +44,7 @@ export function FulfillOrderDialog({ order, onSuccess }: Readonly<FulfillOrderDi
     const [fulfillmentQuantities, setFulfillmentQuantities] = useState<{
         [lineId: string]: FulfillmentQuantity;
     }>({});
+    const [handlerArgsValid, setHandlerArgsValid] = useState(true);
 
     // Get fulfillment handlers
     const { data: fulfillmentHandlersData } = useQuery({
@@ -161,7 +162,7 @@ export function FulfillOrderDialog({ order, onSuccess }: Readonly<FulfillOrderDi
             ({ fulfillCount, max }) => fulfillCount <= max && fulfillCount >= 0,
         );
         const formIsValid = form.formState.isValid;
-        return formIsValid && totalCount > 0 && fulfillmentQuantityIsValid;
+        return formIsValid && totalCount > 0 && fulfillmentQuantityIsValid && handlerArgsValid;
     };
 
     const handleSubmit = async (data: FormData) => {
@@ -195,6 +196,7 @@ export function FulfillOrderDialog({ order, onSuccess }: Readonly<FulfillOrderDi
     const handleCancel = () => {
         form.reset();
         setFulfillmentQuantities({});
+        setHandlerArgsValid(true);
         setOpen(false);
     };
 
@@ -270,8 +272,9 @@ export function FulfillOrderDialog({ order, onSuccess }: Readonly<FulfillOrderDi
                                                     min="0"
                                                     max={quantity.max}
                                                     value={quantity.fulfillCount}
+                                                    data-testid="fulfill-quantity"
                                                     onChange={e => {
-                                                        const value = parseInt(e.target.value) || 0;
+                                                        const value = Number.parseInt(e.target.value) || 0;
                                                         updateFulfillmentQuantity(line.id, value);
                                                     }}
                                                     className="w-20"
@@ -290,10 +293,13 @@ export function FulfillOrderDialog({ order, onSuccess }: Readonly<FulfillOrderDi
                                     render={({ field }) => (
                                         <ConfigurableOperationInput
                                             operationDefinition={selectedHandler}
-                                            value={field.value}
+                                            value={
+                                                field.value ?? { code: selectedHandler.code, arguments: [] }
+                                            }
                                             onChange={field.onChange}
                                             readonly={false}
                                             removable={false}
+                                            onValidityChange={setHandlerArgsValid}
                                         />
                                     )}
                                 />

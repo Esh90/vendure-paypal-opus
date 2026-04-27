@@ -9,7 +9,8 @@ on:
         paths:
             - 'packages/**'
             - 'package.json'
-            - 'package-lock.json'
+            - 'bun.lock'
+            - 'bunfig.toml'
     pull_request:
         branches:
             - master
@@ -18,7 +19,8 @@ on:
         paths:
             - 'packages/**'
             - 'package.json'
-            - 'package-lock.json'
+            - 'bun.lock'
+            - 'bunfig.toml'
 
 defaults:
     run:
@@ -58,15 +60,15 @@ jobs:
                     'http://localhost:4873/-/user/org.couchdb.user:test')
                   TOKEN=$(echo "$TOKEN_RES" | jq -r '.token')
                   npm set //localhost:4873/:_authToken $TOKEN
-            - name: npm install
-              run: npm install
+            - name: bun install
+              run: bun install --frozen-lockfile
               env:
                   CI: true
             - name: Publish to Verdaccio
               run: |
                   nohup verdaccio --config $HOME/.config/verdaccio/config.yaml &
                   wait-on http://localhost:4873
-                  npx lerna publish prepatch --preid ci --no-push --no-git-tag-version --no-commit-hooks --force-publish "*" --yes --dist-tag ci --registry http://localhost:4873
+                  bunx lerna publish prepatch --preid ci --no-push --no-git-tag-version --no-commit-hooks --force-publish "*" --yes --dist-tag ci --registry http://localhost:4873
             - name: Package Verdaccio storage
               run: |
                   cd $HOME/.config/verdaccio
@@ -173,7 +175,7 @@ jobs:
               uses: actions/cache@v4
               with:
                   path: ~/.cache/ms-playwright
-                  key: playwright-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+                  key: playwright-${{ runner.os }}-${{ hashFiles('**/bun.lock') }}
                   restore-keys: |
                       playwright-${{ runner.os }}-
             - name: Install Playwright

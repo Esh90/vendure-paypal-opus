@@ -18,6 +18,9 @@ jobs:
               with:
                   node-version: 22
                   cache: 'npm'
+            - uses: oven-sh/setup-bun@v2
+              with:
+                  bun-version: '1.3.10'
             - name: Install dependencies
               run: npm install
             - name: Build core and common packages

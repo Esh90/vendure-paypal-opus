@@ -1659,7 +1659,7 @@ describe('Promotions applied to Orders', () => {
             });
         });
 
-        // https://github.com/vendurehq/vendure/issues/OSS-457
+        // https://linear.app/vendure/issue/OSS-457
         describe('concurrent usage (race condition)', () => {
             const RACE_COUPON_CODE = 'RACE_TEST';
             const CONCURRENT_ATTEMPTS = 3;
@@ -1713,23 +1713,31 @@ describe('Promotions applied to Orders', () => {
 
                     // Fire concurrent addPaymentToOrder from all clients simultaneously.
                     // The pessimistic lock serializes these so only one order can "claim"
-                    // the coupon at a time.
+                    // the coupon at a time. Every request should complete successfully —
+                    // the lock just orders them; it does not reject any.
                     const results = await Promise.all(
-                        clients.map(async client => {
-                            try {
-                                const order = await addPaymentToOrder(client, testSuccessfulPaymentMethod);
-                                return order;
-                            } catch {
-                                return { errorCode: 'CLIENT_ERROR' };
-                            }
-                        }),
+                        clients.map(client => addPaymentToOrder(client, testSuccessfulPaymentMethod)),
                     );
 
-                    const withCoupon = results.filter((r: any) => r.couponCodes?.includes(RACE_COUPON_CODE));
+                    for (const result of results) {
+                        // A graphql error result would have an errorCode and no
+                        // couponCodes; surface any such failure rather than treating
+                        // it as a coupon-stripped success.
+                        expect((result as any).errorCode).toBeUndefined();
+                        expect(result.couponCodes).toBeDefined();
+                    }
 
-                    // With usageLimit: 1, exactly 1 order should keep the coupon.
-                    // The rest should have it removed and settle at full price.
+                    const withCoupon = results.filter(r => r.couponCodes.includes(RACE_COUPON_CODE));
+                    const withoutCoupon = results.filter(r => !r.couponCodes.includes(RACE_COUPON_CODE));
+
+                    // With usageLimit: 1, exactly one order keeps the coupon (free order),
+                    // and the others have it stripped and settle at full price (6000).
                     expect(withCoupon.length).toBe(1);
+                    expect(withoutCoupon.length).toBe(CONCURRENT_ATTEMPTS - 1);
+                    expect(withCoupon[0].totalWithTax).toBe(0);
+                    for (const result of withoutCoupon) {
+                        expect(result.totalWithTax).toBe(6000);
+                    }
                 },
             );
         });

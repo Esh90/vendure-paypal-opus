@@ -76,9 +76,6 @@
     "@swc/core-darwin-arm64": "1.7.19",
     "@swc/core-linux-x64-gnu": "1.4.7"
   },
-  "resolutions": {
-    "@apollo/server": "^5.0.0"
-  },
   "trustedDependencies": [
     "husky",
     "better-sqlite3",

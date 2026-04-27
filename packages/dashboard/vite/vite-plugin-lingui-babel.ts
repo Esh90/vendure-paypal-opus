@@ -3,8 +3,11 @@ import { createRequire } from 'node:module';
 import type { Plugin } from 'vite';
 
 const require = createRequire(import.meta.url);
+import { ConfigLoaderApi, getConfigLoaderApi } from './vite-plugin-config-loader.js';
+import { CompileResult } from './utils/compiler.js';
 const presetTypescript = require.resolve('@babel/preset-typescript');
-const presetReact = require.resolve('@babel/preset-react');const linguiPlugin = require.resolve('@lingui/babel-plugin-lingui-macro');
+const presetReact = require.resolve('@babel/preset-react');
+const linguiPlugin = require.resolve('@lingui/babel-plugin-lingui-macro');
 /**
  * Options for the linguiBabelPlugin.
  */
@@ -131,7 +134,8 @@ export function linguiBabelPlugin(options?: LinguiBabelPluginOptions): Plugin {
                 const result = await babel.transformAsync(code, {
                     filename: id,
                     presets: [
-                        [presetTypescript, { isTSX: true, allExtensions: true }],                        [presetReact, { runtime: 'automatic' }],
+                        [presetTypescript, { isTSX: true, allExtensions: true }],
+                        [presetReact, { runtime: 'automatic' }],
                     ],
                     plugins: [linguiPlugin],
                     sourceMaps: true,

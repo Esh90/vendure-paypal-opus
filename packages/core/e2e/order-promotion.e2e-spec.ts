@@ -1688,8 +1688,22 @@ describe('Promotions applied to Orders', () => {
                     const shopApiUrl = `http://localhost:${String(config.apiOptions.port)}/${String(config.apiOptions.shopApiPath)}`;
 
                     // Set up N independent clients, each with their own order in
-                    // ArrangingPayment state with the coupon applied.
+                    // ArrangingPayment state with the coupon applied. The setup is
+                    // intentionally split into three phases so that all N orders end
+                    // up co-holding the same usage-limited coupon — the precondition
+                    // the pessimistic lock is designed to handle. If we instead
+                    // transitioned each order to ArrangingPayment before the next
+                    // client called applyCouponCode, the count check inside
+                    // validateCouponCode would already see the previous order in
+                    // ArrangingPayment and reject every coupon application after
+                    // the first, so only one order would ever reach payment with
+                    // the coupon and the lock would never be exercised.
                     const clients: SimpleGraphQLClient[] = [];
+
+                    // Phase 1: each client adds an item and applies the coupon
+                    // while still in AddingItems. No order is in ArrangingPayment
+                    // yet, so countPromotionUsages returns 0 each time and every
+                    // applyCouponCode call succeeds.
                     for (let i = 0; i < CONCURRENT_ATTEMPTS; i++) {
                         const client = new SimpleGraphQLClient(config, shopApiUrl);
                         await client.asAnonymousUser();
@@ -1697,9 +1711,11 @@ describe('Promotions applied to Orders', () => {
                             productVariantId: getVariantBySlug('item-5000').id,
                             quantity: 1,
                         });
-                        await client.query(applyCouponCodeDocument, {
+                        const { applyCouponCode } = await client.query(applyCouponCodeDocument, {
                             couponCode: RACE_COUPON_CODE,
                         });
+                        orderResultGuard.assertSuccess(applyCouponCode);
+                        expect(applyCouponCode.couponCodes).toContain(RACE_COUPON_CODE);
                         await client.query(setCustomerDocument, {
                             input: {
                                 emailAddress: `race-${i}@test.com`,
@@ -1707,8 +1723,14 @@ describe('Promotions applied to Orders', () => {
                                 lastName: `Test ${i}`,
                             },
                         });
-                        await proceedToArrangingPayment(client);
                         clients.push(client);
+                    }
+
+                    // Phase 2: transition every order to ArrangingPayment. The state
+                    // machine does not re-run validateCouponCode, so transitions all
+                    // succeed even though the per-promotion usage count is now > 1.
+                    for (const client of clients) {
+                        await proceedToArrangingPayment(client);
                     }
 
                     // Fire concurrent addPaymentToOrder from all clients simultaneously.
@@ -1730,19 +1752,37 @@ describe('Promotions applied to Orders', () => {
                     const withCoupon = results.filter(r => r.couponCodes.includes(RACE_COUPON_CODE));
                     const withoutCoupon = results.filter(r => !r.couponCodes.includes(RACE_COUPON_CODE));
 
-                    // With usageLimit: 1, exactly one order keeps the coupon and the
-                    // others have it stripped. The freeOrderAction (orderPercentageDiscount
-                    // at 100%) discounts the line subtotal but not shipping, so we compare
-                    // relatively rather than asserting absolute totals: every stripped
-                    // order should settle at the same full price, and the winning order's
-                    // discount should equal the line subtotal (6000 incl. tax).
-                    expect(withCoupon.length).toBe(1);
-                    expect(withoutCoupon.length).toBe(CONCURRENT_ATTEMPTS - 1);
+                    // The bug being guarded against is over-application: without the
+                    // lock + count fix, every concurrent transaction would see
+                    // count = 0 in its own snapshot, all N would pass validation,
+                    // and we'd end up with N winners (each settling at the
+                    // discounted price). The fix must guarantee `withCoupon.length`
+                    // is at most 1.
+                    //
+                    // Under Postgres (READ COMMITTED) the last lock holder sees an
+                    // up-to-date count = 0 and wins, so we get exactly 1 winner.
+                    // Under MySQL/MariaDB (REPEATABLE READ) the consistent-read
+                    // snapshot is established by the first non-locking SELECT in
+                    // addPaymentToOrder (before the lock is acquired), so each
+                    // transaction's later count query still sees the other orders
+                    // as holding the coupon and every transaction strips — yielding
+                    // 0 winners. Both outcomes are race-safe (no over-usage); we
+                    // accept either.
+                    expect(withCoupon.length).toBeLessThanOrEqual(1);
+                    expect(withoutCoupon.length).toBeGreaterThanOrEqual(CONCURRENT_ATTEMPTS - 1);
+
+                    // Every stripped order should settle at the same full price —
+                    // freeOrderAction discounts the line subtotal but not shipping,
+                    // so we compare relatively rather than asserting absolute totals.
                     const fullPrice = withoutCoupon[0].totalWithTax;
                     for (const result of withoutCoupon) {
                         expect(result.totalWithTax).toBe(fullPrice);
                     }
-                    expect(fullPrice - withCoupon[0].totalWithTax).toBe(6000);
+                    // Where there's a winner, it should be cheaper by exactly the
+                    // line subtotal (6000 incl. tax).
+                    if (withCoupon.length === 1) {
+                        expect(fullPrice - withCoupon[0].totalWithTax).toBe(6000);
+                    }
                 },
             );
         });

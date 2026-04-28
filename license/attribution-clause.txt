@@ -5,8 +5,9 @@ Vendure Attribution Clause
 "Vendure Core" includes all the source code files included in this repository, which are licensed
 under the GPL v3.0 license.
 
-The "Dashboard" means the administrative user interface bundled with Vendure Core, including any
-work derived from it.
+The "Admin Dashboard" means the administrative user interface bundled with Vendure Core, the
+source code for which is contained in the `packages/dashboard` directory of this repository,
+together with any work derived from it.
 
 "Appropriate Legal Notices" has the meaning given in Section 5 of the GNU General Public License
 version 3, and includes the visual notices identified in Section 1 below.
@@ -14,21 +15,35 @@ version 3, and includes the visual notices identified in Section 1 below.
 1. Required Attribution Notices
 
 When you distribute, make available, or operate the Software (including any modified version of
-the Dashboard) such that users interact with the Dashboard through a graphical user interface,
-you must preserve the following Appropriate Legal Notices in their original form, location, and
-visibility:
+the Admin Dashboard) such that users interact with the Admin Dashboard through a graphical user
+interface, you must preserve the following Appropriate Legal Notices in their original form,
+location, and visibility:
 
-  a) The "Vendure" wordmark and logo, together with the version number of the Software, as
-     displayed on the Dashboard login screen.
+  a) The "Vendure" wordmark and logo, as rendered by the `LogoMark` component
+     (packages/dashboard/src/lib/components/shared/logo-mark.tsx) on the Admin Dashboard
+     login screen.
 
-  b) The "Vendure" wordmark and logo, together with the version number of the Software, as
-     displayed in the Dashboard sidebar user menu.
+  b) The "Vendure" name together with the version number of the Software, as rendered by
+     the `LoginBranding` element of the `VendureBranding` component
+     (packages/dashboard/src/lib/components/shared/powered-by-vendure.tsx) on the Admin
+     Dashboard login screen.
+
+  c) The "Vendure" name together with the version number of the Software, as rendered by
+     the `MenuBranding` element of the `VendureBranding` component
+     (packages/dashboard/src/lib/components/shared/powered-by-vendure.tsx) within the
+     Admin Dashboard sidebar user menu.
 
 These notices must remain:
 
-  - visible to every interactive user of the Dashboard,
-  - legible and no smaller, less contrasted, or less prominent than in the unmodified Software,
-  - unaltered in wording, imagery, and link target (where applicable).
+  - visible to every interactive user of the Admin Dashboard,
+  - legible and no smaller, less contrasted, or less prominent than in the unmodified
+    Software,
+  - unaltered in wording, imagery, link target (where applicable), and version value.
+
+For the avoidance of doubt, removing or modifying the `data-vendure-branding` attribute, the
+associated tamper-resistance styles, or otherwise causing the notices identified above to be
+hidden, obscured, cropped, or rendered less prominent (whether through markup, stylesheet,
+script, build configuration, or any other means) constitutes a violation of this clause.
 
 2. Co-branding Permitted
 

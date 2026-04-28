@@ -32,8 +32,8 @@ which allows you to distribute Vendure plugins (i.e. extensions) under a differe
 Additional term under GNU GPL version 3 section 7(b):
 
 An additional term under section 7(b) of the GPL is included in the attribution-clause.txt file,
-which requires preservation of specified Vendure attribution notices in the Dashboard user
-interface (login screen and sidebar user menu).
+which requires preservation of specified Vendure attribution notices in the Admin Dashboard
+(packages/dashboard) — specifically on the login screen and within the sidebar user menu.
 
 ## Vendure Commercial License (VCL)
 

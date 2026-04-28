@@ -630,6 +630,15 @@ function mergeAndSortActionBarItems(
         renderItem(item);
     }
 
+    // A positioned extension can be unreachable from the root walk if its target id is
+    // missing, or if positioned extensions only reference each other in a cycle. Render
+    // any remaining extension items so they do not silently disappear.
+    for (const item of extensionActionItems) {
+        if (item.type === 'extension' && !renderedExtensionItems.has(item.item)) {
+            renderItem(item);
+        }
+    }
+
     return result;
 }
 

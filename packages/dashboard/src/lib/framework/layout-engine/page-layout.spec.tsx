@@ -266,4 +266,23 @@ describe('PageLayout', () => {
 
         expect(getRenderedActionBarIds(markup)).toEqual(['b', 'a', 'save-button']);
     });
+
+    it('renders a positioned extension action bar item when its target is missing', () => {
+        registerActionBarItem('orphan', { itemId: 'missing', order: 'before' });
+
+        const markup = renderActionBar();
+
+        expect(getRenderedActionBarIds(markup)).toEqual(['save-button', 'orphan']);
+    });
+
+    it('renders cyclic positioned extension action bar items without dropping them', () => {
+        registerActionBarItem('a', { itemId: 'b', order: 'before' });
+        registerActionBarItem('b', { itemId: 'a', order: 'before' });
+
+        const markup = renderActionBar();
+        const renderedIds = getRenderedActionBarIds(markup);
+
+        expect(renderedIds).toHaveLength(3);
+        expect(renderedIds).toEqual(expect.arrayContaining(['a', 'b', 'save-button']));
+    });
 });

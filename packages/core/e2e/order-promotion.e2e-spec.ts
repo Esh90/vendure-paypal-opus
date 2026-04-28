@@ -1752,24 +1752,28 @@ describe('Promotions applied to Orders', () => {
                     const withCoupon = results.filter(r => r.couponCodes.includes(RACE_COUPON_CODE));
                     const withoutCoupon = results.filter(r => !r.couponCodes.includes(RACE_COUPON_CODE));
 
-                    // The bug being guarded against is over-application: without the
-                    // lock + count fix, every concurrent transaction would see
-                    // count = 0 in its own snapshot, all N would pass validation,
-                    // and we'd end up with N winners (each settling at the
-                    // discounted price). The fix must guarantee `withCoupon.length`
-                    // is at most 1.
+                    // The number of winners is fully determined by the DB's default
+                    // isolation level — no timing non-determinism in either case —
+                    // so we assert each outcome exactly to catch any future drift:
                     //
-                    // Under Postgres (READ COMMITTED) the last lock holder sees an
-                    // up-to-date count = 0 and wins, so we get exactly 1 winner.
-                    // Under MySQL/MariaDB (REPEATABLE READ) the consistent-read
-                    // snapshot is established by the first non-locking SELECT in
-                    // addPaymentToOrder (before the lock is acquired), so each
-                    // transaction's later count query still sees the other orders
-                    // as holding the coupon and every transaction strips — yielding
-                    // 0 winners. Both outcomes are race-safe (no over-usage); we
-                    // accept either.
-                    expect(withCoupon.length).toBeLessThanOrEqual(1);
-                    expect(withoutCoupon.length).toBeGreaterThanOrEqual(CONCURRENT_ATTEMPTS - 1);
+                    //   - Postgres (READ COMMITTED): each non-locking SELECT sees
+                    //     latest committed data, so the last lock holder observes
+                    //     count = 0 and keeps the coupon. Exactly 1 winner.
+                    //   - MySQL/MariaDB (REPEATABLE READ): the consistent-read
+                    //     snapshot is established by the first non-locking SELECT
+                    //     in addPaymentToOrder, before this lock is acquired, so
+                    //     each contender's count query still sees the others as
+                    //     holding the coupon and every transaction strips. Exactly
+                    //     0 winners.
+                    //
+                    // Both outcomes uphold the safety invariant (the bug class we
+                    // guard against — N winners — would fail either branch). When
+                    // the MySQL snapshot gap is closed in a follow-up, this branch
+                    // should flip to 1 and force this assertion to be updated.
+                    // See the JSDoc on revalidateCouponCodesForOrder.
+                    const expectedWinners = process.env.DB === 'postgres' ? 1 : 0;
+                    expect(withCoupon.length).toBe(expectedWinners);
+                    expect(withoutCoupon.length).toBe(CONCURRENT_ATTEMPTS - expectedWinners);
 
                     // Every stripped order should settle at the same full price —
                     // freeOrderAction discounts the line subtotal but not shipping,
@@ -1780,7 +1784,7 @@ describe('Promotions applied to Orders', () => {
                     }
                     // Where there's a winner, it should be cheaper by exactly the
                     // line subtotal (6000 incl. tax).
-                    if (withCoupon.length === 1) {
+                    if (expectedWinners === 1) {
                         expect(fullPrice - withCoupon[0].totalWithTax).toBe(6000);
                     }
                 },

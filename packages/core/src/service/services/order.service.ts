@@ -40,13 +40,13 @@ import {
 import { omit } from '@vendure/common/lib/omit';
 import { ID, PaginatedList } from '@vendure/common/lib/shared-types';
 import { summate } from '@vendure/common/lib/shared-utils';
-import { In, IsNull, LockNotSupportedOnGivenDriverError } from 'typeorm';
+import { EntityManager, In, IsNull, LockNotSupportedOnGivenDriverError } from 'typeorm';
 import { FindOptionsUtils } from 'typeorm/find-options/FindOptionsUtils';
 
 import { RequestContext } from '../../api/common/request-context';
 import { RelationPaths } from '../../api/decorators/relations.decorator';
 import { RequestContextCacheService } from '../../cache/request-context-cache.service';
-import { CacheKey } from '../../common/constants';
+import { CacheKey, TRANSACTION_MANAGER_KEY } from '../../common/constants';
 import { ErrorResultUnion, isGraphQlErrorResult, JustErrorResults } from '../../common/error/error-result';
 import { EntityNotFoundError, InternalServerError, UserInputError } from '../../common/error/errors';
 import {
@@ -1405,6 +1405,7 @@ export class OrderService {
         orderId: ID,
         input: PaymentInput,
     ): Promise<ErrorResultUnion<AddPaymentToOrderResult, Order>> {
+        this.assertInTransaction(ctx, 'OrderService.addPaymentToOrder');
         const order = await this.getOrderOrThrow(ctx, orderId);
         if (!this.canAddPaymentToOrder(order)) {
             return new OrderPaymentStateError();
@@ -1540,6 +1541,36 @@ export class OrderService {
     }
 
     /**
+     * Throws if the given RequestContext is not associated with an active
+     * database transaction. Used to guard methods whose correctness depends
+     * on a wrapping transaction — both for atomicity (so a partial failure
+     * rolls back rather than leaving the order in a half-updated state) and
+     * to ensure the pessimistic lock acquired by `revalidateCouponCodesForOrder`
+     * is held for the duration of the payment work, not silently released
+     * by an autocommit one-statement transaction.
+     *
+     * Resolvers reach these methods through the `@Transaction()` decorator,
+     * which is the supported entry path. Callers from outside the resolver
+     * layer (background jobs, plugin services, lifecycle hooks) must wrap
+     * the call themselves via `TransactionalConnection.startTransaction()`
+     * or the equivalent helper.
+     */
+    private assertInTransaction(ctx: RequestContext, methodName: string): void {
+        const entityManager = (ctx as unknown as Record<symbol, EntityManager | undefined>)[
+            TRANSACTION_MANAGER_KEY
+        ];
+        const queryRunner = entityManager?.queryRunner;
+        if (!queryRunner || queryRunner.isReleased) {
+            throw new InternalServerError(
+                `${methodName} must be called within a transaction. ` +
+                    'Wrap the call with the @Transaction() resolver decorator, or — when ' +
+                    'invoking from outside a resolver — start a transaction via ' +
+                    'TransactionalConnection.startTransaction() before calling.',
+            );
+        }
+    }
+
+    /**
      * We can add a Payment to the order if:
      * 1. the Order is in the `ArrangingPayment` state or
      * 2. the Order's current state can transition to `PaymentAuthorized` and `PaymentSettled`
@@ -1572,6 +1603,7 @@ export class OrderService {
         ctx: RequestContext,
         input: ManualPaymentInput,
     ): Promise<ErrorResultUnion<AddManualPaymentToOrderResult, Order>> {
+        this.assertInTransaction(ctx, 'OrderService.addManualPaymentToOrder');
         const order = await this.getOrderOrThrow(ctx, input.orderId);
         if (order.state !== 'ArrangingAdditionalPayment' && order.state !== 'ArrangingPayment') {
             return new ManualPaymentStateError();

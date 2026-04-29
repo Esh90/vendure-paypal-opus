@@ -25,6 +25,22 @@ type PaymentDeclinedError implements ErrorResult {
     paymentErrorMessage: String!
 }
 
+"""
+Returned when one or more coupon codes are removed from the Order during the
+`addPaymentToOrder` mutation (because their usage limits were exhausted by a
+concurrent checkout) and the removal would have increased the amount the
+customer is charged. Refusing the payment in this case prevents silently
+charging the customer more than they agreed to.
+"""
+type CouponRemovedDuringCheckoutError implements ErrorResult {
+    errorCode: ErrorCode!
+    message: String!
+    removedCouponCodes: [String!]!
+    previousTotalWithTax: Money!
+    newTotalWithTax: Money!
+    currencyCode: CurrencyCode!
+}
+
 "Returned when attempting to set the Customer for an Order when already logged in."
 type AlreadyLoggedInError implements ErrorResult {
     errorCode: ErrorCode!

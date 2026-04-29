@@ -64,6 +64,7 @@ import {
     SettlePaymentError,
 } from '../../common/error/generated-graphql-admin-errors';
 import {
+    CouponRemovedDuringCheckoutError,
     InsufficientStockError,
     NegativeQuantityError,
     OrderInterceptorError,
@@ -1411,6 +1412,7 @@ export class OrderService {
             return new OrderPaymentStateError();
         }
         const totalWithTaxBeforeRevalidation = order.totalWithTax;
+        const couponCodesBeforeRevalidation = [...order.couponCodes];
         const couponsRemoved = await this.revalidateCouponCodesForOrder(ctx, order);
         // Re-fetch order if coupons were removed, so totals reflect recalculated prices
         const freshOrder = couponsRemoved ? await this.getOrderOrThrow(ctx, orderId) : order;
@@ -1430,15 +1432,14 @@ export class OrderService {
             // the discount) fall through silently — there is no surprise
             // charge to surface, and rejecting in those cases would create
             // unnecessary friction.
-            //
-            // PaymentFailedError is reused here to avoid a breaking change
-            // to the AddPaymentToOrderResult union on the master branch.
-            // A dedicated CouponRemovedDuringCheckoutError is planned as a
-            // follow-up on the minor branch — see
-            // https://github.com/vendurehq/vendure/pull/4660.
-            return new PaymentFailedError({
-                paymentErrorMessage:
-                    'Order total changed during checkout because a coupon is no longer available. Please refresh your order and retry.',
+            const removedCouponCodes = couponCodesBeforeRevalidation.filter(
+                code => !freshOrder.couponCodes.includes(code),
+            );
+            return new CouponRemovedDuringCheckoutError({
+                removedCouponCodes,
+                previousTotalWithTax: totalWithTaxBeforeRevalidation,
+                newTotalWithTax: freshOrder.totalWithTax,
+                currencyCode: freshOrder.currencyCode,
             });
         }
         freshOrder.payments = await this.getOrderPayments(ctx, freshOrder.id);

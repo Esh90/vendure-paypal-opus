@@ -862,6 +862,12 @@ export const addPaymentDocument = graphql(
                 ... on IneligiblePaymentMethodError {
                     eligibilityCheckerMessage
                 }
+                ... on CouponRemovedDuringCheckoutError {
+                    removedCouponCodes
+                    previousTotalWithTax
+                    newTotalWithTax
+                    currencyCode
+                }
             }
         }
     `,

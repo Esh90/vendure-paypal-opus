@@ -29,6 +29,7 @@ export type AddItemInput = {
 };
 
 export type AddPaymentToOrderResult =
+    | CouponRemovedDuringCheckoutError
     | IneligiblePaymentMethodError
     | NoActiveOrderError
     | Order
@@ -402,6 +403,23 @@ export type CouponCodeLimitError = ErrorResult & {
     errorCode: ErrorCode;
     limit: Scalars['Int']['output'];
     message: Scalars['String']['output'];
+};
+
+/**
+ * Returned when one or more coupon codes are removed from the Order during the
+ * `addPaymentToOrder` mutation (because their usage limits were exhausted by a
+ * concurrent checkout) and the removal would have increased the amount the
+ * customer is charged. Refusing the payment in this case prevents silently
+ * charging the customer more than they agreed to.
+ */
+export type CouponRemovedDuringCheckoutError = ErrorResult & {
+    __typename?: 'CouponRemovedDuringCheckoutError';
+    currencyCode: CurrencyCode;
+    errorCode: ErrorCode;
+    message: Scalars['String']['output'];
+    newTotalWithTax: Scalars['Money']['output'];
+    previousTotalWithTax: Scalars['Money']['output'];
+    removedCouponCodes: Array<Scalars['String']['output']>;
 };
 
 /**
@@ -970,6 +988,7 @@ export enum ErrorCode {
     COUPON_CODE_EXPIRED_ERROR = 'COUPON_CODE_EXPIRED_ERROR',
     COUPON_CODE_INVALID_ERROR = 'COUPON_CODE_INVALID_ERROR',
     COUPON_CODE_LIMIT_ERROR = 'COUPON_CODE_LIMIT_ERROR',
+    COUPON_REMOVED_DURING_CHECKOUT_ERROR = 'COUPON_REMOVED_DURING_CHECKOUT_ERROR',
     EMAIL_ADDRESS_CONFLICT_ERROR = 'EMAIL_ADDRESS_CONFLICT_ERROR',
     GUEST_CHECKOUT_ERROR = 'GUEST_CHECKOUT_ERROR',
     IDENTIFIER_CHANGE_TOKEN_EXPIRED_ERROR = 'IDENTIFIER_CHANGE_TOKEN_EXPIRED_ERROR',

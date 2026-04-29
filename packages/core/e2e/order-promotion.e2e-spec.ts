@@ -1736,9 +1736,9 @@ describe('Promotions applied to Orders', () => {
                     // Fire concurrent addPaymentToOrder from all clients simultaneously.
                     // The pessimistic lock serializes these so only one order can "claim"
                     // the coupon at a time. Contenders that have their coupon stripped
-                    // by revalidation receive a PaymentFailedError instead of being
-                    // silently charged the new (higher) total — see the explanatory
-                    // comment in OrderService.addPaymentToOrder.
+                    // by revalidation receive a CouponRemovedDuringCheckoutError instead
+                    // of being silently charged the new (higher) total — see the
+                    // explanatory comment in OrderService.addPaymentToOrder.
                     const results = await Promise.all(
                         clients.map(client => addPaymentToOrder(client, testSuccessfulPaymentMethod)),
                     );
@@ -1749,7 +1749,11 @@ describe('Promotions applied to Orders', () => {
                     }>;
                     const errorResults = results.filter((r: any) => r.errorCode !== undefined) as Array<{
                         errorCode: string;
-                        paymentErrorMessage?: string;
+                        message: string;
+                        removedCouponCodes?: string[];
+                        previousTotalWithTax?: number;
+                        newTotalWithTax?: number;
+                        currencyCode?: string;
                     }>;
 
                     // Sanity: every result should be classifiable as one or the other.
@@ -1778,11 +1782,14 @@ describe('Promotions applied to Orders', () => {
                     expect(orderResults.length).toBe(expectedWinners);
                     expect(errorResults.length).toBe(CONCURRENT_ATTEMPTS - expectedWinners);
 
-                    // Every stripped contender returns PaymentFailedError with a
-                    // coupon-related message rather than a silently-overcharged Order.
+                    // Every stripped contender returns CouponRemovedDuringCheckoutError
+                    // with the removed coupon code and the previous/new totals, rather
+                    // than a silently-overcharged Order.
                     for (const err of errorResults) {
-                        expect(err.errorCode).toBe('PAYMENT_FAILED_ERROR');
-                        expect(err.paymentErrorMessage).toMatch(/coupon/i);
+                        expect(err.errorCode).toBe('COUPON_REMOVED_DURING_CHECKOUT_ERROR');
+                        expect(err.removedCouponCodes).toContain(RACE_COUPON_CODE);
+                        expect(err.previousTotalWithTax).toBeLessThan(err.newTotalWithTax!);
+                        expect(err.currencyCode).toBeDefined();
                     }
 
                     // Where there's a winner, it kept the coupon and settled.

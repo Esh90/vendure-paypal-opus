@@ -845,6 +845,7 @@ export const addPaymentDocument = graphql(
     `
         mutation AddPaymentToOrder($input: PaymentInput!) {
             addPaymentToOrder(input: $input) {
+                __typename
                 ...TestOrderWithPayments
                 ... on ErrorResult {
                     errorCode

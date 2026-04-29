@@ -26,11 +26,14 @@ type PaymentDeclinedError implements ErrorResult {
 }
 
 """
-Returned when one or more coupon codes are removed from the Order during the
-`addPaymentToOrder` mutation (because their usage limits were exhausted by a
-concurrent checkout) and the removal would have increased the amount the
-customer is charged. Refusing the payment in this case prevents silently
-charging the customer more than they agreed to.
+Returned by `addPaymentToOrder` when one or more coupon codes were removed
+from the Order during payment-time revalidation and the removal would have
+increased the amount the customer is charged. Refusing the payment in this
+case prevents silently charging the customer more than they agreed to. The
+most common trigger is a usage-limited coupon's slot being claimed by a
+concurrent checkout, but the same protection applies when a coupon is
+stripped because the order no longer meets the promotion's eligibility
+conditions or because the promotion was disabled mid-checkout.
 """
 type CouponRemovedDuringCheckoutError implements ErrorResult {
     errorCode: ErrorCode!

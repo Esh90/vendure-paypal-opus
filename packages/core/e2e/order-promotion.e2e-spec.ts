@@ -1733,6 +1733,16 @@ describe('Promotions applied to Orders', () => {
                         await proceedToArrangingPayment(client);
                     }
 
+                    // Capture the pre-payment total from one client. All clients have
+                    // identical setup (same item, same coupon, same shipping method),
+                    // so this is the value `previousTotalWithTax` should equal in any
+                    // CouponRemovedDuringCheckoutError returned below. With freeOrderAction
+                    // applied, this is shipping cost only — the discount zeros the
+                    // line subtotal but does not zero shipping.
+                    const { activeOrder: preOrder } = await clients[0].query(getActiveOrderDocument);
+                    const expectedPreviousTotal = preOrder!.totalWithTax;
+                    const expectedCurrencyCode = preOrder!.currencyCode;
+
                     // Fire concurrent addPaymentToOrder from all clients simultaneously.
                     // The pessimistic lock serializes these so only one order can "claim"
                     // the coupon at a time. Contenders that have their coupon stripped
@@ -1743,17 +1753,22 @@ describe('Promotions applied to Orders', () => {
                         clients.map(client => addPaymentToOrder(client, testSuccessfulPaymentMethod)),
                     );
 
-                    const orderResults = results.filter((r: any) => Array.isArray(r.couponCodes)) as Array<{
-                        couponCodes: string[];
-                        totalWithTax: number;
-                    }>;
-                    const errorResults = results.filter((r: any) => r.errorCode !== undefined) as Array<{
+                    // Discriminate by __typename rather than duck-typing on field shape:
+                    // a future schema change that, say, adds errorCode-shaped fields to
+                    // Order would silently break a duck-typed filter.
+                    const orderResults = results.filter(
+                        (r: any) => r.__typename === 'Order',
+                    ) as Array<{ couponCodes: string[]; totalWithTax: number }>;
+                    const errorResults = results.filter(
+                        (r: any) => r.__typename === 'CouponRemovedDuringCheckoutError',
+                    ) as Array<{
+                        __typename: 'CouponRemovedDuringCheckoutError';
                         errorCode: string;
                         message: string;
-                        removedCouponCodes?: string[];
-                        previousTotalWithTax?: number;
-                        newTotalWithTax?: number;
-                        currencyCode?: string;
+                        removedCouponCodes: string[];
+                        previousTotalWithTax: number;
+                        newTotalWithTax: number;
+                        currencyCode: string;
                     }>;
 
                     // Sanity: every result should be classifiable as one or the other.
@@ -1782,19 +1797,38 @@ describe('Promotions applied to Orders', () => {
                     expect(orderResults.length).toBe(expectedWinners);
                     expect(errorResults.length).toBe(CONCURRENT_ATTEMPTS - expectedWinners);
 
+                    // Capture the post-strip total from one of the error clients' active
+                    // orders so we can assert newTotalWithTax exactly. The stripped order
+                    // has been recalculated server-side, so its current totalWithTax is
+                    // by definition what `newTotalWithTax` should report.
+                    let expectedNewTotal: number | undefined;
+                    if (errorResults.length > 0) {
+                        const errorClientIdx = results.findIndex(
+                            (r: any) => r.__typename === 'CouponRemovedDuringCheckoutError',
+                        );
+                        const { activeOrder: postOrder } = await clients[errorClientIdx].query(
+                            getActiveOrderDocument,
+                        );
+                        expectedNewTotal = postOrder!.totalWithTax;
+                        // The strip must have increased the total — otherwise the error
+                        // should never have been returned.
+                        expect(expectedNewTotal).toBeGreaterThan(expectedPreviousTotal);
+                    }
+
                     // Every stripped contender returns CouponRemovedDuringCheckoutError
-                    // with the removed coupon code and the previous/new totals, rather
-                    // than a silently-overcharged Order.
+                    // with exact pre/post totals and only the race coupon listed (no
+                    // unrelated codes leaked into removedCouponCodes).
                     for (const err of errorResults) {
                         expect(err.errorCode).toBe('COUPON_REMOVED_DURING_CHECKOUT_ERROR');
-                        expect(err.removedCouponCodes).toContain(RACE_COUPON_CODE);
-                        expect(err.previousTotalWithTax).toBeLessThan(err.newTotalWithTax!);
-                        expect(err.currencyCode).toBeDefined();
+                        expect(err.removedCouponCodes).toEqual([RACE_COUPON_CODE]);
+                        expect(err.previousTotalWithTax).toBe(expectedPreviousTotal);
+                        expect(err.newTotalWithTax).toBe(expectedNewTotal);
+                        expect(err.currencyCode).toBe(expectedCurrencyCode);
                     }
 
                     // Where there's a winner, it kept the coupon and settled.
                     if (expectedWinners === 1) {
-                        expect(orderResults[0].couponCodes).toContain(RACE_COUPON_CODE);
+                        expect(orderResults[0].couponCodes).toEqual([RACE_COUPON_CODE]);
                     }
                 },
             );

@@ -1410,9 +1410,37 @@ export class OrderService {
         if (!this.canAddPaymentToOrder(order)) {
             return new OrderPaymentStateError();
         }
+        const totalWithTaxBeforeRevalidation = order.totalWithTax;
         const couponsRemoved = await this.revalidateCouponCodesForOrder(ctx, order);
         // Re-fetch order if coupons were removed, so totals reflect recalculated prices
         const freshOrder = couponsRemoved ? await this.getOrderOrThrow(ctx, orderId) : order;
+        if (couponsRemoved && totalWithTaxBeforeRevalidation < freshOrder.totalWithTax) {
+            // A coupon was stripped during revalidation AND that strip
+            // increased what the customer would be charged (e.g. a
+            // usage-limited coupon's slot was claimed by a concurrent
+            // checkout). Do not proceed to charge the customer at the new
+            // amount — surface a typed error so the storefront can refresh
+            // the order and re-confirm. The coupon strip itself is committed
+            // alongside this error so subsequent addPaymentToOrder attempts
+            // see the recalculated totals.
+            //
+            // Strips that do not change the total (e.g. a coupon whose
+            // promotion was already deleted and no longer affecting pricing,
+            // or a coupon stacked on top of another that already maxed out
+            // the discount) fall through silently — there is no surprise
+            // charge to surface, and rejecting in those cases would create
+            // unnecessary friction.
+            //
+            // PaymentFailedError is reused here to avoid a breaking change
+            // to the AddPaymentToOrderResult union on the master branch.
+            // A dedicated CouponRemovedDuringCheckoutError is planned as a
+            // follow-up on the minor branch — see
+            // https://github.com/vendurehq/vendure/pull/4660.
+            return new PaymentFailedError({
+                paymentErrorMessage:
+                    'Order total changed during checkout because a coupon is no longer available. Please refresh your order and retry.',
+            });
+        }
         freshOrder.payments = await this.getOrderPayments(ctx, freshOrder.id);
         const amountToPay = freshOrder.totalWithTax - totalCoveredByPayments(freshOrder);
         const payment = await this.paymentService.createPayment(

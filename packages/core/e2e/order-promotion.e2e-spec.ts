@@ -1735,22 +1735,25 @@ describe('Promotions applied to Orders', () => {
 
                     // Fire concurrent addPaymentToOrder from all clients simultaneously.
                     // The pessimistic lock serializes these so only one order can "claim"
-                    // the coupon at a time. Every request should complete successfully —
-                    // the lock just orders them; it does not reject any.
+                    // the coupon at a time. Contenders that have their coupon stripped
+                    // by revalidation receive a PaymentFailedError instead of being
+                    // silently charged the new (higher) total — see the explanatory
+                    // comment in OrderService.addPaymentToOrder.
                     const results = await Promise.all(
                         clients.map(client => addPaymentToOrder(client, testSuccessfulPaymentMethod)),
                     );
 
-                    for (const result of results) {
-                        // A graphql error result would have an errorCode and no
-                        // couponCodes; surface any such failure rather than treating
-                        // it as a coupon-stripped success.
-                        expect((result as any).errorCode).toBeUndefined();
-                        expect(result.couponCodes).toBeDefined();
-                    }
+                    const orderResults = results.filter((r: any) => Array.isArray(r.couponCodes)) as Array<{
+                        couponCodes: string[];
+                        totalWithTax: number;
+                    }>;
+                    const errorResults = results.filter((r: any) => r.errorCode !== undefined) as Array<{
+                        errorCode: string;
+                        paymentErrorMessage?: string;
+                    }>;
 
-                    const withCoupon = results.filter(r => r.couponCodes.includes(RACE_COUPON_CODE));
-                    const withoutCoupon = results.filter(r => !r.couponCodes.includes(RACE_COUPON_CODE));
+                    // Sanity: every result should be classifiable as one or the other.
+                    expect(orderResults.length + errorResults.length).toBe(CONCURRENT_ATTEMPTS);
 
                     // The number of winners is fully determined by the DB's default
                     // isolation level — no timing non-determinism in either case —
@@ -1772,20 +1775,19 @@ describe('Promotions applied to Orders', () => {
                     // should flip to 1 and force this assertion to be updated.
                     // See the JSDoc on revalidateCouponCodesForOrder.
                     const expectedWinners = process.env.DB === 'postgres' ? 1 : 0;
-                    expect(withCoupon.length).toBe(expectedWinners);
-                    expect(withoutCoupon.length).toBe(CONCURRENT_ATTEMPTS - expectedWinners);
+                    expect(orderResults.length).toBe(expectedWinners);
+                    expect(errorResults.length).toBe(CONCURRENT_ATTEMPTS - expectedWinners);
 
-                    // Every stripped order should settle at the same full price —
-                    // freeOrderAction discounts the line subtotal but not shipping,
-                    // so we compare relatively rather than asserting absolute totals.
-                    const fullPrice = withoutCoupon[0].totalWithTax;
-                    for (const result of withoutCoupon) {
-                        expect(result.totalWithTax).toBe(fullPrice);
+                    // Every stripped contender returns PaymentFailedError with a
+                    // coupon-related message rather than a silently-overcharged Order.
+                    for (const err of errorResults) {
+                        expect(err.errorCode).toBe('PAYMENT_FAILED_ERROR');
+                        expect(err.paymentErrorMessage).toMatch(/coupon/i);
                     }
-                    // Where there's a winner, it should be cheaper by exactly the
-                    // line subtotal (6000 incl. tax).
+
+                    // Where there's a winner, it kept the coupon and settled.
                     if (expectedWinners === 1) {
-                        expect(fullPrice - withCoupon[0].totalWithTax).toBe(6000);
+                        expect(orderResults[0].couponCodes).toContain(RACE_COUPON_CODE);
                     }
                 },
             );

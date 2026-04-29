@@ -85,7 +85,7 @@
           "title": "Payment",
           "slug": "payment",
           "file": "docs/guides/core-concepts/payment/index.mdx",
-          "lastModified": "2026-04-08T18:11:57+02:00"
+          "lastModified": "2026-04-29T14:11:39+02:00"
         },
         {
           "title": "Customers",
@@ -704,7 +704,7 @@
           "title": "Checkout Flow",
           "slug": "checkout-flow",
           "file": "docs/guides/storefront/checkout-flow/index.mdx",
-          "lastModified": "2026-04-08T18:11:57+02:00"
+          "lastModified": "2026-04-29T14:11:39+02:00"
         },
         {
           "title": "Customer Accounts",

@@ -888,7 +888,7 @@ msgstr "Fokuspunkt"
 
 #: src/app/routes/_authenticated/_products/products_.$id.tsx:99
 msgid "Single variant, no options"
-msgstr "Enkelt variant, ingen opsjoner"
+msgstr "Enkel variant, ingen opsjoner"
 
 #: src/app/routes/_authenticated/_orders/components/use-transition-order-to-state.tsx:107
 msgid "Select the next state for the order"

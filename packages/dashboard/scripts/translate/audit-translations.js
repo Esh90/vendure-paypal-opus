@@ -37,6 +37,7 @@ import {
     ALLOWED_SCRIPTS,
     REQUIRED_SCRIPTS,
     SCRIPT_RANGES,
+    entryId,
     looksTrivial,
     parsePOFile,
 } from './locale-profiles.js';
@@ -281,7 +282,7 @@ function main() {
         byMsgidLocale[loc] = new Map();
         if (EXCLUDE_LOCALES.has(loc)) continue;
         for (const e of parsed[loc]) {
-            if (e.msgstr) byMsgidLocale[loc].set(e.msgid, e.msgstr.trim());
+            if (e.msgstr) byMsgidLocale[loc].set(e.id, e.msgstr.trim());
         }
     }
 
@@ -317,7 +318,7 @@ function main() {
                 if (other === loc || other === 'en') continue;
                 if (EXCLUDE_LOCALES.has(other)) continue;
                 if (sameFamily(loc, other)) continue;
-                const otherStr = byMsgidLocale[other].get(e.msgid);
+                const otherStr = byMsgidLocale[other].get(e.id);
                 if (!otherStr || otherStr !== key) continue;
                 if (inSameOverlapGroup(loc, other) && key.length < SHORT_MATCH_THRESHOLD) continue;
                 sameMsgidMatches.push(other);

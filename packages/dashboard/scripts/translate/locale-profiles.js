@@ -113,11 +113,19 @@ export function looksTrivial(s) {
 /**
  * Parse a .po file into structured entries.
  *
- *   { msgid, msgstr, msgstrLine, refs }
+ *   { msgctxt, msgid, msgstr, msgstrLine, refs, id }
  *
  * The msgstrLine is 1-based to match what most editors and `cat -n`
  * show. The header entry (empty msgid) is skipped. Multi-line msgid /
- * msgstr (continuation `"..."` lines) are concatenated.
+ * msgstr / msgctxt (continuation `"..."` lines) are concatenated.
+ *
+ * `msgctxt` is preserved because PO catalogs may legitimately contain
+ * multiple entries with the same msgid disambiguated by context (e.g.
+ * `msgctxt "current channel"` vs no context for plain "Current"). The
+ * `id` field combines msgctxt + msgid into a unique stable identifier
+ * — use it as the key for cross-locale comparisons and persistent
+ * coverage state, never bare msgid (which can collide) and never line
+ * numbers (which shift on regeneration).
  */
 export function parsePOFile(filePath) {
     const content = fs.readFileSync(filePath, 'utf-8');
@@ -127,12 +135,27 @@ export function parsePOFile(filePath) {
     let i = 0;
     while (i < lines.length) {
         const refs = [];
-        while (i < lines.length && !lines[i].startsWith('msgid ')) {
+        while (
+            i < lines.length &&
+            !lines[i].startsWith('msgid ') &&
+            !lines[i].startsWith('msgctxt ')
+        ) {
             if (lines[i].startsWith('#:')) refs.push(lines[i].slice(2).trim());
             i++;
         }
         if (i >= lines.length) break;
 
+        let msgctxt = null;
+        if (lines[i].startsWith('msgctxt ')) {
+            msgctxt = unquote(lines[i].slice(8));
+            i++;
+            while (i < lines.length && lines[i].startsWith('"')) {
+                msgctxt += unquote(lines[i]);
+                i++;
+            }
+        }
+
+        if (i >= lines.length || !lines[i].startsWith('msgid ')) continue;
         let msgid = unquote(lines[i].slice(6));
         i++;
         while (i < lines.length && lines[i].startsWith('"')) {
@@ -150,10 +173,27 @@ export function parsePOFile(filePath) {
         }
 
         if (msgid === '') continue;
-        entries.push({ msgid, msgstr, msgstrLine, refs });
+        entries.push({
+            msgctxt,
+            msgid,
+            msgstr,
+            msgstrLine,
+            refs,
+            id: entryId(msgctxt, msgid),
+        });
     }
 
     return entries;
+}
+
+/**
+ * Compose a stable, unique identity for a PO entry. The U+0001 separator
+ * is unlikely to appear in any real msgid or msgctxt, so this is safe
+ * against collisions like msgctxt="" + msgid="X|Y" vs msgctxt="X" +
+ * msgid="Y".
+ */
+export function entryId(msgctxt, msgid) {
+    return `${msgctxt ?? ''}${msgid}`;
 }
 
 function unquote(s) {

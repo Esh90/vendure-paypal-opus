@@ -1288,7 +1288,7 @@ msgstr "Stvaranje prodavača nije uspjelo"
 #. placeholder {0}: entityName.toLowerCase()
 #: src/app/common/duplicate-entity-dialog.tsx:87
 msgid "Configure duplication settings for {0}s"
-msgstr "Konfiguriraj postavke dupliciranja za {0}s"
+msgstr "Konfiguriraj postavke dupliciranja za {0}"
 
 #: src/app/routes/_authenticated/_customers/customers_.$id.tsx:203
 #: src/app/routes/_authenticated/_orders/orders_.$id_.modify.tsx:245

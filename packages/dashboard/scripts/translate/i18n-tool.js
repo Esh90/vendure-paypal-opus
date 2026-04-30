@@ -37,6 +37,22 @@ const DEFAULT_LOCALES_DIR = '../../src/i18n/locales';
  * `looksTrivial` so the two scripts can never disagree on what counts
  * as too-short-to-judge.
  */
+/**
+ * Heuristic: msgstr is a "Latin-only technical term" if it's short and
+ * composed entirely of ASCII letters, digits, and a handful of common
+ * URL/identifier punctuation. This exempts legitimate verbatim labels
+ * like "Slug", "JSON", "Token", "API Key", "URL" from the
+ * native-script requirement in non-Latin locales — those terms are
+ * routinely left untranslated even in ja/ko/he/ru catalogs.
+ *
+ * The 16-char cap keeps this from accidentally exempting full English
+ * sentences (which would more likely be untranslated copies of the
+ * msgid that we DO want to flag).
+ */
+function isLatinOnlyTechTerm(s) {
+    return s.length > 0 && s.length <= 16 && /^[A-Za-z0-9 _\-./]+$/.test(s);
+}
+
 function validateLocaleBatch(languageCode, translations) {
     const violations = [];
     const expect = REQUIRED_SCRIPTS[languageCode];
@@ -44,6 +60,11 @@ function validateLocaleBatch(languageCode, translations) {
 
     for (const [msgid, msgstr] of Object.entries(translations)) {
         if (looksTrivial(msgstr)) continue;
+        // Latin-only short tech terms ("Slug", "JSON", "URL", ...) are
+        // legitimately left untranslated in non-Latin locales — exempt
+        // them from the native-script requirement so apply doesn't
+        // refuse a valid batch.
+        if (isLatinOnlyTechTerm(msgstr)) continue;
 
         // Check expected script (non-Latin locales only)
         if (expect) {

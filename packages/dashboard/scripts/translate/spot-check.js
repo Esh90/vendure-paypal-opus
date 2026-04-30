@@ -94,9 +94,13 @@ function main() {
         // Filter to entries with a non-empty msgstr — empty translations
         // carry no language signal and aren't useful spot-check fodder.
         const filled = entries.filter(e => e.msgstr !== '');
-        const prev = state.coverage[loc] ?? { lines: [], batchCount: 0 };
-        const covered = new Set(prev.lines);
-        const remaining = filled.filter(e => !covered.has(e.msgstrLine));
+        // Coverage is keyed by stable entry id (msgctxt + msgid), NOT
+        // line number — line numbers shift whenever the .po is
+        // regenerated or rewrapped, which would silently invalidate
+        // every previously-covered entry.
+        const prev = state.coverage[loc] ?? { coveredIds: [], batchCount: 0 };
+        const covered = new Set(prev.coveredIds);
+        const remaining = filled.filter(e => !covered.has(e.id));
         if (remaining.length === 0) {
             console.log(`${loc}: 100% covered (${filled.length} entries) — skipping.`);
             continue;
@@ -112,7 +116,9 @@ function main() {
             sampledFromRemaining: remaining.length,
             totalEntries: filled.length,
             samples: sample.map(e => ({
+                id: e.id,
                 line: e.msgstrLine,
+                msgctxt: e.msgctxt,
                 msgid: e.msgid,
                 msgstr: e.msgstr,
                 verdict: null,           // verifier fills: 'ok' | 'wrong-language' | 'mistranslation' | 'unsure'
@@ -122,13 +128,8 @@ function main() {
         };
         fs.writeFileSync(batchPath, JSON.stringify(batch, null, 2));
 
-        // Update state: persist BOTH the covered lines and the batch
-        // count. Storing as an object (not a bare array) is what makes
-        // `prev.batchCount` survive across runs — without it, every
-        // run would write `locale-batch-001.json` and overwrite the
-        // previous batch silently.
         state.coverage[loc] = {
-            lines: [...covered, ...sample.map(e => e.msgstrLine)],
+            coveredIds: [...covered, ...sample.map(e => e.id)],
             batchCount: batchIdx,
         };
         manifest.batches.push({ locale: loc, file: path.relative(OUT_DIR, batchPath), count: sample.length });

@@ -3399,7 +3399,7 @@ msgstr "Çalışmıyor"
 
 #: src/app/routes/_authenticated/_products/components/add-option-group-dialog.tsx:267
 msgid "Assigned"
-msgstr "Atandı"
+msgstr "Atanmış"
 
 #: src/lib/components/shared/rich-text-editor/responsive-toolbar.tsx:75
 msgid "Heading 1"

@@ -1003,7 +1003,7 @@ msgstr "Dodijeljeno"
 
 #: src/lib/components/layout/nav-user.tsx:102
 msgid "Explore Platform & Cloud"
-msgstr "Istražite platformu i oblak"
+msgstr "Istražite platformu i Cloud"
 
 #: src/app/routes/_authenticated/_system/job-queue.tsx:115
 msgid "Every 5 seconds"
@@ -3616,7 +3616,7 @@ msgstr "Globalni prikaz uspješno dupliciran"
 #: src/app/routes/_authenticated/_api-keys/api-keys_.$id.tsx:210
 #: src/app/routes/_authenticated/_api-keys/api-keys.tsx:66
 msgid "Created by"
-msgstr "Stvorio"
+msgstr "Kreirao"
 
 #: src/app/routes/_authenticated/_product-variants/components/add-currency-dropdown.tsx:35
 msgid "Add a price in another currency"

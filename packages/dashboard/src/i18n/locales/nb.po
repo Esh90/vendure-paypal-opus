@@ -1288,7 +1288,7 @@ msgstr "Kunne ikke opprette selger"
 #. placeholder {0}: entityName.toLowerCase()
 #: src/app/common/duplicate-entity-dialog.tsx:87
 msgid "Configure duplication settings for {0}s"
-msgstr "Konfigurer duplikeringsinnstillinger for {0}er"
+msgstr "Konfigurer duplikeringsinnstillinger for {0}"
 
 #: src/app/routes/_authenticated/_customers/customers_.$id.tsx:203
 #: src/app/routes/_authenticated/_orders/orders_.$id_.modify.tsx:245
@@ -3889,7 +3889,7 @@ msgstr "Viser alle {0} resultater"
 #: src/app/routes/_authenticated/_api-keys/api-keys.tsx:60
 #: src/app/routes/_authenticated/_api-keys/components/api-key-secret-dialog.tsx:95
 msgid "Lookup ID"
-msgstr "Oppslagsidentifikator"
+msgstr "Oppslags-ID"
 
 #. placeholder {0}: list.totalItems - 3
 #: src/app/routes/_authenticated/_facets/facets.tsx:65

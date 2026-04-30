@@ -10,6 +10,114 @@ const __dirname = path.dirname(__filename);
 // Configuration
 const DEFAULT_LOCALES_DIR = '../../src/i18n/locales';
 
+// Locales whose msgstrs must contain at least one character in the named
+// Unicode script. Used by `applyTranslations` to refuse a batch whose
+// content is in the wrong language for its block header (the failure
+// mode that introduced the contamination fixed in PR #4684 / #4645 and
+// the hr/nb/tr cleanup). If you add a new non-Latin locale, list its
+// expected script range here.
+const SCRIPT_EXPECTATIONS = {
+    ar: { name: 'Arabic', test: c => /[؀-ۿݐ-ݿ]/.test(c) },
+    fa: { name: 'Persian/Arabic', test: c => /[؀-ۿݐ-ݿﭐ-﷿]/.test(c) },
+    he: { name: 'Hebrew', test: c => /[֐-׿]/.test(c) },
+    ru: { name: 'Cyrillic', test: c => /[Ѐ-ӿ]/.test(c) },
+    bg: { name: 'Cyrillic', test: c => /[Ѐ-ӿ]/.test(c) },
+    uk: { name: 'Cyrillic', test: c => /[Ѐ-ӿ]/.test(c) },
+    zh_Hans: { name: 'CJK', test: c => /[一-鿿]/.test(c) },
+    zh_Hant: { name: 'CJK', test: c => /[一-鿿]/.test(c) },
+    ja: { name: 'Japanese (Hira/Kana/CJK)', test: c => /[぀-ヿ一-鿿]/.test(c) },
+    ko: { name: 'Hangul', test: c => /[가-힯]/.test(c) },
+    ne: { name: 'Devanagari', test: c => /[ऀ-ॿ]/.test(c) },
+};
+
+// Foreign scripts that should never appear in a Latin-script locale's
+// msgstr at all. Catches the inverse failure (Arabic ending up in hr,
+// CJK in nb, Cyrillic in tr).
+const FOREIGN_SCRIPT_RANGES = {
+    arabic: /[؀-ۿݐ-ݿﭐ-﷿]/,
+    hebrew: /[֐-׿]/,
+    cyrillic: /[Ѐ-ӿ]/,
+    cjk: /[一-鿿]/,
+    hiragana: /[぀-ゟ]/,
+    katakana: /[゠-ヿ]/,
+    hangul: /[가-힯]/,
+    devanagari: /[ऀ-ॿ]/,
+};
+
+const ALLOWED_SCRIPTS_BY_LOCALE = {
+    ar: ['arabic'],
+    fa: ['arabic'],
+    he: ['hebrew'],
+    ru: ['cyrillic'],
+    bg: ['cyrillic'],
+    uk: ['cyrillic'],
+    zh_Hans: ['cjk'],
+    zh_Hant: ['cjk'],
+    ja: ['cjk', 'hiragana', 'katakana'],
+    ko: ['hangul', 'cjk'],
+    ne: ['devanagari'],
+};
+
+/**
+ * Validates that translations for `languageCode` look like they belong to
+ * that language. Returns an array of { msgid, msgstr, reason } violations.
+ *
+ * Two checks:
+ *   1. SCRIPT_EXPECTATIONS — for non-Latin locales, every substantive
+ *      msgstr must contain at least one character from the expected
+ *      script. This refuses an LLM batch that mislabelled an Arabic
+ *      translation as `hr`, etc.
+ *   2. FOREIGN_SCRIPT_RANGES — every msgstr must not contain a script
+ *      that doesn't belong to this locale (catches the inverse case
+ *      where ar content sneaks into the hr block).
+ *
+ * Trivial msgstrs (very short, all numbers/punctuation, or just an ICU
+ * placeholder like "{count}") are skipped because they carry no script
+ * signal and many are legitimate cross-locale verbatim copies.
+ */
+function validateLocaleBatch(languageCode, translations) {
+    const violations = [];
+    const expect = SCRIPT_EXPECTATIONS[languageCode];
+    const allowed = new Set(ALLOWED_SCRIPTS_BY_LOCALE[languageCode] ?? []);
+
+    for (const [msgid, msgstr] of Object.entries(translations)) {
+        if (!msgstr || msgstr.length < 3) continue;
+        const stripped = msgstr.replace(/[\s\d{}%a-zA-Z_,\-:.()/]/g, '');
+        if (stripped.length < 2 && !/[a-z]{4,}/i.test(msgstr)) continue;
+
+        // Check expected script (non-Latin locales only)
+        if (expect) {
+            let hasNative = false;
+            for (const ch of msgstr) {
+                if (expect.test(ch)) { hasNative = true; break; }
+            }
+            if (!hasNative) {
+                violations.push({
+                    msgid,
+                    msgstr,
+                    reason: `missing ${expect.name} script characters (locale=${languageCode})`,
+                });
+                continue;
+            }
+        }
+
+        // Check foreign-script intrusion (any locale)
+        for (const [scriptName, re] of Object.entries(FOREIGN_SCRIPT_RANGES)) {
+            if (allowed.has(scriptName)) continue;
+            if (re.test(msgstr)) {
+                violations.push({
+                    msgid,
+                    msgstr,
+                    reason: `contains foreign script ${scriptName} (locale=${languageCode})`,
+                });
+                break;
+            }
+        }
+    }
+
+    return violations;
+}
+
 /**
  * Get all supported languages by scanning .po files in the locales directory
  */
@@ -233,6 +341,35 @@ function applyTranslations(translationsFile, localesDir = DEFAULT_LOCALES_DIR) {
             translationsByLanguage[languageCode][msgid] = msgstr;
         }
     });
+
+    // Validate every batch BEFORE writing anything. This is the guard
+    // that would have refused the bad LLM output behind PR #4616 — a
+    // batch labelled `hr`/`nb`/`tr` whose content was actually Arabic /
+    // Japanese / Russian. Fail-fast: if any locale's content doesn't
+    // match its declared language, abort the entire run so partial bad
+    // writes never reach the .po files.
+    const allViolations = [];
+    for (const [languageCode, translations] of Object.entries(translationsByLanguage)) {
+        const violations = validateLocaleBatch(languageCode, translations);
+        if (violations.length) {
+            allViolations.push({ languageCode, violations });
+        }
+    }
+
+    if (allViolations.length) {
+        console.error('\n✗ Aborting: translation batch failed script-validation.\n');
+        for (const { languageCode, violations } of allViolations) {
+            console.error(`  ${languageCode}: ${violations.length} suspicious entr${violations.length === 1 ? 'y' : 'ies'}`);
+            for (const v of violations.slice(0, 5)) {
+                console.error(`    - "${v.msgid}" → "${v.msgstr.slice(0, 60)}${v.msgstr.length > 60 ? '…' : ''}"`);
+                console.error(`      ${v.reason}`);
+            }
+            if (violations.length > 5) console.error(`    …and ${violations.length - 5} more`);
+        }
+        console.error('\nNo files were written. Re-check the translations file — most likely the');
+        console.error('block headers and content are mismatched (the LLM labelled the wrong locale).');
+        process.exit(1);
+    }
 
     // Apply translations to each language file
     Object.entries(translationsByLanguage).forEach(([languageCode, translations]) => {

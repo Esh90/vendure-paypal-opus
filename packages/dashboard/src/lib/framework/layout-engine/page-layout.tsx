@@ -7,6 +7,7 @@ import { useCustomFieldConfig } from '@/vdb/hooks/use-custom-field-config.js';
 import { useLocalFormat } from '@/vdb/hooks/use-local-format.js';
 import { useIsMobile } from '@/vdb/hooks/use-mobile.js';
 import { usePage } from '@/vdb/hooks/use-page.js';
+import { usePermissions } from '@/vdb/hooks/use-permissions.js';
 import { cn } from '@/vdb/lib/utils.js';
 import { useCopyToClipboard } from '@uidotdev/usehooks';
 import { CheckIcon, CopyIcon, EllipsisVerticalIcon, InfoIcon } from 'lucide-react';
@@ -218,6 +219,7 @@ export function PageLayout({ children, className }: Readonly<PageLayoutProps>) {
     // Separate blocks into categories
     const childArray: React.ReactElement<PageBlockProps>[] = [];
     const extensionBlocks = getDashboardPageBlocks(page.pageId ?? '');
+    const { hasPermissions } = usePermissions();
     React.Children.forEach(children, child => {
         if (isPageBlock(child)) {
             childArray.push(child);
@@ -274,21 +276,23 @@ export function PageLayout({ children, className }: Readonly<PageLayoutProps>) {
 
                     const isFullWidth = extensionBlock.location.column === 'full';
                     const BlockComponent = isFullWidth ? FullWidthPageBlock : PageBlock;
+                    const requiresPermission = extensionBlock.requiresPermission ?? [];
+                    const permissions = Array.isArray(requiresPermission)
+                        ? requiresPermission
+                        : [requiresPermission];
 
                     const ExtensionBlock =
-                        extensionBlock.component && extensionBlockShouldRender ? (
-                            <PermissionGuard
+                        extensionBlock.component &&
+                        extensionBlockShouldRender &&
+                        hasPermissions(permissions ?? []) ? (
+                            <BlockComponent
                                 key={extensionBlock.id}
-                                requires={extensionBlock.requiresPermission ?? []}
+                                column={extensionBlock.location.column}
+                                blockId={extensionBlock.id}
+                                title={extensionBlock.title}
                             >
-                                <BlockComponent
-                                    column={extensionBlock.location.column}
-                                    blockId={extensionBlock.id}
-                                    title={extensionBlock.title}
-                                >
-                                    {<extensionBlock.component context={page} />}
-                                </BlockComponent>
-                            </PermissionGuard>
+                                {<extensionBlock.component context={page} />}
+                            </BlockComponent>
                         ) : undefined;
 
                     if (extensionBlockShouldRender && ExtensionBlock) {

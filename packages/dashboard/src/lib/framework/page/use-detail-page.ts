@@ -283,7 +283,7 @@ export function useDetailPage<
     };
 
     const createMutation = useMutation({
-        mutationFn: createDocument ? api.mutate(createDocument) : undefined,
+        mutationFn: createDocument ? api.mutate(addCustomFields(createDocument)) : undefined,
         onSuccess: data => {
             if (createDocument) {
                 const createMutationName = getMutationName(createDocument);
@@ -294,7 +294,7 @@ export function useDetailPage<
     });
 
     const updateMutation = useMutation({
-        mutationFn: updateDocument ? api.mutate(updateDocument) : undefined,
+        mutationFn: updateDocument ? api.mutate(addCustomFields(updateDocument)) : undefined,
         onSuccess: async data => {
             if (updateDocument) {
                 const updateMutationName = getMutationName(updateDocument);

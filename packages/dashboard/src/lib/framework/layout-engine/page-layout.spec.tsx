@@ -12,6 +12,7 @@ import { PageContext } from './page-provider.js';
 
 const useIsMobileMock = vi.hoisted(() => vi.fn(() => false));
 const useCopyToClipboardMock = vi.hoisted(() => vi.fn(() => [null, vi.fn()]));
+const hasPermissionsMock = vi.hoisted(() => vi.fn(() => true));
 
 vi.mock('@/vdb/hooks/use-mobile.js', () => ({
     useIsMobile: useIsMobileMock,
@@ -23,7 +24,7 @@ vi.mock('@uidotdev/usehooks', () => ({
 
 vi.mock('@/vdb/hooks/use-permissions.js', () => ({
     usePermissions: () => ({
-        hasPermissions: () => true,
+        hasPermissions: hasPermissionsMock,
     }),
 }));
 
@@ -33,7 +34,12 @@ vi.mock('@/vdb/hooks/use-local-format.js', () => ({
     }),
 }));
 
-function registerBlock(id: string, order: 'before' | 'after' | 'replace', pageId = 'customer-list'): void {
+function registerBlock(
+    id: string,
+    order: 'before' | 'after' | 'replace',
+    pageId = 'customer-list',
+    requiresPermission: string[] = [],
+): void {
     registerDashboardPageBlock({
         id,
         title: id,
@@ -43,6 +49,7 @@ function registerBlock(id: string, order: 'before' | 'after' | 'replace', pageId
             position: { blockId: 'list-table', order },
         },
         component: ({ context }) => <div data-testid={`page-block-${id}`}>{context.pageId}</div>,
+        requiresPermission: requiresPermission,
     });
 }
 
@@ -157,6 +164,7 @@ describe('PageLayout', () => {
         useIsMobileMock.mockReset();
         useCopyToClipboardMock.mockReset();
         useCopyToClipboardMock.mockReturnValue([null, vi.fn()]);
+        hasPermissionsMock.mockReset();
         const pageBlockRegistry = globalRegistry.get('dashboardPageBlockRegistry');
         pageBlockRegistry.clear();
         const actionBarItemRegistry = globalRegistry.get('dashboardActionBarItemRegistry');
@@ -213,6 +221,24 @@ describe('PageLayout', () => {
             'page-block-original',
             'page-block-after-mobile',
         ]);
+    });
+
+    it("won't render blocks without required permissions", () => {
+        hasPermissionsMock.mockReturnValueOnce(false);
+
+        registerBlock('permission-guard', 'before', 'customer-list', ['permission-2']);
+
+        const markup = renderPageLayout(
+            <PageBlock column="main" blockId="list-table">
+                <div data-testid="page-block-original">original</div>
+            </PageBlock>,
+            { isDesktop: true },
+        );
+
+        const blockIds = getRenderedBlockIds(markup);
+
+        expect(blockIds).toEqual(['page-block-original']);
+        expect(blockIds).not.toContain('page-block-permission-guard');
     });
 
     it('positions an extension action bar item before another extension item', () => {

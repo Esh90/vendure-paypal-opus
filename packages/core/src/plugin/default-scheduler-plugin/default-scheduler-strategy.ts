@@ -97,12 +97,12 @@ export class DefaultSchedulerStrategy implements SchedulerStrategy {
         }
 
         Logger.verbose(`Executing scheduled task "${task.id}"`);
+        let timeoutTimer: NodeJS.Timeout | undefined;
         try {
             this.runningTasks.push(task);
             const timeout = task.options.timeout ?? (this.pluginOptions.defaultTimeout as number);
             const timeoutMs = typeof timeout === 'number' ? timeout : ms(timeout as StringValue);
 
-            let timeoutTimer: NodeJS.Timeout | undefined;
             const timeoutPromise = new Promise((_, reject) => {
                 timeoutTimer = setTimeout(() => {
                     Logger.warn(`Scheduled task ${task.id} timed out after ${timeoutMs}ms`);
@@ -111,10 +111,6 @@ export class DefaultSchedulerStrategy implements SchedulerStrategy {
             });
 
             const result = await Promise.race([task.execute(this.injector), timeoutPromise]);
-
-            if (timeoutTimer) {
-                clearTimeout(timeoutTimer);
-            }
 
             await this.connection.rawConnection.getRepository(ScheduledTaskRecord).update(
                 { taskId: task.id },
@@ -125,7 +121,6 @@ export class DefaultSchedulerStrategy implements SchedulerStrategy {
                 },
             );
             Logger.verbose(`Scheduled task "${task.id}" completed successfully`);
-            this.runningTasks = this.runningTasks.filter(t => t !== task);
         } catch (error) {
             let errorMessage = 'Unknown error';
             if (error instanceof Error) {
@@ -140,6 +135,10 @@ export class DefaultSchedulerStrategy implements SchedulerStrategy {
                     lastResult: { error: errorMessage } as any,
                 },
             );
+        } finally {
+            if (timeoutTimer) {
+                clearTimeout(timeoutTimer);
+            }
             this.runningTasks = this.runningTasks.filter(t => t !== task);
         }
     }

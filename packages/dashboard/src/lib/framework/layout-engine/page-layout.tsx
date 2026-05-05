@@ -252,8 +252,12 @@ export function PageLayout({ children, className }: Readonly<PageLayoutProps>) {
                 return orderPriority[a.location.position.order] - orderPriority[b.location.position.order];
             });
 
+            type ExtensionBlockEntry = (typeof arrangedExtensionBlocks)[number];
+
             // using `hasPermissions` over `PermissionGuard` as this would defeat the `isPageBlock` typeguard
-            const willBlockRender = (block: (typeof arrangedExtensionBlocks)[number]) => {
+            const willBlockRender = (
+                block: ExtensionBlockEntry,
+            ): block is ExtensionBlockEntry & { component: NonNullable<ExtensionBlockEntry['component']> } => {
                 if (!block.component) return false;
                 if (typeof block.shouldRender === 'function' && !block.shouldRender(page)) {
                     return false;
@@ -281,24 +285,21 @@ export function PageLayout({ children, className }: Readonly<PageLayoutProps>) {
                         childBlockInserted = true;
                     }
 
+                    if (!willBlockRender(extensionBlock)) continue;
+
                     const isFullWidth = extensionBlock.location.column === 'full';
                     const BlockComponent = isFullWidth ? FullWidthPageBlock : PageBlock;
 
-                    const ExtensionBlock =
-                        willBlockRender(extensionBlock) && extensionBlock.component ? (
-                            <BlockComponent
-                                key={extensionBlock.id}
-                                column={extensionBlock.location.column}
-                                blockId={extensionBlock.id}
-                                title={extensionBlock.title}
-                            >
-                                {<extensionBlock.component context={page} />}
-                            </BlockComponent>
-                        ) : undefined;
-
-                    if (ExtensionBlock) {
-                        finalChildArray.push(ExtensionBlock);
-                    }
+                    finalChildArray.push(
+                        <BlockComponent
+                            key={extensionBlock.id}
+                            column={extensionBlock.location.column}
+                            blockId={extensionBlock.id}
+                            title={extensionBlock.title}
+                        >
+                            <extensionBlock.component context={page} />
+                        </BlockComponent>,
+                    );
                 }
 
                 // If all blocks were "before", insert child block at the end

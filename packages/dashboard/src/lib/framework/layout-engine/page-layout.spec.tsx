@@ -12,7 +12,7 @@ import { PageContext } from './page-provider.js';
 
 const useIsMobileMock = vi.hoisted(() => vi.fn(() => false));
 const useCopyToClipboardMock = vi.hoisted(() => vi.fn(() => [null, vi.fn()]));
-const hasPermissionsMock = vi.hoisted(() => vi.fn(() => true));
+const hasPermissionsMock = vi.hoisted(() => vi.fn((_perms: string[]) => true));
 
 vi.mock('@/vdb/hooks/use-mobile.js', () => ({
     useIsMobile: useIsMobileMock,
@@ -39,6 +39,7 @@ function registerBlock(
     order: 'before' | 'after' | 'replace',
     pageId = 'customer-list',
     requiresPermission: string[] = [],
+    shouldRender?: () => boolean,
 ): void {
     registerDashboardPageBlock({
         id,
@@ -49,7 +50,8 @@ function registerBlock(
             position: { blockId: 'list-table', order },
         },
         component: ({ context }) => <div data-testid={`page-block-${id}`}>{context.pageId}</div>,
-        requiresPermission: requiresPermission,
+        requiresPermission,
+        shouldRender,
     });
 }
 
@@ -224,7 +226,7 @@ describe('PageLayout', () => {
     });
 
     it("won't render blocks without required permissions", () => {
-        hasPermissionsMock.mockReturnValueOnce(false);
+        hasPermissionsMock.mockReturnValue(false);
 
         registerBlock('permission-guard', 'before', 'customer-list', ['permission-2']);
 
@@ -262,6 +264,53 @@ describe('PageLayout', () => {
 
         expect(blockIds).toEqual(['page-block-original']);
         expect(blockIds).not.toContain('page-block-permission-replacement');
+    });
+
+    it('renders only the allowed replacement when another replace-ordered block is permission-denied', () => {
+        hasPermissionsMock.mockImplementation(
+            (perms: string[]) => perms.length === 0 || perms.includes('allowed-perm'),
+        );
+
+        registerBlock('replacement-allowed', 'replace', 'customer-list', ['allowed-perm']);
+        registerBlock('replacement-denied', 'replace', 'customer-list', ['denied-perm']);
+
+        const markup = renderPageLayout(
+            <PageBlock column="main" blockId="list-table">
+                <div data-testid="page-block-original">original</div>
+            </PageBlock>,
+            { isDesktop: true },
+        );
+
+        expect(getRenderedBlockIds(markup)).toEqual(['page-block-replacement-allowed']);
+    });
+
+    it('falls back to the original block when a replace-ordered extension shouldRender returns false', () => {
+        registerBlock('replacement-disabled', 'replace', 'customer-list', [], () => false);
+
+        const markup = renderPageLayout(
+            <PageBlock column="main" blockId="list-table">
+                <div data-testid="page-block-original">original</div>
+            </PageBlock>,
+            { isDesktop: true },
+        );
+
+        expect(getRenderedBlockIds(markup)).toEqual(['page-block-original']);
+    });
+
+    it('renders only the original when both before- and replace-ordered extensions are permission-denied', () => {
+        hasPermissionsMock.mockReturnValue(false);
+
+        registerBlock('before-denied', 'before', 'customer-list', ['restricted']);
+        registerBlock('replace-denied', 'replace', 'customer-list', ['restricted']);
+
+        const markup = renderPageLayout(
+            <PageBlock column="main" blockId="list-table">
+                <div data-testid="page-block-original">original</div>
+            </PageBlock>,
+            { isDesktop: true },
+        );
+
+        expect(getRenderedBlockIds(markup)).toEqual(['page-block-original']);
     });
 
     it('positions an extension action bar item before another extension item', () => {

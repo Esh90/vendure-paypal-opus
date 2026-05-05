@@ -153,6 +153,15 @@ function renderActionBar(
     );
 }
 
+function renderWithOriginal({ isDesktop = true } = {}) {
+    return renderPageLayout(
+        <PageBlock column="main" blockId="list-table">
+            <div data-testid="page-block-original">original</div>
+        </PageBlock>,
+        { isDesktop },
+    );
+}
+
 function getRenderedBlockIds(markup: string) {
     return Array.from(markup.matchAll(/data-testid="(page-block-[^"]+)"/g)).map(match => match[1]);
 }
@@ -230,14 +239,7 @@ describe('PageLayout', () => {
 
         registerBlock('permission-guard', 'before', 'customer-list', ['permission-2']);
 
-        const markup = renderPageLayout(
-            <PageBlock column="main" blockId="list-table">
-                <div data-testid="page-block-original">original</div>
-            </PageBlock>,
-            { isDesktop: true },
-        );
-
-        expect(getRenderedBlockIds(markup)).toEqual(['page-block-original']);
+        expect(getRenderedBlockIds(renderWithOriginal())).toEqual(['page-block-original']);
     });
 
     // #4679 follow-up — when a `replace`-ordered extension block requires a permission the user
@@ -250,14 +252,7 @@ describe('PageLayout', () => {
 
         registerBlock('permission-replacement', 'replace', 'customer-list', ['restricted-permission']);
 
-        const markup = renderPageLayout(
-            <PageBlock column="main" blockId="list-table">
-                <div data-testid="page-block-original">original</div>
-            </PageBlock>,
-            { isDesktop: true },
-        );
-
-        expect(getRenderedBlockIds(markup)).toEqual(['page-block-original']);
+        expect(getRenderedBlockIds(renderWithOriginal())).toEqual(['page-block-original']);
     });
 
     // Multi-block variant of the regression test above. With the bug present, `replacementBlockExists`
@@ -269,14 +264,7 @@ describe('PageLayout', () => {
         registerBlock('replacement-1', 'replace', 'customer-list', ['perm-1']);
         registerBlock('replacement-2', 'replace', 'customer-list', ['perm-2']);
 
-        const markup = renderPageLayout(
-            <PageBlock column="main" blockId="list-table">
-                <div data-testid="page-block-original">original</div>
-            </PageBlock>,
-            { isDesktop: true },
-        );
-
-        expect(getRenderedBlockIds(markup)).toEqual(['page-block-original']);
+        expect(getRenderedBlockIds(renderWithOriginal())).toEqual(['page-block-original']);
     });
 
     // Documents the mixed-permission case: when at least one replacement is allowed,
@@ -289,15 +277,8 @@ describe('PageLayout', () => {
         registerBlock('replacement-allowed', 'replace', 'customer-list', ['allowed-perm']);
         registerBlock('replacement-denied', 'replace', 'customer-list', ['denied-perm']);
 
-        const markup = renderPageLayout(
-            <PageBlock column="main" blockId="list-table">
-                <div data-testid="page-block-original">original</div>
-            </PageBlock>,
-            { isDesktop: true },
-        );
-
         // toEqual is exact — proves replacement-denied is absent AND original is absent
-        expect(getRenderedBlockIds(markup)).toEqual(['page-block-replacement-allowed']);
+        expect(getRenderedBlockIds(renderWithOriginal())).toEqual(['page-block-replacement-allowed']);
     });
 
     it('falls back to the original block when a replace-ordered extension shouldRender returns false', () => {
@@ -308,14 +289,7 @@ describe('PageLayout', () => {
 
         registerBlock('replacement-disabled', 'replace', 'customer-list', [], () => false);
 
-        const markup = renderPageLayout(
-            <PageBlock column="main" blockId="list-table">
-                <div data-testid="page-block-original">original</div>
-            </PageBlock>,
-            { isDesktop: true },
-        );
-
-        expect(getRenderedBlockIds(markup)).toEqual(['page-block-original']);
+        expect(getRenderedBlockIds(renderWithOriginal())).toEqual(['page-block-original']);
     });
 
     it('renders only the original when both before- and replace-ordered extensions are permission-denied', () => {
@@ -324,14 +298,7 @@ describe('PageLayout', () => {
         registerBlock('before-denied', 'before', 'customer-list', ['restricted']);
         registerBlock('replace-denied', 'replace', 'customer-list', ['restricted']);
 
-        const markup = renderPageLayout(
-            <PageBlock column="main" blockId="list-table">
-                <div data-testid="page-block-original">original</div>
-            </PageBlock>,
-            { isDesktop: true },
-        );
-
-        expect(getRenderedBlockIds(markup)).toEqual(['page-block-original']);
+        expect(getRenderedBlockIds(renderWithOriginal())).toEqual(['page-block-original']);
     });
 
     it('positions an extension action bar item before another extension item', () => {

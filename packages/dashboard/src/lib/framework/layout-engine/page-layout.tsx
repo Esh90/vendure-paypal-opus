@@ -252,18 +252,25 @@ export function PageLayout({ children, className }: Readonly<PageLayoutProps>) {
                 return orderPriority[a.location.position.order] - orderPriority[b.location.position.order];
             });
 
+            // using `hasPermissions` over `PermissionGuard` as this would defeat the `isPageBlock` typeguard
+            const willBlockRender = (block: (typeof arrangedExtensionBlocks)[number]) => {
+                if (!block.component) return false;
+                if (typeof block.shouldRender === 'function' && !block.shouldRender(page)) {
+                    return false;
+                }
+                const required = block.requiresPermission ?? [];
+                return hasPermissions(Array.isArray(required) ? required : [required]);
+            };
+
+            // A `replace`-ordered block only counts as a replacement when it would actually render —
+            // otherwise the original child must be kept as a fallback.
             const replacementBlockExists = arrangedExtensionBlocks.some(
-                block => block.location.position.order === 'replace',
+                block => block.location.position.order === 'replace' && willBlockRender(block),
             );
 
             let childBlockInserted = false;
             if (matchingExtensionBlocks.length > 0) {
                 for (const extensionBlock of arrangedExtensionBlocks) {
-                    let extensionBlockShouldRender = true;
-                    if (typeof extensionBlock?.shouldRender === 'function') {
-                        extensionBlockShouldRender = extensionBlock.shouldRender(page);
-                    }
-
                     // Insert child block before the first non-"before" block
                     if (
                         !childBlockInserted &&
@@ -276,16 +283,9 @@ export function PageLayout({ children, className }: Readonly<PageLayoutProps>) {
 
                     const isFullWidth = extensionBlock.location.column === 'full';
                     const BlockComponent = isFullWidth ? FullWidthPageBlock : PageBlock;
-                    const requiresPermission = extensionBlock.requiresPermission ?? [];
-                    const permissions = Array.isArray(requiresPermission)
-                        ? requiresPermission
-                        : [requiresPermission];
 
                     const ExtensionBlock =
-                        extensionBlock.component &&
-                        extensionBlockShouldRender &&
-                        // using `hasPermissions` over `PermissionGuard` as this would defeat the `isPageBlock` typeguard
-                        hasPermissions(permissions) ? (
+                        willBlockRender(extensionBlock) && extensionBlock.component ? (
                             <BlockComponent
                                 key={extensionBlock.id}
                                 column={extensionBlock.location.column}
@@ -296,7 +296,7 @@ export function PageLayout({ children, className }: Readonly<PageLayoutProps>) {
                             </BlockComponent>
                         ) : undefined;
 
-                    if (extensionBlockShouldRender && ExtensionBlock) {
+                    if (ExtensionBlock) {
                         finalChildArray.push(ExtensionBlock);
                     }
                 }

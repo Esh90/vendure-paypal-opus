@@ -241,6 +241,29 @@ describe('PageLayout', () => {
         expect(blockIds).not.toContain('page-block-permission-guard');
     });
 
+    // #4679 follow-up — when a `replace`-ordered extension block requires a permission the user
+    // does not have, the slot is rendered empty instead of falling back to the original child.
+    // Root cause: `replacementBlockExists` is computed in page-layout.tsx without consulting
+    // `hasPermissions`, so the original block is suppressed even though the replacement is then
+    // filtered out by the new permission check at the `ExtensionBlock` resolution site.
+    it('falls back to the original block when a replace-ordered extension is denied by permissions', () => {
+        hasPermissionsMock.mockReturnValue(false);
+
+        registerBlock('permission-replacement', 'replace', 'customer-list', ['restricted-permission']);
+
+        const markup = renderPageLayout(
+            <PageBlock column="main" blockId="list-table">
+                <div data-testid="page-block-original">original</div>
+            </PageBlock>,
+            { isDesktop: true },
+        );
+
+        const blockIds = getRenderedBlockIds(markup);
+
+        expect(blockIds).toEqual(['page-block-original']);
+        expect(blockIds).not.toContain('page-block-permission-replacement');
+    });
+
     it('positions an extension action bar item before another extension item', () => {
         registerActionBarItem('a');
         registerActionBarItem('b', { itemId: 'a', order: 'before' });

@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import {
     AddPaymentToOrderResult,
     ApplyCouponCodeResult,
+    CurrencyCode,
     PaymentInput,
     PaymentMethodQuote,
     RemoveOrderItemsResult,
@@ -12,7 +13,6 @@ import {
     AddFulfillmentToOrderResult,
     AddManualPaymentToOrderResult,
     AddNoteToOrderInput,
-    AdjustmentType,
     CancelOrderInput,
     CancelOrderResult,
     CancelPaymentResult,
@@ -40,13 +40,13 @@ import {
 import { omit } from '@vendure/common/lib/omit';
 import { ID, PaginatedList } from '@vendure/common/lib/shared-types';
 import { summate } from '@vendure/common/lib/shared-utils';
-import { In, IsNull } from 'typeorm';
+import { EntityManager, In, IsNull, LockNotSupportedOnGivenDriverError } from 'typeorm';
 import { FindOptionsUtils } from 'typeorm/find-options/FindOptionsUtils';
 
 import { RequestContext } from '../../api/common/request-context';
 import { RelationPaths } from '../../api/decorators/relations.decorator';
 import { RequestContextCacheService } from '../../cache/request-context-cache.service';
-import { CacheKey } from '../../common/constants';
+import { CacheKey, TRANSACTION_MANAGER_KEY } from '../../common/constants';
 import { ErrorResultUnion, isGraphQlErrorResult, JustErrorResults } from '../../common/error/error-result';
 import { EntityNotFoundError, InternalServerError, UserInputError } from '../../common/error/errors';
 import {
@@ -85,10 +85,10 @@ import { Channel } from '../../entity/channel/channel.entity';
 import { Customer } from '../../entity/customer/customer.entity';
 import { Fulfillment } from '../../entity/fulfillment/fulfillment.entity';
 import { HistoryEntry } from '../../entity/history-entry/history-entry.entity';
-import { FulfillmentLine } from '../../entity/order-line-reference/fulfillment-line.entity';
-import { OrderLine } from '../../entity/order-line/order-line.entity';
-import { OrderModification } from '../../entity/order-modification/order-modification.entity';
 import { Order } from '../../entity/order/order.entity';
+import { OrderLine } from '../../entity/order-line/order-line.entity';
+import { FulfillmentLine } from '../../entity/order-line-reference/fulfillment-line.entity';
+import { OrderModification } from '../../entity/order-modification/order-modification.entity';
 import { Payment } from '../../entity/payment/payment.entity';
 import { ProductVariant } from '../../entity/product-variant/product-variant.entity';
 import { Promotion } from '../../entity/promotion/promotion.entity';
@@ -215,7 +215,6 @@ export class OrderService {
         ctx: RequestContext,
         orderId: ID,
         relations?: RelationPaths<Order>,
-        lock?: { mode: 'pessimistic_read' | 'pessimistic_write' },
     ): Promise<Order | undefined> {
         const qb = this.connection.getRepository(ctx, Order).createQueryBuilder('order');
         const effectiveRelations = relations ?? [
@@ -252,7 +251,6 @@ export class OrderService {
         qb.setFindOptions({
             relations: orderRelations,
             relationLoadStrategy: 'query',
-            lock: this.getLockMode(lock),
         })
             .leftJoin('order.channels', 'channel')
             .where('order.id = :orderId', { orderId })
@@ -337,7 +335,7 @@ export class OrderService {
         );
         return this.listQueryBuilder
             .build(Order, options, {
-                relations: relations ?? ['lines', 'customer', 'channels', 'shippingLines'],
+                relations: effectiveRelations,
                 channelId: ctx.channelId,
                 ctx,
             })
@@ -503,7 +501,7 @@ export class OrderService {
      * Updates the custom fields of an Order.
      */
     async updateCustomFields(ctx: RequestContext, orderId: ID, customFields: any) {
-        let order = await this.getOrderOrThrow(ctx, orderId, undefined, { mode: 'pessimistic_write' });
+        let order = await this.getOrderOrThrow(ctx, orderId);
         order = patchEntity(order, { customFields });
         const updatedOrder = await this.connection.getRepository(ctx, Order).save(order);
         await this.customFieldRelationService.updateRelations(ctx, Order, { customFields }, updatedOrder);
@@ -519,9 +517,7 @@ export class OrderService {
      * @since 2.2.0
      */
     async updateOrderCustomer(ctx: RequestContext, { customerId, orderId, note }: SetOrderCustomerInput) {
-        const order = await this.getOrderOrThrow(ctx, orderId, ['channels', 'customer'], {
-            mode: 'pessimistic_write',
-        });
+        const order = await this.getOrderOrThrow(ctx, orderId, ['channels', 'customer']);
         const currentCustomer = order.customer;
         if (currentCustomer?.id === customerId) {
             // No change in customer, so just return the order as-is
@@ -557,6 +553,56 @@ export class OrderService {
                 note,
             },
         });
+        return updatedOrder;
+    }
+
+    /**
+     * @description
+     * Updates the currency code of an Order. This will recalculate all prices
+     * in the new currency using `applyPriceAdjustments`.
+     *
+     * @since 3.3.0
+     */
+    async updateOrderCurrency(
+        ctx: RequestContext,
+        orderId: ID,
+        currencyCode: CurrencyCode,
+        relations?: RelationPaths<Order>,
+    ): Promise<ErrorResultUnion<UpdateOrderItemsResult, Order>> {
+        const order = await this.getOrderOrThrow(ctx, orderId);
+        const validationError = this.assertAddingItemsState(order);
+        if (validationError) {
+            return validationError;
+        }
+
+        if (order.currencyCode === currencyCode) {
+            return order;
+        }
+
+        const channel = await this.channelService.getChannelFromToken(ctx.channel.token);
+        if (!channel.availableCurrencyCodes.includes(currencyCode)) {
+            throw new UserInputError('error.currency-not-available', { currencyCode });
+        }
+
+        const previousCurrencyCode = order.currencyCode;
+
+        const newCurrencyCtx = ctx.copy();
+        (newCurrencyCtx as any)._currencyCode = currencyCode;
+
+        order.currencyCode = currencyCode;
+
+        await this.historyService.createHistoryEntryForOrder({
+            ctx,
+            orderId: order.id,
+            type: HistoryEntryType.ORDER_CURRENCY_UPDATED,
+            data: {
+                previousCurrency: previousCurrencyCode,
+                newCurrency: currencyCode,
+            },
+        });
+
+        const updatedOrder = await this.applyPriceAdjustments(newCurrencyCtx, order, order.lines, relations);
+        await this.eventBus.publish(new OrderEvent(ctx, updatedOrder, 'updated'));
         return updatedOrder;
     }
 
@@ -609,7 +655,7 @@ export class OrderService {
         }>,
         relations?: RelationPaths<Order>,
     ): Promise<{ order: Order; errorResults: Array<JustErrorResults<UpdateOrderItemsResult>> }> {
-        const order = await this.getOrderOrThrow(ctx, orderId, undefined, { mode: 'pessimistic_write' });
+        const order = await this.getOrderOrThrow(ctx, orderId);
         const errorResults: Array<JustErrorResults<UpdateOrderItemsResult>> = [];
         const updatedOrderLines: OrderLine[] = [];
         addItem: for (const item of items) {
@@ -756,7 +802,7 @@ export class OrderService {
         lines: Array<{ orderLineId: ID; quantity: number; customFields?: { [key: string]: any } }>,
         relations?: RelationPaths<Order>,
     ): Promise<{ order: Order; errorResults: Array<JustErrorResults<UpdateOrderItemsResult>> }> {
-        const order = await this.getOrderOrThrow(ctx, orderId, undefined, { mode: 'pessimistic_write' });
+        const order = await this.getOrderOrThrow(ctx, orderId);
         const errorResults: Array<JustErrorResults<UpdateOrderItemsResult>> = [];
         const updatedOrderLines: OrderLine[] = [];
         adjustLine: for (const line of lines) {
@@ -884,7 +930,7 @@ export class OrderService {
         orderId: ID,
         orderLineIds: ID[],
     ): Promise<ErrorResultUnion<RemoveOrderItemsResult, Order>> {
-        const order = await this.getOrderOrThrow(ctx, orderId, undefined, { mode: 'pessimistic_write' });
+        const order = await this.getOrderOrThrow(ctx, orderId);
         const validationError = this.assertAddingItemsState(order);
         if (validationError) {
             return validationError;
@@ -927,7 +973,7 @@ export class OrderService {
         ctx: RequestContext,
         orderId: ID,
     ): Promise<ErrorResultUnion<RemoveOrderItemsResult, Order>> {
-        const order = await this.getOrderOrThrow(ctx, orderId, undefined, { mode: 'pessimistic_write' });
+        const order = await this.getOrderOrThrow(ctx, orderId);
         const validationError = this.assertAddingItemsState(order);
         if (validationError) {
             return validationError;
@@ -960,7 +1006,7 @@ export class OrderService {
         orderId: ID,
         surchargeInput: Partial<Omit<Surcharge, 'id' | 'createdAt' | 'updatedAt' | 'order'>>,
     ): Promise<Order> {
-        const order = await this.getOrderOrThrow(ctx, orderId, undefined, { mode: 'pessimistic_write' });
+        const order = await this.getOrderOrThrow(ctx, orderId);
         const surcharge = await this.connection.getRepository(ctx, Surcharge).save(
             new Surcharge({
                 taxLines: [],
@@ -980,7 +1026,7 @@ export class OrderService {
      * Removes a {@link Surcharge} from the Order.
      */
     async removeSurchargeFromOrder(ctx: RequestContext, orderId: ID, surchargeId: ID): Promise<Order> {
-        const order = await this.getOrderOrThrow(ctx, orderId, undefined, { mode: 'pessimistic_write' });
+        const order = await this.getOrderOrThrow(ctx, orderId);
         const surcharge = await this.connection.getEntityOrThrow(ctx, Surcharge, surchargeId);
         if (order.surcharges.find(s => idsAreEqual(s.id, surcharge.id))) {
             order.surcharges = order.surcharges.filter(s => !idsAreEqual(s.id, surchargeId));
@@ -1002,7 +1048,7 @@ export class OrderService {
         orderId: ID,
         couponCode: string,
     ): Promise<ErrorResultUnion<ApplyCouponCodeResult, Order>> {
-        const order = await this.getOrderOrThrow(ctx, orderId, undefined, { mode: 'pessimistic_write' });
+        const order = await this.getOrderOrThrow(ctx, orderId);
         if (order.couponCodes.includes(couponCode)) {
             return order;
         }
@@ -1030,16 +1076,8 @@ export class OrderService {
      * Removes a coupon code from the Order.
      */
     async removeCouponCode(ctx: RequestContext, orderId: ID, couponCode: string) {
-        const order = await this.getOrderOrThrow(ctx, orderId, undefined, { mode: 'pessimistic_write' });
+        const order = await this.getOrderOrThrow(ctx, orderId);
         if (order.couponCodes.includes(couponCode)) {
-            // When removing a couponCode which has triggered an Order-level discount
-            // we need to make sure we persist the changes to the adjustments array of
-            // any affected OrderLines.
-            const affectedOrderLines = order.lines.filter(
-                line =>
-                    line.adjustments.filter(a => a.type === AdjustmentType.DISTRIBUTED_ORDER_PROMOTION)
-                        .length,
-            );
             order.couponCodes = order.couponCodes.filter(cc => cc !== couponCode);
             await this.historyService.createHistoryEntryForOrder({
                 ctx,
@@ -1048,9 +1086,7 @@ export class OrderService {
                 data: { couponCode },
             });
             await this.eventBus.publish(new CouponCodeEvent(ctx, couponCode, orderId, 'removed'));
-            const result = await this.applyPriceAdjustments(ctx, order);
-            await this.connection.getRepository(ctx, OrderLine).save(affectedOrderLines);
-            return result;
+            return this.applyPriceAdjustments(ctx, order);
         } else {
             return order;
         }
@@ -1081,7 +1117,7 @@ export class OrderService {
      * Sets the shipping address for the Order.
      */
     async setShippingAddress(ctx: RequestContext, orderId: ID, input: CreateAddressInput): Promise<Order> {
-        const order = await this.getOrderOrThrow(ctx, orderId, undefined, { mode: 'pessimistic_write' });
+        const order = await this.getOrderOrThrow(ctx, orderId);
         const country = await this.countryService.findOneByCode(ctx, input.countryCode);
         const shippingAddress = { ...input, countryCode: input.countryCode, country: country.name };
         await this.connection
@@ -1095,8 +1131,8 @@ export class OrderService {
         // Since a changed ShippingAddress could alter the activeTaxZone,
         // we will remove any cached activeTaxZone, so it can be re-calculated
         // as needed.
-        this.requestCache.set(ctx, CacheKey.ActiveTaxZone, undefined);
-        this.requestCache.set(ctx, CacheKey.ActiveTaxZone_PPA, undefined);
+        this.requestCache.set(ctx, CacheKey.ActiveTaxZone(ctx.channelId), undefined);
+        this.requestCache.set(ctx, CacheKey.ActiveTaxZone_PPA(ctx.channelId), undefined);
         return this.applyPriceAdjustments(ctx, order, order.lines);
     }
 
@@ -1105,7 +1141,7 @@ export class OrderService {
      * Sets the billing address for the Order.
      */
     async setBillingAddress(ctx: RequestContext, orderId: ID, input: CreateAddressInput): Promise<Order> {
-        const order = await this.getOrderOrThrow(ctx, orderId, undefined, { mode: 'pessimistic_write' });
+        const order = await this.getOrderOrThrow(ctx, orderId);
         const country = await this.countryService.findOneByCode(ctx, input.countryCode);
         const billingAddress = { ...input, countryCode: input.countryCode, country: country.name };
         await this.connection
@@ -1119,8 +1155,8 @@ export class OrderService {
         // Since a changed BillingAddress could alter the activeTaxZone,
         // we will remove any cached activeTaxZone, so it can be re-calculated
         // as needed.
-        this.requestCache.set(ctx, CacheKey.ActiveTaxZone, undefined);
-        this.requestCache.set(ctx, CacheKey.ActiveTaxZone_PPA, undefined);
+        this.requestCache.set(ctx, CacheKey.ActiveTaxZone(ctx.channelId), undefined);
+        this.requestCache.set(ctx, CacheKey.ActiveTaxZone_PPA(ctx.channelId), undefined);
         return this.applyPriceAdjustments(ctx, order, order.lines);
     }
 
@@ -1131,7 +1167,7 @@ export class OrderService {
      * @since 3.1.0
      */
     async unsetShippingAddress(ctx: RequestContext, orderId: ID): Promise<Order> {
-        const order = await this.getOrderOrThrow(ctx, orderId, undefined, { mode: 'pessimistic_write' });
+        const order = await this.getOrderOrThrow(ctx, orderId);
         await this.connection
             .getRepository(ctx, Order)
             .createQueryBuilder('order')
@@ -1143,8 +1179,8 @@ export class OrderService {
         // Since a changed ShippingAddress could alter the activeTaxZone,
         // we will remove any cached activeTaxZone, so it can be re-calculated
         // as needed.
-        this.requestCache.set(ctx, CacheKey.ActiveTaxZone, undefined);
-        this.requestCache.set(ctx, CacheKey.ActiveTaxZone_PPA, undefined);
+        this.requestCache.set(ctx, CacheKey.ActiveTaxZone(ctx.channelId), undefined);
+        this.requestCache.set(ctx, CacheKey.ActiveTaxZone_PPA(ctx.channelId), undefined);
         return this.applyPriceAdjustments(ctx, order, order.lines);
     }
 
@@ -1155,7 +1191,7 @@ export class OrderService {
      * @since 3.1.0
      */
     async unsetBillingAddress(ctx: RequestContext, orderId: ID): Promise<Order> {
-        const order = await this.getOrderOrThrow(ctx, orderId, undefined, { mode: 'pessimistic_write' });
+        const order = await this.getOrderOrThrow(ctx, orderId);
         await this.connection
             .getRepository(ctx, Order)
             .createQueryBuilder('order')
@@ -1167,8 +1203,8 @@ export class OrderService {
         // Since a changed BillingAddress could alter the activeTaxZone,
         // we will remove any cached activeTaxZone, so it can be re-calculated
         // as needed.
-        this.requestCache.set(ctx, CacheKey.ActiveTaxZone, undefined);
-        this.requestCache.set(ctx, CacheKey.ActiveTaxZone_PPA, undefined);
+        this.requestCache.set(ctx, CacheKey.ActiveTaxZone(ctx.channelId), undefined);
+        this.requestCache.set(ctx, CacheKey.ActiveTaxZone_PPA(ctx.channelId), undefined);
         return this.applyPriceAdjustments(ctx, order, order.lines);
     }
 
@@ -1216,7 +1252,7 @@ export class OrderService {
         orderId: ID,
         shippingMethodIds: ID[],
     ): Promise<ErrorResultUnion<SetOrderShippingMethodResult, Order>> {
-        const order = await this.getOrderOrThrow(ctx, orderId, undefined, { mode: 'pessimistic_write' });
+        const order = await this.getOrderOrThrow(ctx, orderId);
         const validationError = this.assertAddingItemsState(order);
         if (validationError) {
             return validationError;
@@ -1225,9 +1261,7 @@ export class OrderService {
         if (isGraphQlErrorResult(result)) {
             return result;
         }
-        const updatedOrder = await this.getOrderOrThrow(ctx, orderId, undefined, {
-            mode: 'pessimistic_write',
-        });
+        const updatedOrder = await this.getOrderOrThrow(ctx, orderId);
         await this.applyPriceAdjustments(ctx, updatedOrder);
         return this.connection.getRepository(ctx, Order).save(updatedOrder);
     }
@@ -1241,22 +1275,32 @@ export class OrderService {
         orderId: ID,
         state: OrderState,
     ): Promise<Order | OrderStateTransitionError> {
-        const order = await this.getOrderOrThrow(ctx, orderId, undefined, { mode: 'pessimistic_write' });
-        order.payments = await this.getOrderPayments(ctx, orderId);
-        const fromState = order.state;
-        let finalize: () => Promise<any>;
-        try {
-            const result = await this.orderStateMachine.transition(ctx, order, state);
-            finalize = result.finalize;
-        } catch (e: any) {
-            const transitionError = ctx.translate(e.message, { fromState, toState: state });
-            return new OrderStateTransitionError({ transitionError, fromState, toState: state });
-        }
-        await this.connection.getRepository(ctx, Order).save(order, { reload: false });
-        await this.eventBus.publish(new OrderStateTransitionEvent(fromState, state, ctx, order));
-        await finalize();
-        await this.connection.getRepository(ctx, Order).save(order, { reload: false });
-        return order;
+        // Wrapped in withTransaction so that the in-memory state mutation, the
+        // first save, the onTransitionEnd hooks (which themselves perform DB
+        // writes — stock allocations, history entries, OrderPlacedStrategy
+        // mutations) and the second save all commit or roll back together.
+        // Without this, a throwing onTransitionEnd would leave the order in a
+        // half-committed state (state=new, active=true, orderPlacedAt=null).
+        // Joins any existing transaction in ctx, so callers that already have
+        // @Transaction() are unaffected. See #4686.
+        return this.connection.withTransaction(ctx, async txCtx => {
+            const order = await this.getOrderOrThrow(txCtx, orderId);
+            order.payments = await this.getOrderPayments(txCtx, orderId);
+            const fromState = order.state;
+            let finalize: () => Promise<any>;
+            try {
+                const result = await this.orderStateMachine.transition(txCtx, order, state);
+                finalize = result.finalize;
+            } catch (e: any) {
+                const transitionError = txCtx.translate(e.message, { fromState, toState: state });
+                return new OrderStateTransitionError({ transitionError, fromState, toState: state });
+            }
+            await this.connection.getRepository(txCtx, Order).save(order, { reload: false });
+            await this.eventBus.publish(new OrderStateTransitionEvent(fromState, state, txCtx, order));
+            await finalize();
+            await this.connection.getRepository(txCtx, Order).save(order, { reload: false });
+            return order;
+        });
     }
 
     /**
@@ -1286,26 +1330,30 @@ export class OrderService {
         state: RefundState,
         transactionId?: string,
     ): Promise<Refund | RefundStateTransitionError> {
-        const refund = await this.connection.getEntityOrThrow(ctx, Refund, refundId, {
-            relations: ['payment', 'payment.order'],
+        // Wrapped in withTransaction so the state save and onTransitionEnd hooks
+        // are atomic — see the equivalent comment on transitionToState. #4686.
+        return this.connection.withTransaction(ctx, async txCtx => {
+            const refund = await this.connection.getEntityOrThrow(txCtx, Refund, refundId, {
+                relations: ['payment', 'payment.order'],
+            });
+            if (transactionId && refund.transactionId !== transactionId) {
+                refund.transactionId = transactionId;
+            }
+            const fromState = refund.state;
+            const toState = state;
+            const { finalize } = await this.refundStateMachine.transition(
+                txCtx,
+                refund.payment.order,
+                refund,
+                toState,
+            );
+            await this.connection.getRepository(txCtx, Refund).save(refund);
+            await finalize();
+            await this.eventBus.publish(
+                new RefundStateTransitionEvent(fromState, toState, txCtx, refund, refund.payment.order),
+            );
+            return refund;
         });
-        if (transactionId && refund.transactionId !== transactionId) {
-            refund.transactionId = transactionId;
-        }
-        const fromState = refund.state;
-        const toState = state;
-        const { finalize } = await this.refundStateMachine.transition(
-            ctx,
-            refund.payment.order,
-            refund,
-            toState,
-        );
-        await this.connection.getRepository(ctx, Refund).save(refund);
-        await finalize();
-        await this.eventBus.publish(
-            new RefundStateTransitionEvent(fromState, toState, ctx, refund, refund.payment.order),
-        );
-        return refund;
     }
 
     /**
@@ -1327,9 +1375,7 @@ export class OrderService {
         ctx: RequestContext,
         input: ModifyOrderInput,
     ): Promise<ErrorResultUnion<ModifyOrderResult, Order>> {
-        const order = await this.getOrderOrThrow(ctx, input.orderId, undefined, {
-            mode: 'pessimistic_write',
-        });
+        const order = await this.getOrderOrThrow(ctx, input.orderId);
         const result = await this.orderModifier.modifyOrder(ctx, input, order);
 
         if (isGraphQlErrorResult(result)) {
@@ -1348,7 +1394,7 @@ export class OrderService {
                 modificationId: result.modification.id,
             },
         });
-        return this.getOrderOrThrow(ctx, input.orderId, undefined, { mode: 'pessimistic_write' });
+        return this.getOrderOrThrow(ctx, input.orderId);
     }
 
     /**
@@ -1373,15 +1419,47 @@ export class OrderService {
         orderId: ID,
         input: PaymentInput,
     ): Promise<ErrorResultUnion<AddPaymentToOrderResult, Order>> {
-        const order = await this.getOrderOrThrow(ctx, orderId, undefined, { mode: 'pessimistic_write' });
+        this.assertInTransaction(ctx, 'OrderService.addPaymentToOrder');
+        const order = await this.getOrderOrThrow(ctx, orderId);
         if (!this.canAddPaymentToOrder(order)) {
             return new OrderPaymentStateError();
         }
-        order.payments = await this.getOrderPayments(ctx, order.id);
-        const amountToPay = order.totalWithTax - totalCoveredByPayments(order);
+        const totalWithTaxBeforeRevalidation = order.totalWithTax;
+        const couponsRemoved = await this.revalidateCouponCodesForOrder(ctx, order);
+        // Re-fetch order if coupons were removed, so totals reflect recalculated prices
+        const freshOrder = couponsRemoved ? await this.getOrderOrThrow(ctx, orderId) : order;
+        if (couponsRemoved && totalWithTaxBeforeRevalidation < freshOrder.totalWithTax) {
+            // A coupon was stripped during revalidation AND that strip
+            // increased what the customer would be charged (e.g. a
+            // usage-limited coupon's slot was claimed by a concurrent
+            // checkout). Do not proceed to charge the customer at the new
+            // amount — surface a typed error so the storefront can refresh
+            // the order and re-confirm. The coupon strip itself is committed
+            // alongside this error so subsequent addPaymentToOrder attempts
+            // see the recalculated totals.
+            //
+            // Strips that do not change the total (e.g. a coupon whose
+            // promotion was already deleted and no longer affecting pricing,
+            // or a coupon stacked on top of another that already maxed out
+            // the discount) fall through silently — there is no surprise
+            // charge to surface, and rejecting in those cases would create
+            // unnecessary friction.
+            //
+            // PaymentFailedError is reused here to avoid a breaking change
+            // to the AddPaymentToOrderResult union on the master branch.
+            // A dedicated CouponRemovedDuringCheckoutError is planned as a
+            // follow-up on the minor branch — see
+            // https://github.com/vendurehq/vendure/pull/4660.
+            return new PaymentFailedError({
+                paymentErrorMessage:
+                    'Order total changed during checkout because a coupon is no longer available. Please refresh your order and retry.',
+            });
+        }
+        freshOrder.payments = await this.getOrderPayments(ctx, freshOrder.id);
+        const amountToPay = freshOrder.totalWithTax - totalCoveredByPayments(freshOrder);
         const payment = await this.paymentService.createPayment(
             ctx,
-            order,
+            freshOrder,
             amountToPay,
             input.method,
             input.metadata,
@@ -1395,7 +1473,7 @@ export class OrderService {
             .getRepository(ctx, Order)
             .createQueryBuilder()
             .relation('payments')
-            .of(order)
+            .of(freshOrder)
             .add(payment);
 
         if (payment.state === 'Error') {
@@ -1405,11 +1483,136 @@ export class OrderService {
             return new PaymentDeclinedError({ paymentErrorMessage: payment.errorMessage || '' });
         }
 
-        return assertFound(this.findOne(ctx, order.id));
+        return assertFound(this.findOne(ctx, freshOrder.id));
     }
 
     /**
-     * @description
+     * Re-validates all coupon codes on the order with a pessimistic lock on
+     * the Promotion rows. This serializes concurrent payment attempts so that
+     * only one order can "claim" a usage-limited coupon at a time.
+     * If a coupon is no longer valid (e.g. usage limit reached), it is removed
+     * from the order and the order totals are recalculated.
+     * Returns true if any coupons were removed, false otherwise.
+     *
+     * Note on selection semantics: the lock guarantees the bug case ("everyone
+     * wins" — N orders all keeping a `usageLimit: 1` coupon) is impossible.
+     * The exact resolution under contention depends on the database's
+     * transaction-isolation default:
+     *
+     *   - Postgres (READ COMMITTED): each non-locking SELECT sees the
+     *     latest committed data. The first lock holder observes N-1 other
+     *     orders associated with the promotion (because `countPromotionUsages`
+     *     joins through `order.promotions` and counts `ArrangingPayment`
+     *     orders) and fails validation, so its coupon is stripped. Each
+     *     subsequent lock holder sees one fewer associated order, and the
+     *     final lock holder sees zero and succeeds. Net: exactly one winner,
+     *     specifically whichever order acquires the lock last ("last-wins").
+     *
+     *   - MySQL/MariaDB (REPEATABLE READ): the consistent-read snapshot is
+     *     established by the very first non-locking SELECT in the resolver's
+     *     transaction (the order lookup at the top of `addPaymentToOrder`),
+     *     before this lock is acquired. Every subsequent non-locking SELECT
+     *     in the same transaction reads from that fixed snapshot, so each
+     *     concurrent transaction's count query still sees the *other* orders
+     *     as holding the coupon. Result: every contender sees `count >= 1`
+     *     and strips, yielding zero winners. This is over-protective rather
+     *     than buggy — the over-application invariant still holds — but it
+     *     is a worse outcome than Postgres's last-wins. Closing this gap
+     *     properly requires either bypassing the snapshot for the count
+     *     query (`SELECT ... FOR UPDATE`) or restructuring so the lock
+     *     query is the very first read in the transaction; both come with
+     *     trade-offs (gap locks, broader scope) and are deferred.
+     *
+     * Do not "fix" the resolution into first-wins without re-deriving the
+     * count semantics from scratch.
+     *
+     * See https://github.com/vendurehq/vendure/pull/4660
+     */
+    private async revalidateCouponCodesForOrder(ctx: RequestContext, order: Order): Promise<boolean> {
+        let removedAny = false;
+        for (const couponCode of [...order.couponCodes]) {
+            // Resolve the promotion in the current channel before locking so
+            // that the lock query can target the promotion's primary key. PK
+            // lookups always hit an index, take a single-row lock on every
+            // supported DB, and avoid the gap-locking behaviour MySQL/MariaDB
+            // would otherwise exhibit when filtering by `couponCode` (which
+            // has no dedicated index).
+            const promotion = await this.connection.getRepository(ctx, Promotion).findOne({
+                where: {
+                    couponCode,
+                    enabled: true,
+                    deletedAt: IsNull(),
+                    channels: { id: ctx.channelId },
+                },
+            });
+            if (promotion) {
+                // Acquire a pessimistic write lock on the promotion row to
+                // serialize concurrent payment attempts. The lock is held
+                // until the resolver's @Transaction() commits. On SQLite the
+                // lock is not supported; SQLite serializes writes at the
+                // engine level instead.
+                try {
+                    await this.connection
+                        .getRepository(ctx, Promotion)
+                        .createQueryBuilder('promotion')
+                        .setLock('pessimistic_write')
+                        .where('promotion.id = :id', { id: promotion.id })
+                        .getOne();
+                } catch (e) {
+                    if (!(e instanceof LockNotSupportedOnGivenDriverError)) {
+                        throw e;
+                    }
+                    // Lock not supported (e.g. SQLite) — continue without it
+                }
+            }
+            const validationResult = await this.promotionService.validateCouponCode(
+                ctx,
+                couponCode,
+                order.customer?.id,
+                order.id,
+            );
+            if (isGraphQlErrorResult(validationResult)) {
+                order.couponCodes = order.couponCodes.filter(c => c !== couponCode);
+                removedAny = true;
+            }
+        }
+        if (removedAny) {
+            await this.applyPriceAdjustments(ctx, order);
+        }
+        return removedAny;
+    }
+
+    /**
+     * Throws if the given RequestContext is not associated with an active
+     * database transaction. Used to guard methods whose correctness depends
+     * on a wrapping transaction — both for atomicity (so a partial failure
+     * rolls back rather than leaving the order in a half-updated state) and
+     * to ensure the pessimistic lock acquired by `revalidateCouponCodesForOrder`
+     * is held for the duration of the payment work, not silently released
+     * by an autocommit one-statement transaction.
+     *
+     * Resolvers reach these methods through the `@Transaction()` decorator,
+     * which is the supported entry path. Callers from outside the resolver
+     * layer (background jobs, plugin services, lifecycle hooks) must wrap
+     * the call themselves via `TransactionalConnection.startTransaction()`
+     * or the equivalent helper.
+     */
+    private assertInTransaction(ctx: RequestContext, methodName: string): void {
+        const entityManager = (ctx as unknown as Record<symbol, EntityManager | undefined>)[
+            TRANSACTION_MANAGER_KEY
+        ];
+        const queryRunner = entityManager?.queryRunner;
+        if (!queryRunner || queryRunner.isReleased) {
+            throw new InternalServerError(
+                `${methodName} must be called within a transaction. ` +
+                    'Wrap the call with the @Transaction() resolver decorator, or — when ' +
+                    'invoking from outside a resolver — start a transaction via ' +
+                    'TransactionalConnection.startTransaction() before calling.',
+            );
+        }
+    }
+
+    /**
      * We can add a Payment to the order if:
      * 1. the Order is in the `ArrangingPayment` state or
      * 2. the Order's current state can transition to `PaymentAuthorized` and `PaymentSettled`
@@ -1442,16 +1645,20 @@ export class OrderService {
         ctx: RequestContext,
         input: ManualPaymentInput,
     ): Promise<ErrorResultUnion<AddManualPaymentToOrderResult, Order>> {
-        const order = await this.getOrderOrThrow(ctx, input.orderId, undefined, {
-            mode: 'pessimistic_write',
-        });
+        this.assertInTransaction(ctx, 'OrderService.addManualPaymentToOrder');
+        const order = await this.getOrderOrThrow(ctx, input.orderId);
         if (order.state !== 'ArrangingAdditionalPayment' && order.state !== 'ArrangingPayment') {
             return new ManualPaymentStateError();
         }
-        const existingPayments = await this.getOrderPayments(ctx, order.id);
-        order.payments = existingPayments;
-        const amount = order.totalWithTax - totalCoveredByPayments(order);
-        const modifications = await this.getOrderModifications(ctx, order.id);
+        const manualCouponsRemoved = await this.revalidateCouponCodesForOrder(ctx, order);
+        // Re-fetch order so totals reflect any recalculated prices
+        const freshManualOrder = manualCouponsRemoved
+            ? await this.getOrderOrThrow(ctx, input.orderId)
+            : order;
+        const existingPayments = await this.getOrderPayments(ctx, freshManualOrder.id);
+        freshManualOrder.payments = existingPayments;
+        const amount = freshManualOrder.totalWithTax - totalCoveredByPayments(freshManualOrder);
+        const modifications = await this.getOrderModifications(ctx, freshManualOrder.id);
         const unsettledModifications = modifications.filter(m => !m.isSettled);
         if (0 < unsettledModifications.length) {
             const outstandingModificationsTotal = summate(unsettledModifications, 'priceChange');
@@ -1462,18 +1669,18 @@ export class OrderService {
             }
         }
 
-        const payment = await this.paymentService.createManualPayment(ctx, order, amount, input);
+        const payment = await this.paymentService.createManualPayment(ctx, freshManualOrder, amount, input);
         await this.connection
             .getRepository(ctx, Order)
             .createQueryBuilder('order')
             .relation('payments')
-            .of(order)
+            .of(freshManualOrder)
             .add(payment);
         for (const modification of unsettledModifications) {
             modification.payment = payment;
             await this.connection.getRepository(ctx, OrderModification).save(modification);
         }
-        return assertFound(this.findOne(ctx, order.id));
+        return assertFound(this.findOne(ctx, freshManualOrder.id));
     }
 
     /**
@@ -1693,9 +1900,7 @@ export class OrderService {
     }
 
     private async cancelOrderById(ctx: RequestContext, input: CancelOrderInput) {
-        const order = await this.getOrderOrThrow(ctx, input.orderId, undefined, {
-            mode: 'pessimistic_write',
-        });
+        const order = await this.getOrderOrThrow(ctx, input.orderId);
         if (order.active) {
             return true;
         } else {
@@ -1755,24 +1960,28 @@ export class OrderService {
      * Settles a Refund by transitioning it to the `Settled` state.
      */
     async settleRefund(ctx: RequestContext, input: SettleRefundInput): Promise<Refund> {
-        const refund = await this.connection.getEntityOrThrow(ctx, Refund, input.id, {
-            relations: ['payment', 'payment.order'],
+        // Wrapped in withTransaction so the state save and onTransitionEnd hooks
+        // are atomic — see the equivalent comment on transitionToState. #4686.
+        return this.connection.withTransaction(ctx, async txCtx => {
+            const refund = await this.connection.getEntityOrThrow(txCtx, Refund, input.id, {
+                relations: ['payment', 'payment.order'],
+            });
+            refund.transactionId = input.transactionId;
+            const fromState = refund.state;
+            const toState = 'Settled';
+            const { finalize } = await this.refundStateMachine.transition(
+                txCtx,
+                refund.payment.order,
+                refund,
+                toState,
+            );
+            await this.connection.getRepository(txCtx, Refund).save(refund);
+            await finalize();
+            await this.eventBus.publish(
+                new RefundStateTransitionEvent(fromState, toState, txCtx, refund, refund.payment.order),
+            );
+            return refund;
         });
-        refund.transactionId = input.transactionId;
-        const fromState = refund.state;
-        const toState = 'Settled';
-        const { finalize } = await this.refundStateMachine.transition(
-            ctx,
-            refund.payment.order,
-            refund,
-            toState,
-        );
-        await this.connection.getRepository(ctx, Refund).save(refund);
-        await finalize();
-        await this.eventBus.publish(
-            new RefundStateTransitionEvent(fromState, toState, ctx, refund, refund.payment.order),
-        );
-        return refund;
     }
 
     /**
@@ -1787,7 +1996,7 @@ export class OrderService {
         const order =
             orderIdOrOrder instanceof Order
                 ? orderIdOrOrder
-                : await this.getOrderOrThrow(ctx, orderIdOrOrder, undefined, { mode: 'pessimistic_write' });
+                : await this.getOrderOrThrow(ctx, orderIdOrOrder);
         order.customer = customer;
         await this.connection.getRepository(ctx, Order).save(order, { reload: false });
         let updatedOrder = order;
@@ -1813,7 +2022,7 @@ export class OrderService {
      * Creates a new "ORDER_NOTE" type {@link OrderHistoryEntry} in the Order's history timeline.
      */
     async addNoteToOrder(ctx: RequestContext, input: AddNoteToOrderInput): Promise<Order> {
-        const order = await this.getOrderOrThrow(ctx, input.id, undefined, { mode: 'pessimistic_write' });
+        const order = await this.getOrderOrThrow(ctx, input.id);
         await this.historyService.createHistoryEntryForOrder(
             {
                 ctx,
@@ -1866,7 +2075,7 @@ export class OrderService {
                       .getRepository(ctx, Order)
                       .findOneOrFail({ where: { id: orderOrId }, relations: ['lines', 'shippingLines'] });
         // If there is a Session referencing the Order to be deleted, we must first remove that
-        // reference in order to avoid a foreign key error. See https://github.com/vendure-ecommerce/vendure/issues/1454
+        // reference in order to avoid a foreign key error. See https://github.com/vendurehq/vendure/issues/1454
         const sessions = await this.connection
             .getRepository(ctx, Session)
             .find({ where: { activeOrderId: orderToDelete.id } });
@@ -1895,22 +2104,25 @@ export class OrderService {
     ): Promise<Order | undefined> {
         if (guestOrder && guestOrder.customer) {
             // In this case the "guest order" is actually an order of an existing Customer,
-            // so we do not want to merge at all. See https://github.com/vendure-ecommerce/vendure/issues/263
+            // so we do not want to merge at all. See https://github.com/vendurehq/vendure/issues/263
             return existingOrder;
         }
         try {
             return await this.connection.withTransaction(ctx, async txCtx => {
                 // Acquire a pessimistic lock on the existing order to prevent concurrent merges
                 // from interleaving their DB operations. See https://github.com/vendurehq/vendure/issues/4481
+                // Note: SQLite does not support pessimistic locks — the try-catch ensures we
+                // degrade gracefully (SQLite serializes writes at the engine level anyway).
                 if (existingOrder) {
-                    const lockMode = this.getLockMode({ mode: 'pessimistic_write' });
-                    if (lockMode) {
+                    try {
                         await this.connection
                             .getRepository(txCtx, Order)
                             .createQueryBuilder('order')
-                            .setLock(lockMode.mode)
+                            .setLock('pessimistic_write')
                             .where('order.id = :id', { id: existingOrder.id })
                             .getOne();
+                    } catch {
+                        // Lock not supported (e.g. SQLite) — continue without it
                     }
                 }
 
@@ -1921,7 +2133,7 @@ export class OrderService {
                     return existingOrder;
                 }
 
-                const mergeResult = this.orderMerger.merge(txCtx, freshGuestOrder, existingOrder);
+                const mergeResult = await this.orderMerger.merge(txCtx, freshGuestOrder, existingOrder);
                 const { orderToDelete, linesToInsert, linesToDelete, linesToModify } = mergeResult;
                 let { order } = mergeResult;
                 if (orderToDelete) {
@@ -1932,14 +2144,11 @@ export class OrderService {
                             await this.deleteOrder(innerCtx, orderToDelete);
                         });
                     } catch (e: any) {
-                        if (!isForeignKeyViolationError(e)) {
-                            throw e;
-                        }
-                        if (!order) {
+                        if (!isForeignKeyViolationError(e)) throw e;
+                        if (!order)
                             throw new Error(
                                 `Cannot complete order merge: active order not found, while cancelling order ${orderToDelete.id}`,
                             );
-                        }
 
                         // If the order has a foreign key violation (e.g. with cancelled payments),
                         // instead of deleting it we cancel the order and leave a note with an explanation.
@@ -1981,6 +2190,21 @@ export class OrderService {
                     const result = await this.adjustOrderLines(txCtx, orderId, linesToModify);
                     order = result.order;
                 }
+                if (order && linesToDelete) {
+                    const orderId = order.id;
+                    try {
+                        const result = await this.removeItemsFromOrder(
+                            txCtx,
+                            orderId,
+                            linesToDelete.map(l => l.orderLineId),
+                        );
+                        if (!isGraphQlErrorResult(result)) {
+                            order = result;
+                        }
+                    } catch (e: any) {
+                        Logger.error(e.message, undefined, e.stack);
+                    }
+                }
                 const customer = await this.customerService.findOneByUserId(txCtx, user.id);
                 if (order && customer) {
                     order.customer = customer;
@@ -1988,10 +2212,11 @@ export class OrderService {
                 }
                 return order;
             });
-        } catch (e: any) {
+        } catch (e: unknown) {
             // If the merge fails for any reason, log the error and return the existing order
             // unchanged rather than failing the entire login flow.
-            Logger.error(`Failed to merge orders: ${e.message}`, undefined, e.stack);
+            const error = e instanceof Error ? e : new Error(String(e));
+            Logger.error(`Failed to merge orders: ${error.message}`, undefined, error.stack);
             return existingOrder;
         }
     }
@@ -2000,7 +2225,6 @@ export class OrderService {
         ctx: RequestContext,
         orderId: ID,
         relations?: RelationPaths<Order>,
-        lock?: { mode: 'pessimistic_read' | 'pessimistic_write' },
     ): Promise<Order> {
         const order = await this.findOne(
             ctx,
@@ -2013,7 +2237,6 @@ export class OrderService {
                 'surcharges',
                 'customer',
             ],
-            lock,
         );
         if (!order) {
             throw new EntityNotFoundError('Order', orderId);
@@ -2027,22 +2250,6 @@ export class OrderService {
             throw new UserInputError('error.order-does-not-contain-line-with-id', { id: orderLineId });
         }
         return orderLine;
-    }
-
-    /**
-     * @description
-     * Returns the lock mode if the current database driver supports it, otherwise returns undefined.
-     * This prevents errors when using drivers like SQLite which do not support pessimistic locking.
-     */
-    private getLockMode(lock?: {
-        mode: 'pessimistic_read' | 'pessimistic_write';
-    }): { mode: 'pessimistic_read' | 'pessimistic_write' } | undefined {
-        const supportedTypes = ['mysql', 'mariadb', 'postgres', 'aurora-mysql', 'aurora-postgres'];
-        const dbType = this.connection.rawConnection.options.type;
-        if (lock && supportedTypes.includes(dbType as any)) {
-            return lock;
-        }
-        return undefined;
     }
 
     /**
@@ -2098,8 +2305,19 @@ export class OrderService {
         updatedOrderLines?: OrderLine[],
         relations?: RelationPaths<Order>,
     ): Promise<Order> {
-        const promotions = await this.promotionService.getActivePromotionsInChannel(ctx);
+        const allPromotions = await this.promotionService.getActivePromotionsInChannel(ctx);
         const activePromotionsPre = await this.promotionService.getActivePromotionsOnOrder(ctx, order.id);
+
+        // Filter out auto-applied promotions that have exceeded their usage limits.
+        // Coupon-based promotions are already validated in validateCouponCode().
+        // Safe to cache per-request: the active promotion list (allPromotions) is stable
+        // within a single request, so the exhausted set won't change mid-request.
+        const customerId = order.customerId;
+        const cacheKey = CacheKey.ExhaustedPromotions(ctx.channelId, customerId);
+        const exhaustedIds = await this.requestCache.get(ctx, cacheKey, () =>
+            this.promotionService.getExhaustedPromotionIds(ctx, allPromotions, customerId),
+        );
+        const promotions = allPromotions.filter(p => !exhaustedIds.has(p.id.toString()));
 
         // When changing the Order's currencyCode (on account of passing
         // a different currencyCode into the RequestContext), we need to make sure
@@ -2179,9 +2397,9 @@ export class OrderService {
                     reload: false,
                 },
             );
+        await this.promotionService.runPromotionSideEffects(ctx, order, activePromotionsPre);
         await this.connection.getRepository(ctx, OrderLine).save(updatedOrder.lines, { reload: false });
         await this.connection.getRepository(ctx, ShippingLine).save(order.shippingLines, { reload: false });
-        await this.promotionService.runPromotionSideEffects(ctx, order, activePromotionsPre);
 
         return assertFound(this.findOne(ctx, order.id, relations));
     }

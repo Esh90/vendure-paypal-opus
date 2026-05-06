@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import {
     AddPaymentToOrderResult,
     ApplyCouponCodeResult,
-    CurrencyCode,
     PaymentInput,
     PaymentMethodQuote,
     RemoveOrderItemsResult,
@@ -13,6 +12,7 @@ import {
     AddFulfillmentToOrderResult,
     AddManualPaymentToOrderResult,
     AddNoteToOrderInput,
+    AdjustmentType,
     CancelOrderInput,
     CancelOrderResult,
     CancelPaymentResult,
@@ -215,6 +215,7 @@ export class OrderService {
         ctx: RequestContext,
         orderId: ID,
         relations?: RelationPaths<Order>,
+        lock?: { mode: 'pessimistic_read' | 'pessimistic_write' },
     ): Promise<Order | undefined> {
         const qb = this.connection.getRepository(ctx, Order).createQueryBuilder('order');
         const effectiveRelations = relations ?? [
@@ -251,6 +252,7 @@ export class OrderService {
         qb.setFindOptions({
             relations: orderRelations,
             relationLoadStrategy: 'query',
+            lock: this.getLockMode(lock),
         })
             .leftJoin('order.channels', 'channel')
             .where('order.id = :orderId', { orderId })
@@ -335,7 +337,7 @@ export class OrderService {
         );
         return this.listQueryBuilder
             .build(Order, options, {
-                relations: effectiveRelations,
+                relations: relations ?? ['lines', 'customer', 'channels', 'shippingLines'],
                 channelId: ctx.channelId,
                 ctx,
             })
@@ -501,7 +503,7 @@ export class OrderService {
      * Updates the custom fields of an Order.
      */
     async updateCustomFields(ctx: RequestContext, orderId: ID, customFields: any) {
-        let order = await this.getOrderOrThrow(ctx, orderId);
+        let order = await this.getOrderOrThrow(ctx, orderId, undefined, { mode: 'pessimistic_write' });
         order = patchEntity(order, { customFields });
         const updatedOrder = await this.connection.getRepository(ctx, Order).save(order);
         await this.customFieldRelationService.updateRelations(ctx, Order, { customFields }, updatedOrder);
@@ -517,7 +519,9 @@ export class OrderService {
      * @since 2.2.0
      */
     async updateOrderCustomer(ctx: RequestContext, { customerId, orderId, note }: SetOrderCustomerInput) {
-        const order = await this.getOrderOrThrow(ctx, orderId, ['channels', 'customer']);
+        const order = await this.getOrderOrThrow(ctx, orderId, ['channels', 'customer'], {
+            mode: 'pessimistic_write',
+        });
         const currentCustomer = order.customer;
         if (currentCustomer?.id === customerId) {
             // No change in customer, so just return the order as-is
@@ -553,56 +557,6 @@ export class OrderService {
                 note,
             },
         });
-        return updatedOrder;
-    }
-
-    /**
-     * @description
-     * Updates the currency code of an Order. This will recalculate all prices
-     * in the new currency using `applyPriceAdjustments`.
-     *
-     * @since 3.3.0
-     */
-    async updateOrderCurrency(
-        ctx: RequestContext,
-        orderId: ID,
-        currencyCode: CurrencyCode,
-        relations?: RelationPaths<Order>,
-    ): Promise<ErrorResultUnion<UpdateOrderItemsResult, Order>> {
-        const order = await this.getOrderOrThrow(ctx, orderId);
-        const validationError = this.assertAddingItemsState(order);
-        if (validationError) {
-            return validationError;
-        }
-
-        if (order.currencyCode === currencyCode) {
-            return order;
-        }
-
-        const channel = await this.channelService.getChannelFromToken(ctx.channel.token);
-        if (!channel.availableCurrencyCodes.includes(currencyCode)) {
-            throw new UserInputError('error.currency-not-available', { currencyCode });
-        }
-
-        const previousCurrencyCode = order.currencyCode;
-
-        const newCurrencyCtx = ctx.copy();
-        (newCurrencyCtx as any)._currencyCode = currencyCode;
-
-        order.currencyCode = currencyCode;
-
-        await this.historyService.createHistoryEntryForOrder({
-            ctx,
-            orderId: order.id,
-            type: HistoryEntryType.ORDER_CURRENCY_UPDATED,
-            data: {
-                previousCurrency: previousCurrencyCode,
-                newCurrency: currencyCode,
-            },
-        });
-
-        const updatedOrder = await this.applyPriceAdjustments(newCurrencyCtx, order, order.lines, relations);
-        await this.eventBus.publish(new OrderEvent(ctx, updatedOrder, 'updated'));
         return updatedOrder;
     }
 
@@ -655,7 +609,7 @@ export class OrderService {
         }>,
         relations?: RelationPaths<Order>,
     ): Promise<{ order: Order; errorResults: Array<JustErrorResults<UpdateOrderItemsResult>> }> {
-        const order = await this.getOrderOrThrow(ctx, orderId);
+        const order = await this.getOrderOrThrow(ctx, orderId, undefined, { mode: 'pessimistic_write' });
         const errorResults: Array<JustErrorResults<UpdateOrderItemsResult>> = [];
         const updatedOrderLines: OrderLine[] = [];
         addItem: for (const item of items) {
@@ -802,7 +756,7 @@ export class OrderService {
         lines: Array<{ orderLineId: ID; quantity: number; customFields?: { [key: string]: any } }>,
         relations?: RelationPaths<Order>,
     ): Promise<{ order: Order; errorResults: Array<JustErrorResults<UpdateOrderItemsResult>> }> {
-        const order = await this.getOrderOrThrow(ctx, orderId);
+        const order = await this.getOrderOrThrow(ctx, orderId, undefined, { mode: 'pessimistic_write' });
         const errorResults: Array<JustErrorResults<UpdateOrderItemsResult>> = [];
         const updatedOrderLines: OrderLine[] = [];
         adjustLine: for (const line of lines) {
@@ -930,7 +884,7 @@ export class OrderService {
         orderId: ID,
         orderLineIds: ID[],
     ): Promise<ErrorResultUnion<RemoveOrderItemsResult, Order>> {
-        const order = await this.getOrderOrThrow(ctx, orderId);
+        const order = await this.getOrderOrThrow(ctx, orderId, undefined, { mode: 'pessimistic_write' });
         const validationError = this.assertAddingItemsState(order);
         if (validationError) {
             return validationError;
@@ -973,7 +927,7 @@ export class OrderService {
         ctx: RequestContext,
         orderId: ID,
     ): Promise<ErrorResultUnion<RemoveOrderItemsResult, Order>> {
-        const order = await this.getOrderOrThrow(ctx, orderId);
+        const order = await this.getOrderOrThrow(ctx, orderId, undefined, { mode: 'pessimistic_write' });
         const validationError = this.assertAddingItemsState(order);
         if (validationError) {
             return validationError;
@@ -1006,7 +960,7 @@ export class OrderService {
         orderId: ID,
         surchargeInput: Partial<Omit<Surcharge, 'id' | 'createdAt' | 'updatedAt' | 'order'>>,
     ): Promise<Order> {
-        const order = await this.getOrderOrThrow(ctx, orderId);
+        const order = await this.getOrderOrThrow(ctx, orderId, undefined, { mode: 'pessimistic_write' });
         const surcharge = await this.connection.getRepository(ctx, Surcharge).save(
             new Surcharge({
                 taxLines: [],
@@ -1026,7 +980,7 @@ export class OrderService {
      * Removes a {@link Surcharge} from the Order.
      */
     async removeSurchargeFromOrder(ctx: RequestContext, orderId: ID, surchargeId: ID): Promise<Order> {
-        const order = await this.getOrderOrThrow(ctx, orderId);
+        const order = await this.getOrderOrThrow(ctx, orderId, undefined, { mode: 'pessimistic_write' });
         const surcharge = await this.connection.getEntityOrThrow(ctx, Surcharge, surchargeId);
         if (order.surcharges.find(s => idsAreEqual(s.id, surcharge.id))) {
             order.surcharges = order.surcharges.filter(s => !idsAreEqual(s.id, surchargeId));
@@ -1048,7 +1002,7 @@ export class OrderService {
         orderId: ID,
         couponCode: string,
     ): Promise<ErrorResultUnion<ApplyCouponCodeResult, Order>> {
-        const order = await this.getOrderOrThrow(ctx, orderId);
+        const order = await this.getOrderOrThrow(ctx, orderId, undefined, { mode: 'pessimistic_write' });
         if (order.couponCodes.includes(couponCode)) {
             return order;
         }
@@ -1076,8 +1030,16 @@ export class OrderService {
      * Removes a coupon code from the Order.
      */
     async removeCouponCode(ctx: RequestContext, orderId: ID, couponCode: string) {
-        const order = await this.getOrderOrThrow(ctx, orderId);
+        const order = await this.getOrderOrThrow(ctx, orderId, undefined, { mode: 'pessimistic_write' });
         if (order.couponCodes.includes(couponCode)) {
+            // When removing a couponCode which has triggered an Order-level discount
+            // we need to make sure we persist the changes to the adjustments array of
+            // any affected OrderLines.
+            const affectedOrderLines = order.lines.filter(
+                line =>
+                    line.adjustments.filter(a => a.type === AdjustmentType.DISTRIBUTED_ORDER_PROMOTION)
+                        .length,
+            );
             order.couponCodes = order.couponCodes.filter(cc => cc !== couponCode);
             await this.historyService.createHistoryEntryForOrder({
                 ctx,
@@ -1086,7 +1048,9 @@ export class OrderService {
                 data: { couponCode },
             });
             await this.eventBus.publish(new CouponCodeEvent(ctx, couponCode, orderId, 'removed'));
-            return this.applyPriceAdjustments(ctx, order);
+            const result = await this.applyPriceAdjustments(ctx, order);
+            await this.connection.getRepository(ctx, OrderLine).save(affectedOrderLines);
+            return result;
         } else {
             return order;
         }
@@ -1117,7 +1081,7 @@ export class OrderService {
      * Sets the shipping address for the Order.
      */
     async setShippingAddress(ctx: RequestContext, orderId: ID, input: CreateAddressInput): Promise<Order> {
-        const order = await this.getOrderOrThrow(ctx, orderId);
+        const order = await this.getOrderOrThrow(ctx, orderId, undefined, { mode: 'pessimistic_write' });
         const country = await this.countryService.findOneByCode(ctx, input.countryCode);
         const shippingAddress = { ...input, countryCode: input.countryCode, country: country.name };
         await this.connection
@@ -1131,8 +1095,8 @@ export class OrderService {
         // Since a changed ShippingAddress could alter the activeTaxZone,
         // we will remove any cached activeTaxZone, so it can be re-calculated
         // as needed.
-        this.requestCache.set(ctx, CacheKey.ActiveTaxZone(ctx.channelId), undefined);
-        this.requestCache.set(ctx, CacheKey.ActiveTaxZone_PPA(ctx.channelId), undefined);
+        this.requestCache.set(ctx, CacheKey.ActiveTaxZone, undefined);
+        this.requestCache.set(ctx, CacheKey.ActiveTaxZone_PPA, undefined);
         return this.applyPriceAdjustments(ctx, order, order.lines);
     }
 
@@ -1141,7 +1105,7 @@ export class OrderService {
      * Sets the billing address for the Order.
      */
     async setBillingAddress(ctx: RequestContext, orderId: ID, input: CreateAddressInput): Promise<Order> {
-        const order = await this.getOrderOrThrow(ctx, orderId);
+        const order = await this.getOrderOrThrow(ctx, orderId, undefined, { mode: 'pessimistic_write' });
         const country = await this.countryService.findOneByCode(ctx, input.countryCode);
         const billingAddress = { ...input, countryCode: input.countryCode, country: country.name };
         await this.connection
@@ -1155,8 +1119,8 @@ export class OrderService {
         // Since a changed BillingAddress could alter the activeTaxZone,
         // we will remove any cached activeTaxZone, so it can be re-calculated
         // as needed.
-        this.requestCache.set(ctx, CacheKey.ActiveTaxZone(ctx.channelId), undefined);
-        this.requestCache.set(ctx, CacheKey.ActiveTaxZone_PPA(ctx.channelId), undefined);
+        this.requestCache.set(ctx, CacheKey.ActiveTaxZone, undefined);
+        this.requestCache.set(ctx, CacheKey.ActiveTaxZone_PPA, undefined);
         return this.applyPriceAdjustments(ctx, order, order.lines);
     }
 
@@ -1167,7 +1131,7 @@ export class OrderService {
      * @since 3.1.0
      */
     async unsetShippingAddress(ctx: RequestContext, orderId: ID): Promise<Order> {
-        const order = await this.getOrderOrThrow(ctx, orderId);
+        const order = await this.getOrderOrThrow(ctx, orderId, undefined, { mode: 'pessimistic_write' });
         await this.connection
             .getRepository(ctx, Order)
             .createQueryBuilder('order')
@@ -1179,8 +1143,8 @@ export class OrderService {
         // Since a changed ShippingAddress could alter the activeTaxZone,
         // we will remove any cached activeTaxZone, so it can be re-calculated
         // as needed.
-        this.requestCache.set(ctx, CacheKey.ActiveTaxZone(ctx.channelId), undefined);
-        this.requestCache.set(ctx, CacheKey.ActiveTaxZone_PPA(ctx.channelId), undefined);
+        this.requestCache.set(ctx, CacheKey.ActiveTaxZone, undefined);
+        this.requestCache.set(ctx, CacheKey.ActiveTaxZone_PPA, undefined);
         return this.applyPriceAdjustments(ctx, order, order.lines);
     }
 
@@ -1191,7 +1155,7 @@ export class OrderService {
      * @since 3.1.0
      */
     async unsetBillingAddress(ctx: RequestContext, orderId: ID): Promise<Order> {
-        const order = await this.getOrderOrThrow(ctx, orderId);
+        const order = await this.getOrderOrThrow(ctx, orderId, undefined, { mode: 'pessimistic_write' });
         await this.connection
             .getRepository(ctx, Order)
             .createQueryBuilder('order')
@@ -1203,8 +1167,8 @@ export class OrderService {
         // Since a changed BillingAddress could alter the activeTaxZone,
         // we will remove any cached activeTaxZone, so it can be re-calculated
         // as needed.
-        this.requestCache.set(ctx, CacheKey.ActiveTaxZone(ctx.channelId), undefined);
-        this.requestCache.set(ctx, CacheKey.ActiveTaxZone_PPA(ctx.channelId), undefined);
+        this.requestCache.set(ctx, CacheKey.ActiveTaxZone, undefined);
+        this.requestCache.set(ctx, CacheKey.ActiveTaxZone_PPA, undefined);
         return this.applyPriceAdjustments(ctx, order, order.lines);
     }
 
@@ -1252,7 +1216,7 @@ export class OrderService {
         orderId: ID,
         shippingMethodIds: ID[],
     ): Promise<ErrorResultUnion<SetOrderShippingMethodResult, Order>> {
-        const order = await this.getOrderOrThrow(ctx, orderId);
+        const order = await this.getOrderOrThrow(ctx, orderId, undefined, { mode: 'pessimistic_write' });
         const validationError = this.assertAddingItemsState(order);
         if (validationError) {
             return validationError;
@@ -1261,7 +1225,9 @@ export class OrderService {
         if (isGraphQlErrorResult(result)) {
             return result;
         }
-        const updatedOrder = await this.getOrderOrThrow(ctx, orderId);
+        const updatedOrder = await this.getOrderOrThrow(ctx, orderId, undefined, {
+            mode: 'pessimistic_write',
+        });
         await this.applyPriceAdjustments(ctx, updatedOrder);
         return this.connection.getRepository(ctx, Order).save(updatedOrder);
     }
@@ -1275,7 +1241,7 @@ export class OrderService {
         orderId: ID,
         state: OrderState,
     ): Promise<Order | OrderStateTransitionError> {
-        const order = await this.getOrderOrThrow(ctx, orderId);
+        const order = await this.getOrderOrThrow(ctx, orderId, undefined, { mode: 'pessimistic_write' });
         order.payments = await this.getOrderPayments(ctx, orderId);
         const fromState = order.state;
         let finalize: () => Promise<any>;
@@ -1361,7 +1327,9 @@ export class OrderService {
         ctx: RequestContext,
         input: ModifyOrderInput,
     ): Promise<ErrorResultUnion<ModifyOrderResult, Order>> {
-        const order = await this.getOrderOrThrow(ctx, input.orderId);
+        const order = await this.getOrderOrThrow(ctx, input.orderId, undefined, {
+            mode: 'pessimistic_write',
+        });
         const result = await this.orderModifier.modifyOrder(ctx, input, order);
 
         if (isGraphQlErrorResult(result)) {
@@ -1380,7 +1348,7 @@ export class OrderService {
                 modificationId: result.modification.id,
             },
         });
-        return this.getOrderOrThrow(ctx, input.orderId);
+        return this.getOrderOrThrow(ctx, input.orderId, undefined, { mode: 'pessimistic_write' });
     }
 
     /**
@@ -1405,7 +1373,7 @@ export class OrderService {
         orderId: ID,
         input: PaymentInput,
     ): Promise<ErrorResultUnion<AddPaymentToOrderResult, Order>> {
-        const order = await this.getOrderOrThrow(ctx, orderId);
+        const order = await this.getOrderOrThrow(ctx, orderId, undefined, { mode: 'pessimistic_write' });
         if (!this.canAddPaymentToOrder(order)) {
             return new OrderPaymentStateError();
         }
@@ -1474,7 +1442,9 @@ export class OrderService {
         ctx: RequestContext,
         input: ManualPaymentInput,
     ): Promise<ErrorResultUnion<AddManualPaymentToOrderResult, Order>> {
-        const order = await this.getOrderOrThrow(ctx, input.orderId);
+        const order = await this.getOrderOrThrow(ctx, input.orderId, undefined, {
+            mode: 'pessimistic_write',
+        });
         if (order.state !== 'ArrangingAdditionalPayment' && order.state !== 'ArrangingPayment') {
             return new ManualPaymentStateError();
         }
@@ -1723,7 +1693,9 @@ export class OrderService {
     }
 
     private async cancelOrderById(ctx: RequestContext, input: CancelOrderInput) {
-        const order = await this.getOrderOrThrow(ctx, input.orderId);
+        const order = await this.getOrderOrThrow(ctx, input.orderId, undefined, {
+            mode: 'pessimistic_write',
+        });
         if (order.active) {
             return true;
         } else {
@@ -1815,7 +1787,7 @@ export class OrderService {
         const order =
             orderIdOrOrder instanceof Order
                 ? orderIdOrOrder
-                : await this.getOrderOrThrow(ctx, orderIdOrOrder);
+                : await this.getOrderOrThrow(ctx, orderIdOrOrder, undefined, { mode: 'pessimistic_write' });
         order.customer = customer;
         await this.connection.getRepository(ctx, Order).save(order, { reload: false });
         let updatedOrder = order;
@@ -1841,7 +1813,7 @@ export class OrderService {
      * Creates a new "ORDER_NOTE" type {@link OrderHistoryEntry} in the Order's history timeline.
      */
     async addNoteToOrder(ctx: RequestContext, input: AddNoteToOrderInput): Promise<Order> {
-        const order = await this.getOrderOrThrow(ctx, input.id);
+        const order = await this.getOrderOrThrow(ctx, input.id, undefined, { mode: 'pessimistic_write' });
         await this.historyService.createHistoryEntryForOrder(
             {
                 ctx,
@@ -1894,7 +1866,7 @@ export class OrderService {
                       .getRepository(ctx, Order)
                       .findOneOrFail({ where: { id: orderOrId }, relations: ['lines', 'shippingLines'] });
         // If there is a Session referencing the Order to be deleted, we must first remove that
-        // reference in order to avoid a foreign key error. See https://github.com/vendurehq/vendure/issues/1454
+        // reference in order to avoid a foreign key error. See https://github.com/vendure-ecommerce/vendure/issues/1454
         const sessions = await this.connection
             .getRepository(ctx, Session)
             .find({ where: { activeOrderId: orderToDelete.id } });
@@ -1923,25 +1895,22 @@ export class OrderService {
     ): Promise<Order | undefined> {
         if (guestOrder && guestOrder.customer) {
             // In this case the "guest order" is actually an order of an existing Customer,
-            // so we do not want to merge at all. See https://github.com/vendurehq/vendure/issues/263
+            // so we do not want to merge at all. See https://github.com/vendure-ecommerce/vendure/issues/263
             return existingOrder;
         }
         try {
             return await this.connection.withTransaction(ctx, async txCtx => {
                 // Acquire a pessimistic lock on the existing order to prevent concurrent merges
                 // from interleaving their DB operations. See https://github.com/vendurehq/vendure/issues/4481
-                // Note: SQLite does not support pessimistic locks — the try-catch ensures we
-                // degrade gracefully (SQLite serializes writes at the engine level anyway).
                 if (existingOrder) {
-                    try {
+                    const lockMode = this.getLockMode({ mode: 'pessimistic_write' });
+                    if (lockMode) {
                         await this.connection
                             .getRepository(txCtx, Order)
                             .createQueryBuilder('order')
-                            .setLock('pessimistic_write')
+                            .setLock(lockMode.mode)
                             .where('order.id = :id', { id: existingOrder.id })
                             .getOne();
-                    } catch {
-                        // Lock not supported (e.g. SQLite) — continue without it
                     }
                 }
 
@@ -1952,7 +1921,7 @@ export class OrderService {
                     return existingOrder;
                 }
 
-                const mergeResult = await this.orderMerger.merge(txCtx, freshGuestOrder, existingOrder);
+                const mergeResult = this.orderMerger.merge(txCtx, freshGuestOrder, existingOrder);
                 const { orderToDelete, linesToInsert, linesToDelete, linesToModify } = mergeResult;
                 let { order } = mergeResult;
                 if (orderToDelete) {
@@ -1963,11 +1932,14 @@ export class OrderService {
                             await this.deleteOrder(innerCtx, orderToDelete);
                         });
                     } catch (e: any) {
-                        if (!isForeignKeyViolationError(e)) throw e;
-                        if (!order)
+                        if (!isForeignKeyViolationError(e)) {
+                            throw e;
+                        }
+                        if (!order) {
                             throw new Error(
                                 `Cannot complete order merge: active order not found, while cancelling order ${orderToDelete.id}`,
                             );
+                        }
 
                         // If the order has a foreign key violation (e.g. with cancelled payments),
                         // instead of deleting it we cancel the order and leave a note with an explanation.
@@ -2009,21 +1981,6 @@ export class OrderService {
                     const result = await this.adjustOrderLines(txCtx, orderId, linesToModify);
                     order = result.order;
                 }
-                if (order && linesToDelete) {
-                    const orderId = order.id;
-                    try {
-                        const result = await this.removeItemsFromOrder(
-                            txCtx,
-                            orderId,
-                            linesToDelete.map(l => l.orderLineId),
-                        );
-                        if (!isGraphQlErrorResult(result)) {
-                            order = result;
-                        }
-                    } catch (e: any) {
-                        Logger.error(e.message, undefined, e.stack);
-                    }
-                }
                 const customer = await this.customerService.findOneByUserId(txCtx, user.id);
                 if (order && customer) {
                     order.customer = customer;
@@ -2031,11 +1988,10 @@ export class OrderService {
                 }
                 return order;
             });
-        } catch (e: unknown) {
+        } catch (e: any) {
             // If the merge fails for any reason, log the error and return the existing order
             // unchanged rather than failing the entire login flow.
-            const error = e instanceof Error ? e : new Error(String(e));
-            Logger.error(`Failed to merge orders: ${error.message}`, undefined, error.stack);
+            Logger.error(`Failed to merge orders: ${e.message}`, undefined, e.stack);
             return existingOrder;
         }
     }
@@ -2044,6 +2000,7 @@ export class OrderService {
         ctx: RequestContext,
         orderId: ID,
         relations?: RelationPaths<Order>,
+        lock?: { mode: 'pessimistic_read' | 'pessimistic_write' },
     ): Promise<Order> {
         const order = await this.findOne(
             ctx,
@@ -2056,6 +2013,7 @@ export class OrderService {
                 'surcharges',
                 'customer',
             ],
+            lock,
         );
         if (!order) {
             throw new EntityNotFoundError('Order', orderId);
@@ -2069,6 +2027,22 @@ export class OrderService {
             throw new UserInputError('error.order-does-not-contain-line-with-id', { id: orderLineId });
         }
         return orderLine;
+    }
+
+    /**
+     * @description
+     * Returns the lock mode if the current database driver supports it, otherwise returns undefined.
+     * This prevents errors when using drivers like SQLite which do not support pessimistic locking.
+     */
+    private getLockMode(lock?: {
+        mode: 'pessimistic_read' | 'pessimistic_write';
+    }): { mode: 'pessimistic_read' | 'pessimistic_write' } | undefined {
+        const supportedTypes = ['mysql', 'mariadb', 'postgres', 'aurora-mysql', 'aurora-postgres'];
+        const dbType = this.connection.rawConnection.options.type;
+        if (lock && supportedTypes.includes(dbType as any)) {
+            return lock;
+        }
+        return undefined;
     }
 
     /**
@@ -2205,9 +2179,9 @@ export class OrderService {
                     reload: false,
                 },
             );
-        await this.promotionService.runPromotionSideEffects(ctx, order, activePromotionsPre);
         await this.connection.getRepository(ctx, OrderLine).save(updatedOrder.lines, { reload: false });
         await this.connection.getRepository(ctx, ShippingLine).save(order.shippingLines, { reload: false });
+        await this.promotionService.runPromotionSideEffects(ctx, order, activePromotionsPre);
 
         return assertFound(this.findOne(ctx, order.id, relations));
     }

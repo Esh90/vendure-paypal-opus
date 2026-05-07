@@ -446,13 +446,18 @@ export function DataTable<TData>({
 
                 <div
                     className="rounded-md border my-2 relative bg-card"
-                    // Reserve vertical space equal to the (capped) page size so the
-                    // table footer / pagination controls don't jump up while data is
-                    // loading, refetching, or briefly empty between key changes.
-                    // 3rem ≈ row height (h-12) + 2.5rem header.
-                    style={{
-                        minHeight: `calc(${Math.min(pagination.pageSize, 10)} * 3rem + 2.5rem)`,
-                    }}
+                    // While the initial fetch is in flight (no data yet) reserve
+                    // vertical space equal to the (capped) page size so the table
+                    // footer / pagination controls don't jump up. Once we have any
+                    // data — even one row — let the table size to its content so
+                    // small result sets don't render with a huge empty container.
+                    style={
+                        isLoading && !localData?.length
+                            ? {
+                                  minHeight: `calc(${Math.min(pagination.pageSize, 10)} * 3rem + 2.5rem)`,
+                              }
+                            : undefined
+                    }
                 >
                     <DndContext
                         sensors={sensors}

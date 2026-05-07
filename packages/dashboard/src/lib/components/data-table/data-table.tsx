@@ -444,7 +444,16 @@ export function DataTable<TData>({
                     <DataTableBulkActions bulkActions={bulkActions ?? []} table={table} />
                 </div>
 
-                <div className="rounded-md border my-2 relative bg-card">
+                <div
+                    className="rounded-md border my-2 relative bg-card"
+                    // Reserve vertical space equal to the (capped) page size so the
+                    // table footer / pagination controls don't jump up while data is
+                    // loading, refetching, or briefly empty between key changes.
+                    // 3rem ≈ row height (h-12) + 2.5rem header.
+                    style={{
+                        minHeight: `calc(${Math.min(pagination.pageSize, 10)} * 3rem + 2.5rem)`,
+                    }}
+                >
                     <DndContext
                         sensors={sensors}
                         collisionDetection={closestCenter}

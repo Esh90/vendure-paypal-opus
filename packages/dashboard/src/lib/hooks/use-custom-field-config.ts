@@ -25,16 +25,3 @@ export function useCustomFieldConfig(entityType: string): CustomFieldConfig[] {
         }) ?? []
     );
 }
-
-/**
- * @description
- * Returns whether the server config (and therefore the custom-field map)
- * has been loaded yet. Useful for distinguishing "loading" from "no custom
- * fields configured" so callers can render a skeleton instead of nothing.
- *
- * @docsCategory hooks
- * @since 3.6.4
- */
-export function useIsServerConfigLoaded(): boolean {
-    return useServerConfig() != null;
-}

@@ -18,6 +18,12 @@ export class ConfigModule implements OnModuleInit, OnApplicationShutdown {
         private moduleRef: ModuleRef,
     ) {}
 
+    /**
+     * Strategies are initialized at `onModuleInit` rather than `onApplicationBootstrap`
+     * so they are guaranteed to be ready before any other module's `onModuleInit` fires.
+     * This lets services that need configured strategies via the `Injector` use them
+     * during the module-init phase.
+     */
     async onModuleInit() {
         await this.initInjectableStrategies();
         await this.initConfigurableOperations();

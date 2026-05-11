@@ -14,7 +14,7 @@ import { defaultLocale, dynamicActivate } from '@/vdb/providers/i18n-provider.js
 import { AnyRoute, createRouter, RouterOptions, RouterProvider } from '@tanstack/react-router';
 import React, { useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import ReactDOM from 'react-dom/client';
+import { createRoot } from 'react-dom/client';
 
 import { useDisplayLocale } from '@/vdb/hooks/use-display-locale.js';
 import { useUiLanguageLoader } from '@/vdb/hooks/use-ui-language-loader.js';
@@ -169,7 +169,7 @@ function App() {
 const rootElement = document.getElementById('app')!;
 
 if (!rootElement.innerHTML) {
-    const root = ReactDOM.createRoot(rootElement);
+    const root = createRoot(rootElement);
     root.render(
         <React.StrictMode>
             <App />

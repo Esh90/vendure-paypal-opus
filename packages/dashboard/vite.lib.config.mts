@@ -32,14 +32,19 @@ export default defineConfig({
         },
     },
     build: {
-        outDir: path.resolve(import.meta.dirname, './dist/lib'),
+        outDir: path.resolve(import.meta.dirname, './dist/publishable'),
         emptyOutDir: true,
         sourcemap: true,
         minify: false,
         lib: {
-            entry: path.resolve(import.meta.dirname, './src/lib/index.ts'),
+            entry: {
+                // Library entry — extension authors import from here via `@vendure/dashboard`
+                lib: path.resolve(import.meta.dirname, './src/lib/index.ts'),
+                // App entry — bootstraps the dashboard UI (used by index.html)
+                main: path.resolve(import.meta.dirname, './src/app/main.tsx'),
+            },
             formats: ['es'],
-            fileName: () => 'index.js',
+            fileName: name => `${name}.js`,
         },
         rollupOptions: {
             external: [
@@ -59,6 +64,12 @@ export default defineConfig({
                 '@vendure/dashboard/plugin',
                 '@vendure/dashboard/vite',
             ],
+            output: {
+                // Predictable entry names so index.html can reference them
+                entryFileNames: '[name].js',
+                chunkFileNames: 'chunks/[name]-[hash].js',
+                assetFileNames: '[name][extname]',
+            },
         },
     },
 });

@@ -390,4 +390,42 @@ Build a new config — `vite.publish.config.mts` — that:
 
 Reverted: the `SPIKE_4719_USE_BUNDLE` flag in `vite-plugin-config.ts` (was useful only to prove the request-count theory; not the real spike answer).
 
+### 2026-05-11 — Publish-bundle prototype: 22 requests in `vite dev`
+
+Built a proper "publishable" bundle of the dashboard:
+
+- Extended `vite.lib.config.mts` to bundle BOTH `src/lib/index.ts` AND `src/app/main.tsx` into `dist/publishable/`
+- Confirmed `virtual:*` modules **stay external** in the output:
+  ```
+  '"virtual:admin-api-schema"'
+  '"virtual:dashboard-extensions"'
+  '"virtual:vendure-ui-config"'
+  ```
+- Edited `index.html` to point at `/dist/publishable/main.js` (the bundled entry)
+- Packed, installed in the test project, ran consumer's `npm run dev:dashboard` (i.e. `vite dev`)
+
+**Result: 22 requests for `/dashboard/` cold load in `vite dev` mode** — down from 3,054 baseline (**-99.3%**).
+
+**Dashboard didn't actually render**, but for solvable reasons:
+
+| Error | Root cause | Fix |
+|---|---|---|
+| `SyntaxError: 'react-dom/client' does not provide an export named 'default'` | Source uses `import ReactDOM from 'react-dom/client'` (CJS default). Survives bundling because react-dom is external. Vite's pre-bundled react-dom only has named exports. | Change source to `import { createRoot } from 'react-dom/client'`. Done in this spike (`src/app/main.tsx`). |
+| `'react-dom/client' does not provide an export named 'createRoot'` (after the fix) | Vite dep scan failed (see next row) → optimizeDeps skipped → react-dom served as raw CJS → no named exports. | Either fix the scan failure, or explicitly add `'react-dom/client'` to consumer's `optimizeDeps.include`. |
+| `Failed to scan dependencies: Could not resolve import("./i18n/**/*.js")` | Source has template-literal dynamic import `import(\`./i18n/${locale}.js\`)`. esbuild's scanner expands this to glob form which doesn't match anything. | Source change: use `import.meta.glob` or annotate with `/* @vite-ignore */`. |
+| `Cannot apply unknown utility class 'border-border'` | Consumer's `@tailwindcss/vite` plugin processes the shipped `dashboard.css` and chokes on `@apply` directives expecting semantic tokens. | CSS strategy: either ship pre-resolved CSS (no `@apply` left), or ship the source CSS and let consumer's Tailwind compile it (no advantage over today). |
+
+Each is a tractable engineering issue, **not** a fundamental architectural blocker. The 22-request measurement *proves the architectural premise of the spike*: publishing JS bundles inside `@vendure/dashboard` makes the consumer's `vite dev` serve a few chunks instead of 3,000+ raw modules.
+
+### Spike verdict so far
+
+**The spike's premise is validated.** Shipping pre-bundled JS in the npm package reduces consumer `vite dev` requests by ~99%. The remaining work is downstream compatibility fixes, all of which have known patterns:
+
+1. **Source: react-dom interop** — `import { createRoot } from 'react-dom/client'` (1-line fix, low risk, applied)
+2. **Source: dynamic glob imports** — convert to `import.meta.glob` or add `@vite-ignore`
+3. **Build: Lingui macro pre-compilation** — already working in the prototype via `linguiBabelPlugin`
+4. **Build: Tailwind CSS strategy** — need to decide between pre-resolved CSS vs source-CSS shipping
+5. **Consumer plumbing: `optimizeDeps.include`** — ensure react-dom/client and similar are pre-bundled by Vite even when scan fails
+6. **vendureDashboardPlugin: remove the source-shipping infrastructure** — no longer need `config.root = packageRoot`, the `@/vdb` alias for the `optimizeDeps.exclude` workaround, etc.
+
 

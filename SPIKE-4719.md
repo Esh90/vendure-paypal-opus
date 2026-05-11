@@ -606,4 +606,56 @@ Removed the manual `cp dist/assets/index-*.css dist/publishable/dashboard.css` h
 
 **Gate G4: ✅ PASS** (proper integration, not pragmatic copy)
 
+### 2026-05-11 — `useExperimentalBundle` opt-in flag — both modes coexist
+
+Implemented the opt-in mechanism so the bundled dashboard ships alongside the existing source-based dashboard in a single npm package. Users opt in per-project.
+
+**API:**
+```ts
+vendureDashboardPlugin({
+    vendureConfigPath: '...',
+    useExperimentalBundle: true,  // OPT IN
+    // ... other options
+});
+```
+
+When `false` (the default), the existing source-shipping architecture is used — verified untouched: 3,047 cold-load requests, full dashboard renders.
+
+When `true`, the dashboard is loaded from `node_modules/@vendure/dashboard/dist/publishable/`:
+- `package.json` `exports` still points at source (so TypeScript types resolve correctly)
+- `viteConfigPlugin` adds a Vite resolve alias `@vendure/dashboard` → `dist/publishable/lib.js` for runtime
+- A new `bundleEntryPlugin` rewrites the dashboard's `index.html` at serve time to point at `dist/publishable/main.js` + `dashboard.css` instead of `src/app/main.jsx`
+- `virtual:plugin-translations` added to `optimizeDeps.exclude` (the dashboard's source `load-i18n-messages.ts` is in node_modules and Vite's scanner walks it; the virtual module isn't resolvable to esbuild during scan)
+
+**Verification — bundle mode with `useExperimentalBundle: true`:**
+
+| Metric | Source mode (baseline) | Bundle mode | Δ |
+|---|--:|--:|--:|
+| Network requests on `/dashboard/` cold load | 3,047 | **39** | **-98.7%** |
+| Console errors | 0 | 0 | — |
+| Dashboard renders (Insights, sidebar, widgets) | ✅ | ✅ | — |
+| Extension Test Page renders | ✅ | ✅ | — |
+| User-supplied i18n (CMS extension `de.po`) | ✅ | ✅ | "CMS Testseite", "Glückwunsch...", "0 mal geklickt" |
+| TanStack Router | ✅ | ✅ | — |
+| Tailwind CSS | ✅ | ✅ | All styling applied |
+
+**Same npm package, same install command. Users flip the flag and immediately see the bundled mode. Easy to revert by removing the flag.**
+
+**Gate G7 (partial): ✅** — opt-in shipping mechanism works. Full G7 (prod-build verification + cleanup of now-redundant plumbing) deferred to follow-up work; this is enough for adopters to test in real projects.
+
+### Final summary
+
+| Gate | Status | Notes |
+|---|:--:|---|
+| G1 — Request count <200 | ✅ | 39 requests (vs 3,047 baseline, **-98.7%**) |
+| G2 — Functional smoke tests | ✅ | Login → home → /test → counter → German UI all work |
+| G3 — React Context identity | ✅ | Extensions work without Provider errors |
+| G4 — Tailwind CSS | ✅ | Tailwind+themeVariables integrated into publish build |
+| G5 — Lingui i18n | ✅ | Dashboard + user-supplied locales work in dev (prod has pre-existing variable-interp bug to file separately) |
+| G6 — Extension DX | ✅ | HMR works (caveat: inline components reset state on Fast Refresh); `tsc --noEmit`: 0 errors |
+| G7 — Build & cleanup | ⚠️ | Opt-in flag ships; full cleanup of source-shipping plumbing deferred |
+| **Both modes coexist** | ✅ | Source mode preserved unchanged; bundle mode opt-in via `useExperimentalBundle: true` |
+
+**The spike is complete. Architecture is proven and ready for adopter testing.**
+
 

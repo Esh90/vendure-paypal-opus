@@ -1,0 +1,64 @@
+import { lingui } from '@lingui/vite-plugin';
+import react from '@vitejs/plugin-react';
+import path from 'path';
+import { defineConfig } from 'vite';
+
+/**
+ * Library build config for the spike (#4719) investigating whether
+ * `@vendure/dashboard` can ship as a pre-built ESM bundle instead of
+ * TypeScript source.
+ *
+ * This config is NOT used by `build:standalone` (the existing prod-app
+ * build) — it produces a single `dist/lib/index.js` ESM bundle suitable
+ * for consumer projects to import via `@vendure/dashboard`.
+ *
+ * Run with: `vite build --config vite.lib.config.mts`
+ *
+ * Minimal first pass:
+ *  - bundle as much as possible
+ *  - keep react/react-dom + lingui externals so consumer provides them
+ *  - keep `virtual:*` ids unresolved so the consumer's vite plugins
+ *    can still inject their runtime values
+ */
+// Ensure the Lingui CLI uses the dashboard's own config when run from this dir.
+process.env.LINGUI_CONFIG = path.resolve(import.meta.dirname, './lingui.config.js');
+
+export default defineConfig({
+    plugins: [react({ babel: { plugins: ['@lingui/babel-plugin-lingui-macro'] } }), lingui()],
+    resolve: {
+        alias: {
+            '@/vdb': path.resolve(import.meta.dirname, './src/lib'),
+            '@/graphql': path.resolve(import.meta.dirname, './src/lib/graphql'),
+        },
+    },
+    build: {
+        outDir: path.resolve(import.meta.dirname, './dist/lib'),
+        emptyOutDir: true,
+        sourcemap: true,
+        minify: false,
+        lib: {
+            entry: path.resolve(import.meta.dirname, './src/lib/index.ts'),
+            formats: ['es'],
+            fileName: () => 'index.js',
+        },
+        rollupOptions: {
+            external: [
+                // React core (peer deps in user projects)
+                'react',
+                'react-dom',
+                'react-dom/client',
+                'react/jsx-runtime',
+                'react/jsx-dev-runtime',
+                // Lingui (we'll deal with macros separately; keep core as external for now)
+                /^@lingui\//,
+                // Virtual modules — resolved by the consumer's vendureDashboardPlugin
+                /^virtual:/,
+                // @vendure/common is a peer of every Vendure plugin
+                /^@vendure\/common(\/|$)/,
+                // The dashboard's own subpath exports
+                '@vendure/dashboard/plugin',
+                '@vendure/dashboard/vite',
+            ],
+        },
+    },
+});

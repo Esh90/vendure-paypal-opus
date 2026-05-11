@@ -217,4 +217,35 @@ These are the changes needed to make the spike viable. Order matters — each st
 
 **Verdict on G1 baseline:** ✅ Captured. Next step: implement Step 1 (Vite build config) and re-measure.
 
+### 2026-05-11 — Step 1 prototype: library build config
+
+Added `packages/dashboard/vite.lib.config.mts`. Minimal first pass:
+- `react()` (with the lingui babel plugin for macros)
+- `@lingui/vite-plugin` for `.po` file compilation
+- Lib mode targeting `src/lib/index.ts`
+- Externals: `react`/`react-dom`/`react/jsx-runtime`, `@lingui/*`, all `virtual:*`, `@vendure/common`, dashboard subpath exports
+
+**Build result:**
+- 7,193 modules transformed in 7s
+- 3 output chunks + sourcemaps
+- All previously-raw deps (`@base-ui/react`, `date-fns/locale`, `framer-motion`, `motion-dom`, `react-day-picker`, `zod`, `graphql`, `@tiptap/*`, `@vendure-io/ui`, etc.) are now bundled
+
+**Output:**
+
+| File | Size | Gzipped |
+|---|--:|--:|
+| `dist/lib/index.js` (entry, re-export facade) | 22.5 KB | 7.8 KB |
+| `dist/lib/index-<hash>.js` (main chunk) | 5.3 MB | 1.14 MB |
+| `dist/lib/locale-<hash>.js` (locales, dynamically imported) | 1.2 MB | 181 KB |
+| **Total** | **6.6 MB** | **1.33 MB** |
+
+Locale chunk is automatically split because the dashboard imports them with `import(\`./locales/\${locale}.po\`)` — Vite/Rollup correctly recognises this as a lazy import and splits the chunk.
+
+**Externals confirmed (parsed from output):**
+- `react`, `react-dom`, `react/jsx-runtime` (peer deps)
+- `@lingui/core`, `@lingui/react` (consumer manages catalogs)
+- `virtual:admin-api-schema`, `virtual:dashboard-extensions`, `virtual:vendure-ui-config` (resolved by consumer's vendureDashboardPlugin)
+
+**Verdict:** ✅ A bundle is producible. Next: install in test project and verify it loads at runtime.
+
 

@@ -548,4 +548,37 @@ This dual-resolution is standard for ESM packages and works seamlessly.
 
 **Gate G6: ✅ PASS** (with the Fast Refresh caveat noted)
 
+### 2026-05-11 — User-supplied extension i18n in dev + prod
+
+Followed the official Vendure docs for [Dashboard Extension Localization](https://docs.vendure.io/current/core/extending-the-dashboard/localization):
+
+1. Wrapped strings in `Trans` / `t\`\`` in `src/plugins/cms/dashboard/index.tsx`
+2. Added `lingui.config.js` to consumer project root with `<rootDir>/src/plugins/cms/dashboard/i18n/{locale}` catalog config
+3. Ran `npx lingui extract --config lingui.config.js` — generated `en.po` (source) and `de.po`
+4. Added German translations to `de.po`
+
+**Dev mode (`vite dev`) test:** all 4 extension strings translated correctly:
+
+| English source | German translation in UI |
+|---|---|
+| "CMS Test Page" | ✅ "CMS Testseite" |
+| "Congratulations, your Dashboard extension is working!" | ✅ "Glückwunsch, Ihre Dashboard-Erweiterung funktioniert!" |
+| "As is traditional, let's include a counter:" | ✅ "Wie üblich, fügen wir einen Zähler hinzu:" |
+| "Clicked {count} times" (with variable) | ✅ "0 mal geklickt" (variable correctly interpolated) |
+
+**Prod build (`vite build`) test:** ran `npx vite build`, then hit `http://localhost:3001/dashboard/test` (Vendure backend serving the built artifacts):
+
+| String | Prod result |
+|---|---|
+| Static strings (3 of 4) | ✅ Correctly translated |
+| `t\`Clicked ${count} times\`` (with `{count}` variable) | ⚠️ Shows `"{count} mal geklickt"` — variable not interpolated |
+
+**Analysis of the prod glitch**: inspecting `dist/dashboard/assets/_virtual_plugin-translations-Zziix8uN.js`:
+```
+"XH4VrC":"{count} mal geklickt"
+```
+The compiled output has the raw msgstr with the `{count}` placeholder as-is, but at runtime the variable substitution doesn't fire for plugin translations. The dashboard's own translations don't have this issue, so it's specifically how the consumer's `translationsPlugin` compiles plugin .po files for prod. **This is a pre-existing bug in `vite-plugin-translations.ts`, independent of the spike's bundle architecture** — the dev path works exactly the same in the spike and in current master.
+
+**Gate G5 expanded scope: ✅ PASS** (with one pre-existing prod-build interpolation bug to file separately)
+
 

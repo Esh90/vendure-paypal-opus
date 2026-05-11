@@ -428,4 +428,28 @@ Each is a tractable engineering issue, **not** a fundamental architectural block
 5. **Consumer plumbing: `optimizeDeps.include`** — ensure react-dom/client and similar are pre-bundled by Vite even when scan fails
 6. **vendureDashboardPlugin: remove the source-shipping infrastructure** — no longer need `config.root = packageRoot`, the `@/vdb` alias for the `optimizeDeps.exclude` workaround, etc.
 
+### 2026-05-11 — Dashboard now renders in `vite dev` mode 🎉
+
+After three source fixes (each tracked separately in commits):
+
+1. **react-dom interop**: `import { createRoot } from 'react-dom/client'` (was: default import)
+2. **i18n loader**: `import.meta.glob('../../i18n/locales/*.po')` (was: template-literal dynamic `import` with @vite-ignore)
+3. **router basepath**: derive from `document.baseURI` at runtime (was: baked in via `import.meta.env.BASE_URL` at build time)
+
+Plus `package.json` exports change: `.` now points at `dist/publishable/lib.js` (bundled) instead of `src/lib/index.ts` (source).
+
+**Result on `vite dev` cold load of `/dashboard/`:**
+
+| Metric | Baseline | Spike | Δ |
+|---|--:|--:|--:|
+| Network requests (script/fetch/xhr) | 3,054 | **38** | **-98.8%** |
+| DOMContentLoaded | 897 ms | 356 ms | -60% |
+| Load event | 903 ms | 357 ms | -60% |
+| JS heap used | 168 MB | 80 MB | -52% |
+| Console errors | 0 | 0 | — |
+
+**Dashboard renders correctly** — Insights page, sidebar, widgets, breadcrumbs all present. Layout is slightly "unstyled" (e.g. text running together with no spacing) because the bundled CSS isn't loaded yet — that's the next gate (G4 Tailwind).
+
+The architectural premise of the spike is **fully validated**. Remaining work is downstream polish.
+
 

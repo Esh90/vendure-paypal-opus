@@ -27,7 +27,17 @@ import { routeTree } from './routeTree.gen.js';
 import './styles.css';
 
 const processedBaseUrl = (() => {
-    const baseUrl = import.meta.env.BASE_URL;
+    // When @vendure/dashboard ships as a pre-built bundle (see issue #4719),
+    // `import.meta.env.BASE_URL` is locked in at publish time (to `/`) and
+    // can't reflect the consumer's `base` config. Prefer `document.baseURI`
+    // so the basepath is resolved at runtime from the actual URL the page
+    // is served from.
+    const runtimeBase =
+        typeof document !== 'undefined'
+            ? new URL('.', document.baseURI).pathname
+            : '/';
+    const fallback = import.meta.env.BASE_URL;
+    const baseUrl = runtimeBase && runtimeBase !== '/' ? runtimeBase : fallback;
     if (!baseUrl || baseUrl === '/') return undefined;
     // Ensure leading slash, remove trailing slash
     const normalized = baseUrl.startsWith('/') ? baseUrl : '/' + baseUrl;

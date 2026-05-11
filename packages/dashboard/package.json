@@ -33,14 +33,14 @@
         "storybook:build": "storybook build",
         "storybook:deploy": "npm run build --prefix ../common && npm run build --prefix ../core && npm run build:vite && storybook build"
     },
-    "module": "./src/lib/index.ts",
-    "main": "./src/lib/index.ts",
+    "module": "./dist/publishable/lib.js",
+    "main": "./dist/publishable/lib.js",
     "types": "./src/lib/index.d.ts",
     "exports": {
         ".": {
             "types": "./src/lib/index.d.ts",
-            "import": "./src/lib/index.ts",
-            "require": "./src/lib/index.ts"
+            "import": "./dist/publishable/lib.js",
+            "require": "./dist/publishable/lib.js"
         },
         "./plugin": {
             "types": "./dist/plugin/index.d.ts",

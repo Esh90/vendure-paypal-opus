@@ -525,4 +525,27 @@ Extension's own strings ("Congratulations...", "Clicked 0 times") stay English �
 
 **Gate G5: ✅ PASS**
 
+### 2026-05-11 — G6 Extension DX: HMR + TypeScript pass (with one caveat)
+
+**Test: HMR**
+- Navigated to `/dashboard/test`, clicked counter 3 times → "Clicked 3 times"
+- Edited `/tmp/vendure-4715-test/src/plugins/cms/dashboard/index.tsx` to change "Clicked" → "Pressed (HMR!)"
+- Without reloading the browser, the button text updated to "Pressed 0 times (HMR!)"
+
+**Result**: HMR works through the bundle boundary — extension source code is hot-replaced at the Vite-dev layer, while the bundled dashboard stays put.
+
+**Caveat**: React state (counter value) was reset from 3 → 0 because React Fast Refresh couldn't preserve it. This is because the extension's component is defined *inline* inside `defineDashboardExtension({routes: [{component: () => {...}}]})` rather than as a top-level named export. Fast Refresh requires top-level named exports to pin component identity across hot updates.
+
+This is an artifact of how extensions are *authored*, not the bundling architecture. Extensions following the pattern of separately-exported components would get full Fast Refresh including state preservation.
+
+**Test: TypeScript types**
+- Ran `npx tsc --noEmit -p tsconfig.json` in the test project
+- **Result**: 0 errors. Types resolve correctly:
+  - **Runtime imports** from `@vendure/dashboard` → `dist/publishable/lib.js` (bundled JS)
+  - **Type imports** from `@vendure/dashboard` → `src/lib/index.d.ts` (source declarations shipped alongside)
+
+This dual-resolution is standard for ESM packages and works seamlessly.
+
+**Gate G6: ✅ PASS** (with the Fast Refresh caveat noted)
+
 

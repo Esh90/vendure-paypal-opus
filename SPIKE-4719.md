@@ -581,4 +581,29 @@ The compiled output has the raw msgstr with the `{count}` placeholder as-is, but
 
 **Gate G5 expanded scope: ✅ PASS** (with one pre-existing prod-build interpolation bug to file separately)
 
+### 2026-05-11 — G4 proper: Tailwind + themeVariables integrated into publish build
+
+Replaced the "copy pre-resolved CSS from build:standalone" hack with a clean publish build pipeline.
+
+**Changes to `vite.lib.config.mts`:**
+```ts
+plugins: [
+    themeVariablesPlugin({}),  // resolves virtual:admin-theme + virtual:admin-theme-inline
+    tailwindcss(),             // Tailwind v4 plugin processes @apply, @theme, etc.
+    react({ babel: { plugins: ['@lingui/babel-plugin-lingui-macro'] } }),
+    lingui(),
+],
+```
+
+Removed the manual `cp dist/assets/index-*.css dist/publishable/dashboard.css` hack.
+
+**Result:**
+- `dist/publishable/dashboard.css` (532 KB) generated cleanly by the publish build
+- All `@apply` directives resolved at publish time
+- No `border-border` errors at consumer build/dev time
+- Verified in `vite dev`: full styling applied, all chrome translated (Erkenntnisse, Bestellmetriken, Neueste Bestellungen, etc.), German date format (01.05.2026), no console errors
+- The publish build is now self-contained and reproducible
+
+**Gate G4: ✅ PASS** (proper integration, not pragmatic copy)
+
 

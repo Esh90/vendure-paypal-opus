@@ -1,7 +1,10 @@
 import { lingui } from '@lingui/vite-plugin';
+import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
 import { defineConfig } from 'vite';
+
+import { themeVariablesPlugin } from './vite/vite-plugin-theme.js';
 
 /**
  * Library build config for the spike (#4719) investigating whether
@@ -24,7 +27,12 @@ import { defineConfig } from 'vite';
 process.env.LINGUI_CONFIG = path.resolve(import.meta.dirname, './lingui.config.js');
 
 export default defineConfig({
-    plugins: [react({ babel: { plugins: ['@lingui/babel-plugin-lingui-macro'] } }), lingui()],
+    plugins: [
+        themeVariablesPlugin({}),
+        tailwindcss(),
+        react({ babel: { plugins: ['@lingui/babel-plugin-lingui-macro'] } }),
+        lingui(),
+    ],
     resolve: {
         alias: {
             '@/vdb': path.resolve(import.meta.dirname, './src/lib'),

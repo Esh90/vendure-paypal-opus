@@ -27,17 +27,26 @@ import { routeTree } from './routeTree.gen.js';
 import './styles.css';
 
 const processedBaseUrl = (() => {
-    // When @vendure/dashboard ships as a pre-built bundle (see issue #4719),
-    // `import.meta.env.BASE_URL` is locked in at publish time (to `/`) and
-    // can't reflect the consumer's `base` config. Prefer `document.baseURI`
-    // so the basepath is resolved at runtime from the actual URL the page
-    // is served from.
-    const runtimeBase =
-        typeof document !== 'undefined'
-            ? new URL('.', document.baseURI).pathname
-            : '/';
-    const fallback = import.meta.env.BASE_URL;
-    const baseUrl = runtimeBase && runtimeBase !== '/' ? runtimeBase : fallback;
+    // Derive the base from this module's own URL when possible. This works
+    // in BOTH source-shipping mode (`<base>/src/app/main.tsx`) AND the
+    // experimental bundle mode (`<base>/dist/publishable/main.js` — see
+    // issue #4719). Using `import.meta.url` is stable regardless of what
+    // sub-route the page was first loaded on, which is important: previous
+    // attempts to read `document.baseURI` broke deep-link navigation because
+    // it reflects the CURRENT page URL, not the dashboard root.
+    let derived: string | undefined;
+    try {
+        const moduleUrl = typeof import.meta?.url === 'string' ? import.meta.url : '';
+        if (moduleUrl) {
+            const m = new URL(moduleUrl).pathname.match(
+                /^(.*?)\/(?:src\/app\/main|dist\/publishable\/main)\.[a-z]+/,
+            );
+            if (m) derived = m[1] || '/';
+        }
+    } catch {
+        // Ignore — fall back to import.meta.env.BASE_URL below.
+    }
+    const baseUrl = derived ?? import.meta.env.BASE_URL;
     if (!baseUrl || baseUrl === '/') return undefined;
     // Ensure leading slash, remove trailing slash
     const normalized = baseUrl.startsWith('/') ? baseUrl : '/' + baseUrl;

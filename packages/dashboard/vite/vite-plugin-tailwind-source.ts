@@ -29,7 +29,12 @@ function resolveVendureUiSourcePath(): string | undefined {
 }
 
 export interface DashboardTailwindSourcePluginOptions {
-    packageRoot: string;
+    /**
+     * Absolute path to the dashboard package root. Required when
+     * `useExperimentalBundle` is enabled (so we can resolve the bundled
+     * JS path for Tailwind's `@source` scan).
+     */
+    packageRoot?: string;
     /**
      * When true, also emit a `@source` directive pointing at the dashboard's
      * pre-built JS bundle so Tailwind picks up the dashboard's own utility
@@ -45,7 +50,7 @@ export interface DashboardTailwindSourcePluginOptions {
  * include styles from these extensions when processing the CSS.
  */
 export function dashboardTailwindSourcePlugin(
-    options: DashboardTailwindSourcePluginOptions,
+    options: DashboardTailwindSourcePluginOptions = {},
 ): Plugin {
     const { packageRoot, useExperimentalBundle } = options;
     let configLoaderApi: ConfigLoaderApi;
@@ -72,7 +77,7 @@ export function dashboardTailwindSourcePlugin(
                     dashboardExtensionDirs.push(vendureUiSrcPath);
                 }
 
-                if (isExtensionStyles && useExperimentalBundle) {
+                if (isExtensionStyles && useExperimentalBundle && packageRoot) {
                     // In bundle mode the dashboard's own utility classes live
                     // inside the published JS chunks rather than the readable
                     // src files. Point Tailwind at the bundle so those classes

@@ -1,6 +1,6 @@
 <p align="center">
   <a href="https://vendure.io">
-    <img alt="Vendure logo" height="60" width="auto" src="https://a.storyblok.com/f/328257/699x480/8dbb4c7a3c/logo-icon.png">
+    <img alt="Vendure logo" height="60" width="auto" src="https://assets.vendure.io/brand/logo-icon-vendure-blue.svg">
   </a>
 </p>
 
@@ -72,3 +72,7 @@ Patch releases ship regularly. Check our [release notes](https://github.com/vend
 ## License
 
 Vendure Core is licensed under the [GPLv3 license](./LICENSE.md). To learn more about the full Vendure platform and cloud offering, see our [pricing page](https://vendure.io/pricing).
+
+## Professional services
+
+Need help getting your build to production? Our team offers [professional services](https://vendure.io/professional-services): architecture review, implementation support, and launch readiness from the people who build Vendure.

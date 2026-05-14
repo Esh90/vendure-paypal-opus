@@ -36,22 +36,22 @@ Vendure Core is the open-source TypeScript backend that powers [Vendure](https:/
 
 - **Plugin architecture, no forks required**: Extend or override any part of the system through stable plugin contracts. Customise the edges without patching the core.
 - **TypeScript, Node.js, NestJS, GraphQL**: A coherent stack with strong types end to end, a large ecosystem, no proprietary query language, and agent-ready APIs that work with your developers' AI tools.
-- **One backend, every channel**: A single extensible core serves any frontend or channel through a GraphQL API — no web of integrations to maintain.
-- **Production-tested at scale**: Used in production by enterprise teams, including IBM. Plugin contracts give you safe extension points without patching core.
-- **Built-in commerce building blocks**: Customisable admin dashboard, advanced pricing, approval workflows, multi-channel, and the other primitives enterprise teams need from day one.
+- **One backend, every channel**: A single extensible core serves any frontend or channel through a GraphQL API, with no web of integrations to maintain.
+- **Production-tested at scale**: Used in production by enterprise teams. Plugin contracts give you safe extension points without patching core.
+- **Built-in commerce building blocks**: Catalog, orders, customers, promotions, channels, tax, shipping, payments, and stock, with the primitives teams need from day one.
 
 ## What's in this repo
 
 Vendure is a Lerna monorepo. The packages you'll touch most:
 
-- **`@vendure/core`** — the framework itself. Entities, services, GraphQL APIs, the plugin system.
-- **`@vendure/create`** — `npx @vendure/create` scaffolds a new project.
-- **`@vendure/dashboard`** — the React-based admin dashboard.
-- **`@vendure/cli`** — dev tooling for generating plugins, migrations, etc.
-- **Official plugins** — `email-plugin`, `asset-server-plugin`, `job-queue-plugin`, `harden-plugin`, `telemetry-plugin`, `graphiql-plugin`.
-- **`@vendure/testing`** — e2e test harness with a programmable mock server.
+- **`@vendure/core`**: the framework itself. Entities, services, GraphQL APIs, the plugin system.
+- **`@vendure/create`**: `npx @vendure/create` scaffolds a new project.
+- **`@vendure/dashboard`**: the React-based admin dashboard.
+- **`@vendure/cli`**: dev tooling for generating plugins, migrations, etc.
+- **Official plugins**: `email-plugin`, `asset-server-plugin`, `job-queue-plugin`, `harden-plugin`, `telemetry-plugin`, `graphiql-plugin`.
+- **`@vendure/testing`**: e2e test harness with a programmable mock server.
 
-Runs on any Node.js host — self-hosted, Docker, Kubernetes, or any cloud. Managed hosting is available via [Vendure Cloud](https://vendure.io/products/cloud).
+Runs on any Node.js host: self-hosted, Docker, Kubernetes, or any cloud. Managed hosting is available via [Vendure Cloud](https://vendure.io/products/cloud).
 
 ## Getting started
 

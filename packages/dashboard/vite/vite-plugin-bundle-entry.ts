@@ -4,7 +4,7 @@ import { Plugin } from 'vite';
  * @description
  * Rewrites the dashboard's `index.html` script entry from the TypeScript source
  * (`/src/app/main.jsx`) to the pre-built ESM bundle
- * (`/dist/publishable/main.js`).
+ * (`/dist/bundle/main.js`).
  *
  * The CSS `<link>` tag is left untouched so the consumer's Tailwind +
  * themeVariables pipeline processes the source `styles.css` at consumer-time.
@@ -39,10 +39,10 @@ export function bundleEntryPlugin(): Plugin {
                 // hooks and the virtual `@import 'virtual:admin-theme'`
                 // directives fail to resolve).
                 const dashboardCssLink =
-                    `<link rel="stylesheet" href="/dist/publishable/dashboard.css" />`;
+                    `<link rel="stylesheet" href="/dist/bundle/dashboard.css" />`;
                 const extensionCssImport =
                     `<script type="module">import '/src/app/extension-tailwind.css';</script>`;
-                const newScript = `<script type="module" src="/dist/publishable/main.js"></script>`;
+                const newScript = `<script type="module" src="/dist/bundle/main.js"></script>`;
 
                 // Match the source-entry script regardless of whether Vite has
                 // already prepended the configured `base` to the src attribute.

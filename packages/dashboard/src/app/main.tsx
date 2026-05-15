@@ -29,7 +29,7 @@ import './styles.css';
 const processedBaseUrl = (() => {
     // Derive the base from this module's own URL when possible. This works
     // in BOTH source-shipping mode (`<base>/src/app/main.tsx`) AND the
-    // experimental bundle mode (`<base>/dist/publishable/main.js` — see
+    // experimental bundle mode (`<base>/dist/bundle/main.js` — see
     // issue #4719). Using `import.meta.url` is stable regardless of what
     // sub-route the page was first loaded on, which is important: previous
     // attempts to read `document.baseURI` broke deep-link navigation because
@@ -38,7 +38,7 @@ const processedBaseUrl = (() => {
     try {
         const moduleUrl = typeof import.meta?.url === 'string' ? import.meta.url : '';
         if (moduleUrl) {
-            const entryRe = /^(.*?)\/(?:src\/app\/main|dist\/publishable\/main)\.[a-z]+/;
+            const entryRe = /^(.*?)\/(?:src\/app\/main|dist\/bundle\/main)\.[a-z]+/;
             const m = entryRe.exec(new URL(moduleUrl).pathname);
             if (m) derived = m[1] || '/';
         }

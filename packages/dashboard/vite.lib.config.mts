@@ -40,7 +40,7 @@ export default defineConfig({
         },
     },
     build: {
-        outDir: path.resolve(import.meta.dirname, './dist/publishable'),
+        outDir: path.resolve(import.meta.dirname, './dist/bundle'),
         emptyOutDir: true,
         // Skip sourcemaps in the published bundle: they would inflate the
         // npm tarball by ~5-10x with no end-user benefit (sourcemaps are only

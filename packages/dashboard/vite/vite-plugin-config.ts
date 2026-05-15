@@ -6,7 +6,7 @@ export interface ViteConfigPluginOptions {
     /**
      * EXPERIMENTAL — see `vendureDashboardPlugin`'s `useExperimentalBundle` option.
      * When true, the consumer's Vite serves the pre-built dashboard bundle from
-     * `<packageRoot>/dist/publishable/` instead of compiling the dashboard's
+     * `<packageRoot>/dist/bundle/` instead of compiling the dashboard's
      * TypeScript source file-by-file. This collapses ~3,000 raw module fetches
      * into ~40 bundled chunks on cold load and fixes issue #4715.
      */
@@ -66,7 +66,7 @@ export function viteConfigPlugin({ packageRoot, useExperimentalBundle }: ViteCon
                         ? {
                               '@vendure/dashboard': path.resolve(
                                   packageRoot,
-                                  './dist/publishable/lib.js',
+                                  './dist/bundle/lib.js',
                               ),
                           }
                         : {}),

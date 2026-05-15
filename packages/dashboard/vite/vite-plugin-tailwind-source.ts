@@ -83,7 +83,7 @@ export function dashboardTailwindSourcePlugin(
                     // src files. Point Tailwind at the bundle so those classes
                     // are also generated.
                     dashboardExtensionDirs.push(
-                        path.join(packageRoot, 'dist/publishable'),
+                        path.join(packageRoot, 'dist/bundle'),
                     );
                 }
 

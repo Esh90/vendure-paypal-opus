@@ -608,7 +608,7 @@ describe('dashboardTailwindSourcePlugin', () => {
                 '/some/app/extension-tailwind.css',
             );
             expect(result.code).toContain(
-                `@source '${path.join(packageRoot, 'dist/publishable')}'`,
+                `@source '${path.join(packageRoot, 'dist/bundle')}'`,
             );
         });
 
@@ -623,7 +623,7 @@ describe('dashboardTailwindSourcePlugin', () => {
                 '/some/app/styles.css',
             );
             // Bundle source dir should not appear; styles.css is the source-mode entry
-            expect(result.code).not.toContain('dist/publishable');
+            expect(result.code).not.toContain('dist/bundle');
         });
 
         it('without useExperimentalBundle: extension-tailwind.css still transforms but no bundle @source', async () => {
@@ -637,7 +637,7 @@ describe('dashboardTailwindSourcePlugin', () => {
             );
             // Transform fires (matches the file) but no bundle dir is injected
             expect(result).toBeDefined();
-            expect(result.code).not.toContain('dist/publishable');
+            expect(result.code).not.toContain('dist/bundle');
         });
     });
 });
@@ -686,8 +686,8 @@ describe('bundleEntryPlugin', () => {
         const result = callBundleEntryTransform(plugin, sourceEntryHtml, {
             filename: 'index.html',
         });
-        expect(result).toContain('/dist/publishable/main.js');
-        expect(result).toContain('/dist/publishable/dashboard.css');
+        expect(result).toContain('/dist/bundle/main.js');
+        expect(result).toContain('/dist/bundle/dashboard.css');
         expect(result).toContain('<link rel="stylesheet"');
         expect(result).not.toContain('/src/app/main.jsx');
     });
@@ -701,7 +701,7 @@ describe('bundleEntryPlugin', () => {
         const result = callBundleEntryTransform(plugin, htmlWithBase, {
             filename: 'index.html',
         });
-        expect(result).toContain('/dist/publishable/main.js');
+        expect(result).toContain('/dist/bundle/main.js');
         expect(result).not.toContain('main.jsx');
     });
 
@@ -735,12 +735,12 @@ describe('viteConfigPlugin: useExperimentalBundle', () => {
         expect(aliases['@vendure/dashboard']).toBeUndefined();
     });
 
-    it('with flag: adds Vite resolve alias @vendure/dashboard -> dist/publishable/lib.js', () => {
+    it('with flag: adds Vite resolve alias @vendure/dashboard -> dist/bundle/lib.js', () => {
         const plugin = viteConfigPlugin({ packageRoot, useExperimentalBundle: true });
         const result = callConfig(plugin, {}, { command: 'serve' });
         const aliases = result.resolve.alias as Record<string, string>;
         expect(aliases['@vendure/dashboard']).toBe(
-            path.resolve(packageRoot, './dist/publishable/lib.js'),
+            path.resolve(packageRoot, './dist/bundle/lib.js'),
         );
     });
 

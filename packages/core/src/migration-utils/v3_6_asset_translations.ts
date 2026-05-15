@@ -55,7 +55,7 @@ export async function migrateAssetTranslationData(queryRunner: QueryRunner): Pro
     const assetCounts: Array<{ count: string | number }> = await queryRunner.query(
         `SELECT COUNT(*) AS ${esc('count')} FROM ${esc('asset')} WHERE ${esc('name')} IS NOT NULL`,
     );
-    const assetCount = Number(assetCounts?.[0]?.count ?? 0);
+    const assetCount = Number(assetCounts[0].count);
     if (assetCount === 0) {
         console.log('No asset rows with a name to migrate. Skipping asset translation data migration.');
         return;

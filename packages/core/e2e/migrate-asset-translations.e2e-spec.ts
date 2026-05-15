@@ -107,20 +107,21 @@ describe('migrateAssetTranslationData()', () => {
     // on a fresh install with no asset data and no default channel yet,
     // the migration should be a no-op rather than throwing.
     it('should skip if there are no assets to migrate, even without a default channel', async () => {
-        // Rename the default channel to simulate it not existing. If the
-        // function still queried the channel table for __default_channel__,
-        // it would throw.
-        await queryRunner.query(
-            `UPDATE ${esc('channel')} SET ${esc('code')} = '__tmp_renamed__' WHERE ${esc('code')} = '__default_channel__'`,
-        );
-        await queryRunner.query(`ALTER TABLE ${esc('asset')} ADD ${esc('name')} varchar(255) NULL`);
         try {
+            // Rename the default channel to simulate it not existing. If the
+            // function still queried the channel table for __default_channel__,
+            // it would throw.
+            await queryRunner.query(
+                `UPDATE ${esc('channel')} SET ${esc('code')} = '__tmp_renamed__' WHERE ${esc('code')} = '__default_channel__'`,
+            );
+            await queryRunner.query(`ALTER TABLE ${esc('asset')} ADD ${esc('name')} varchar(255) NULL`);
+
             const beforeRows: Array<{ c: string | number }> = await queryRunner.query(
                 `SELECT COUNT(*) AS ${esc('c')} FROM ${esc('asset_translation')}`,
             );
 
             // All asset.name values are NULL — nothing to migrate. Should not throw.
-            await expect(migrateAssetTranslationData(queryRunner)).resolves.not.toThrow();
+            await migrateAssetTranslationData(queryRunner);
 
             // And no asset_translation rows should have been inserted.
             const afterRows: Array<{ c: string | number }> = await queryRunner.query(

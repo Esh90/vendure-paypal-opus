@@ -104,7 +104,7 @@ msgstr "Titre 5"
 msgid "Failed to add payment"
 msgstr "Échec de l'ajout du paiement"
 
-#: src/lib/framework/layout-engine/page-layout.tsx:663
+#: src/lib/framework/layout-engine/page-layout.tsx:718
 msgid "Updated"
 msgstr "Mis à jour"
 
@@ -198,14 +198,18 @@ msgstr "Lorsque ceci est activé, les prix saisis dans le catalogue de produits 
 #~ msgid "Create variants for your product"
 #~ msgstr "Créer des variantes pour votre produit"
 
-#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:258
+#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:291
 msgid "Draft order completed"
 msgstr "Brouillon de commande terminé"
 
 #. placeholder {0}: currentInterval?.label
-#: src/app/routes/_authenticated/_system/job-queue.tsx:258
+#: src/app/routes/_authenticated/_system/job-queue.tsx:287
 msgid "Auto refresh: {0}"
 msgstr "Actualisation automatique : {0}"
+
+#: src/app/routes/_authenticated/_system/components/cancel-jobs-bulk-action.tsx:34
+msgid "Successfully cancelled {fulfilled} job"
+msgstr ""
 
 #: src/app/routes/_authenticated/_system/healthchecks.tsx:43
 #~ msgid "Health checks"
@@ -336,7 +340,7 @@ msgstr "Champs personnalisés modifiés"
 msgid "Successfully created stock location"
 msgstr "Emplacement de stock créé avec succès"
 
-#: src/app/routes/_authenticated/_orders/components/order-modification-preview-dialog.tsx:102
+#: src/app/routes/_authenticated/_orders/components/order-modification-preview-dialog.tsx:109
 #: src/app/routes/_authenticated/_orders/hooks/use-refund-order.ts:303
 #: src/app/routes/_authenticated/_products/components/add-option-group-dialog.tsx:78
 #: src/app/routes/_authenticated/_products/components/add-option-group-dialog.tsx:120
@@ -443,6 +447,12 @@ msgstr "Adresse supprimée avec succès"
 msgid "Tax rate"
 msgstr "Taux de taxe"
 
+#. placeholder {0}: import { DataTableBulkActionItem } from '@/vdb/components/data-table/data-table-bulk-action-item.js'; import { BulkActionComponent } from '@/vdb/framework/extension-api/types/data-table.js'; import { api } from '@/vdb/graphql/api.js'; import { usePaginatedList } from '@/vdb/hooks/use-paginated-list.js'; import { plural } from '@lingui/core/macro'; import { Plural, useLingui } from '@lingui/react/macro'; import { useMutation } from '@tanstack/react-query'; import { Ban } from 'lucide-react'; import { toast } from 'sonner'; import { cancelJobDocument } from '../job-queue.graphql.js'; export const CancelJobsBulkAction: BulkActionComponent<any> = ({ selection, table }) => { const { refetchPaginatedList } = usePaginatedList(); const { t } = useLingui(); const cancellableJobs = selection.filter(job => job.state === 'RUNNING' || job.state === 'PENDING'); const cancellableCount = cancellableJobs.length; const { mutate, isPending } = useMutation({ mutationFn: async () => { const results = await Promise.allSettled( cancellableJobs.map(job => api.mutate(cancelJobDocument, { jobId: job.id })), ); const fulfilled = results.filter(r => r.status === 'fulfilled').length; const rejected = results.filter(r => r.status === 'rejected').length; return { fulfilled, rejected }; }, onSuccess: ({ fulfilled, rejected }) => { if (fulfilled > 0) { toast.success( plural(fulfilled, { one: t`Successfully cancelled ${fulfilled} job`, other: t`Successfully cancelled ${fulfilled} jobs`, }), ); } if (rejected > 0) { toast.error( plural(rejected, { one: t`Failed to cancel ${rejected} job`, other: t`Failed to cancel ${rejected} jobs`, }), ); } refetchPaginatedList(); table.resetRowSelection(); }, }); if (cancellableCount === 0) { return null; } return ( <DataTableBulkActionItem requiresPermission={['DeleteSettings', 'DeleteSystem']} onClick={() => mutate()} disabled={isPending} label={ <Plural value={cancellableCount} one={`Cancel ${cancellableCount} job`} other={`Cancel ${cancellableCount} jobs`} /> } confirmationText={ <Plural value={cancellableCount} one={`Are you sure you want to cancel ${cancellableCount} job? This action cannot be undone.`} other={`Are you sure you want to cancel ${cancellableCount} jobs? This action cannot be undone.`} /> } icon={Ban} className="text-destructive" /> ); }; 
+#. placeholder {1}: import { DataTableBulkActionItem } from '@/vdb/components/data-table/data-table-bulk-action-item.js'; import { BulkActionComponent } from '@/vdb/framework/extension-api/types/data-table.js'; import { api } from '@/vdb/graphql/api.js'; import { usePaginatedList } from '@/vdb/hooks/use-paginated-list.js'; import { plural } from '@lingui/core/macro'; import { Plural, useLingui } from '@lingui/react/macro'; import { useMutation } from '@tanstack/react-query'; import { Ban } from 'lucide-react'; import { toast } from 'sonner'; import { cancelJobDocument } from '../job-queue.graphql.js'; export const CancelJobsBulkAction: BulkActionComponent<any> = ({ selection, table }) => { const { refetchPaginatedList } = usePaginatedList(); const { t } = useLingui(); const cancellableJobs = selection.filter(job => job.state === 'RUNNING' || job.state === 'PENDING'); const cancellableCount = cancellableJobs.length; const { mutate, isPending } = useMutation({ mutationFn: async () => { const results = await Promise.allSettled( cancellableJobs.map(job => api.mutate(cancelJobDocument, { jobId: job.id })), ); const fulfilled = results.filter(r => r.status === 'fulfilled').length; const rejected = results.filter(r => r.status === 'rejected').length; return { fulfilled, rejected }; }, onSuccess: ({ fulfilled, rejected }) => { if (fulfilled > 0) { toast.success( plural(fulfilled, { one: t`Successfully cancelled ${fulfilled} job`, other: t`Successfully cancelled ${fulfilled} jobs`, }), ); } if (rejected > 0) { toast.error( plural(rejected, { one: t`Failed to cancel ${rejected} job`, other: t`Failed to cancel ${rejected} jobs`, }), ); } refetchPaginatedList(); table.resetRowSelection(); }, }); if (cancellableCount === 0) { return null; } return ( <DataTableBulkActionItem requiresPermission={['DeleteSettings', 'DeleteSystem']} onClick={() => mutate()} disabled={isPending} label={ <Plural value={cancellableCount} one={`Cancel ${cancellableCount} job`} other={`Cancel ${cancellableCount} jobs`} /> } confirmationText={ <Plural value={cancellableCount} one={`Are you sure you want to cancel ${cancellableCount} job? This action cannot be undone.`} other={`Are you sure you want to cancel ${cancellableCount} jobs? This action cannot be undone.`} /> } icon={Ban} className="text-destructive" /> ); }; 
+#: src/app/routes/_authenticated/_system/components/cancel-jobs-bulk-action.tsx:33
+msgid "{fulfilled, plural, one {{0}} other {{1}}}"
+msgstr ""
+
 #: src/app/routes/_authenticated/_orders/components/draft-order-status.tsx:34
 msgid "Order draft isn't ready to be completed"
 msgstr "Le brouillon de commande n'est pas prêt à être finalisé"
@@ -452,7 +462,7 @@ msgstr "Le brouillon de commande n'est pas prêt à être finalisé"
 msgid "New collection"
 msgstr "Nouvelle collection"
 
-#: src/app/routes/_authenticated/index.tsx:175
+#: src/app/routes/_authenticated/index.tsx:184
 msgid "Insights"
 msgstr "Aperçus"
 
@@ -529,7 +539,7 @@ msgstr "Gérer les vues globales sauvegardées visibles pour tous les utilisateu
 msgid "Search payment methods..."
 msgstr "Rechercher des méthodes de paiement..."
 
-#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:199
+#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:217
 msgid "Shipping address unset for order"
 msgstr "Adresse de livraison supprimée pour la commande"
 
@@ -674,6 +684,11 @@ msgstr "Le brouillon de commande est prêt à être finalisé"
 msgid "Metadata"
 msgstr "Métadonnées"
 
+#. placeholder {0}: error.message
+#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:251
+msgid "Failed to set shipping method for order: {0}"
+msgstr ""
+
 #: src/app/routes/_authenticated/_option-groups/components/option-group-products-block.tsx:48
 #: src/lib/components/data-table/data-table.tsx:367
 msgid "Filter..."
@@ -713,7 +728,7 @@ msgstr "Passée le"
 msgid "Rotating this key will immediately invalidate the current key. Any integrations using it will stop working until updated with the new key."
 msgstr "La rotation de cette clé invalidera immédiatement la clé actuelle. Toutes les intégrations qui l'utilisent cesseront de fonctionner jusqu'à ce qu'elles soient mises à jour avec la nouvelle clé."
 
-#: src/app/routes/_authenticated/_system/job-queue.tsx:136
+#: src/app/routes/_authenticated/_system/job-queue.tsx:163
 msgid "The data that has been passed to the job"
 msgstr "Les données qui ont été transmises au travail"
 
@@ -725,7 +740,7 @@ msgstr "Confirmer la navigation"
 msgid "Link target"
 msgstr "Cible du lien"
 
-#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:326
+#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:365
 msgid "Complete draft"
 msgstr "Terminer le brouillon"
 
@@ -776,7 +791,7 @@ msgstr "Saisissez l'ID de transaction pour ce règlement de remboursement"
 msgid "Your API Key"
 msgstr "Votre API Key"
 
-#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:310
+#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:349
 msgid "Are you sure you want to delete this draft order?"
 msgstr "Êtes-vous sûr de vouloir supprimer ce brouillon de commande ?"
 
@@ -823,11 +838,11 @@ msgstr "Actions"
 msgid "Discounts"
 msgstr "Remises"
 
-#: src/app/routes/_authenticated/_orders/components/order-modification-preview-dialog.tsx:304
+#: src/app/routes/_authenticated/_orders/components/order-modification-preview-dialog.tsx:307
 msgid "Enter refund note"
 msgstr "Saisir une note de remboursement"
 
-#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:145
+#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:151
 msgid "Order line removed"
 msgstr "Ligne de commande supprimée"
 
@@ -839,10 +854,15 @@ msgstr "Contenu :"
 msgid "Key"
 msgstr "Clé"
 
-#: src/app/routes/_authenticated/_orders/components/order-modification-preview-dialog.tsx:355
+#: src/app/routes/_authenticated/_orders/components/order-modification-preview-dialog.tsx:360
 #: src/lib/components/shared/navigation-confirmation.tsx:58
 msgid "Confirm"
 msgstr "Confirmer"
+
+#. placeholder {0}: error.message
+#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:303
+msgid "Failed to complete draft order: {0}"
+msgstr ""
 
 #: src/app/routes/_authenticated/_collections/collections_.$id.tsx:118
 msgid "Failed to create collection"
@@ -858,7 +878,7 @@ msgstr "Échec de la création du produit"
 
 #: src/app/routes/_authenticated/_orders/components/order-detail-shared.tsx:276
 #: src/app/routes/_authenticated/_orders/orders_.$id_.modify.tsx:233
-#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:418
+#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:457
 #: src/lib/components/shared/role-code-label.tsx:8
 msgid "Customer"
 msgstr "Client"
@@ -868,7 +888,7 @@ msgstr "Client"
 msgid "Error loading order history: {0}"
 msgstr "Erreur lors du chargement de l'historique des commandes : {0}"
 
-#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:183
+#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:195
 msgid "Shipping address set for order"
 msgstr "Adresse de livraison définie pour la commande"
 
@@ -914,7 +934,7 @@ msgstr "Voici les valeurs de facette pour la facette <0>{facetName}</0>."
 msgid "Successfully added payment to order"
 msgstr "Paiement ajouté avec succès à la commande"
 
-#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:191
+#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:206
 msgid "Billing address set for order"
 msgstr "Adresse de facturation définie pour la commande"
 
@@ -991,11 +1011,16 @@ msgstr "Alloué"
 #~ msgid "Add another option group"
 #~ msgstr "Ajouter un autre groupe d'options"
 
+#. placeholder {0}: error.message
+#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:270
+msgid "Failed to set coupon code for order: {0}"
+msgstr ""
+
 #: src/lib/components/layout/nav-user.tsx:102
 msgid "Explore Platform & Cloud"
 msgstr "Découvrir Platform & Cloud"
 
-#: src/app/routes/_authenticated/_system/job-queue.tsx:86
+#: src/app/routes/_authenticated/_system/job-queue.tsx:115
 msgid "Every 5 seconds"
 msgstr "Toutes les 5 secondes"
 
@@ -1012,7 +1037,7 @@ msgstr "Collection créée avec succès"
 msgid "Price"
 msgstr "Prix"
 
-#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:304
+#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:343
 #: src/app/routes/_authenticated/_orders/orders.tsx:115
 msgid "Draft order"
 msgstr "Brouillon de commande"
@@ -1039,7 +1064,7 @@ msgstr "Supprimé du groupe"
 msgid "Width"
 msgstr "Largeur"
 
-#: src/app/routes/_authenticated/_orders/components/order-modification-preview-dialog.tsx:331
+#: src/app/routes/_authenticated/_orders/components/order-modification-preview-dialog.tsx:334
 msgid "No payment or refund required"
 msgstr "Aucun paiement ou remboursement requis"
 
@@ -1055,7 +1080,7 @@ msgstr "Lorsqu'activée, une promotion est disponible dans la boutique"
 msgid "When tracked, product variant stock levels will be automatically adjusted when sold. This setting can be overridden by individual product variants."
 msgstr "Lorsque suivi, les niveaux de stock des variantes de produit seront automatiquement ajustés lors de la vente. Ce paramètre peut être remplacé par les variantes de produit individuelles."
 
-#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:218
+#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:242
 msgid "Shipping method set for order"
 msgstr "Mode de livraison défini pour la commande"
 
@@ -1086,8 +1111,8 @@ msgstr "Modifier la ressource"
 msgid "Cancel payment"
 msgstr "Annuler le paiement"
 
-#: src/app/routes/_authenticated/_system/job-queue.tsx:48
-#: src/app/routes/_authenticated/_system/job-queue.tsx:118
+#: src/app/routes/_authenticated/_system/job-queue.tsx:77
+#: src/app/routes/_authenticated/_system/job-queue.tsx:147
 msgid "Job Queue"
 msgstr "File d'attente des tâches"
 
@@ -1099,6 +1124,11 @@ msgstr "Ressources"
 #: src/app/routes/_authenticated/_customers/customers_.$id.tsx:188
 msgid "Email address"
 msgstr "Adresse e-mail"
+
+#. placeholder {0}: error.message
+#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:281
+msgid "Failed to remove coupon code from order: {0}"
+msgstr ""
 
 #: src/lib/components/data-input/slug-input.tsx:266
 #: src/lib/components/data-input/slug-input.tsx:267
@@ -1124,7 +1154,7 @@ msgstr "Aucun résultat trouvé"
 msgid "Set a shipping address and select a shipping method"
 msgstr "Définissez une adresse de livraison et sélectionnez un mode d'expédition"
 
-#: src/app/routes/_authenticated/_system/job-queue.tsx:85
+#: src/app/routes/_authenticated/_system/job-queue.tsx:114
 msgid "Off"
 msgstr "Désactivé"
 
@@ -1133,7 +1163,7 @@ msgstr "Désactivé"
 msgid "Settings Store"
 msgstr "Magasin de paramètres"
 
-#: src/app/routes/_authenticated/_system/job-queue.tsx:234
+#: src/app/routes/_authenticated/_system/job-queue.tsx:257
 msgid "Queue"
 msgstr "File d'attente"
 
@@ -1146,7 +1176,7 @@ msgstr "Nouveau taux de taxe"
 msgid "Payment transitioned"
 msgstr "Paiement transféré"
 
-#: src/app/routes/_authenticated/_orders/components/order-modification-preview-dialog.tsx:287
+#: src/app/routes/_authenticated/_orders/components/order-modification-preview-dialog.tsx:290
 msgid "Remaining:"
 msgstr "Restant :"
 
@@ -1158,11 +1188,11 @@ msgstr "Aucun duplicateur trouvé avec le code « {duplicatorCode} » pour {enti
 msgid "Prices include tax for default tax zone"
 msgstr "Les prix incluent la taxe pour la zone fiscale par défaut"
 
-#: src/app/routes/_authenticated/_orders/components/order-modification-preview-dialog.tsx:273
+#: src/app/routes/_authenticated/_orders/components/order-modification-preview-dialog.tsx:276
 msgid "Total refund:"
 msgstr "Remboursement total :"
 
-#: src/app/routes/_authenticated/_system/job-queue.tsx:153
+#: src/app/routes/_authenticated/_system/job-queue.tsx:180
 #: src/app/routes/_authenticated/_system/scheduled-tasks.tsx:176
 msgid "View job result"
 msgstr "Voir le résultat du travail"
@@ -1240,13 +1270,17 @@ msgstr "Adresse supprimée"
 msgid "Only roles assigned to your account are available."
 msgstr "Seuls les rôles assignés à votre compte sont disponibles."
 
+#: src/app/routes/_authenticated/_system/components/cancel-jobs-bulk-action.tsx:63
+msgid "{cancellableCount, plural, one {Cancel {cancellableCount} job} other {Cancel {cancellableCount} jobs}}"
+msgstr ""
+
 #: src/lib/components/data-input/product-multi-selector-input.tsx:399
 #: src/lib/components/shared/configurable-operation-multi-selector.tsx:264
 #: src/lib/components/shared/configurable-operation-selector.tsx:139
 msgid "{buttonText}"
 msgstr "{buttonText}"
 
-#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:108
+#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:111
 msgid "Item added to order"
 msgstr "Élément ajouté à la commande"
 
@@ -1323,7 +1357,7 @@ msgstr "Commande transférée"
 msgid "is before"
 msgstr "est avant"
 
-#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:309
+#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:348
 msgid "Delete draft order"
 msgstr "Supprimer le brouillon de commande"
 
@@ -1370,6 +1404,11 @@ msgstr "Vue convertie globalement avec succès"
 #: src/lib/components/data-table/human-readable-operator.tsx:28
 msgid "before"
 msgstr "avant"
+
+#. placeholder {0}: error.message
+#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:188
+msgid "Failed to set customer for order: {0}"
+msgstr ""
 
 #: src/lib/components/shared/asset/asset-gallery.tsx:745
 msgid "Size"
@@ -1484,7 +1523,7 @@ msgstr "Adresse mise à jour avec succès"
 #: src/app/routes/_authenticated/_api-keys/api-keys_.$id.tsx:226
 #: src/app/routes/_authenticated/_orders/components/fulfillment-details.tsx:124
 #: src/lib/components/shared/asset/asset-gallery.tsx:747
-#: src/lib/framework/layout-engine/page-layout.tsx:650
+#: src/lib/framework/layout-engine/page-layout.tsx:705
 msgid "Created"
 msgstr "Créé"
 
@@ -1496,6 +1535,11 @@ msgstr "Chargement des adresses..."
 #: src/app/routes/_authenticated/_collections/components/move-collections-dialog.tsx:343
 msgid "Select a target collection to move {0} to."
 msgstr "Sélectionnez une collection cible vers laquelle déplacer {0}."
+
+#. placeholder {0}: error.message
+#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:232
+msgid "Failed to unset billing address for order: {0}"
+msgstr ""
 
 #: src/app/routes/_authenticated/_customers/components/customer-history/customer-history-utils.tsx:45
 msgid "Customer details updated"
@@ -1523,7 +1567,7 @@ msgstr "Aller à la dernière page"
 #: src/app/routes/_authenticated/_collections/components/move-collections-dialog.tsx:418
 #: src/app/routes/_authenticated/_orders/components/add-manual-payment-dialog.tsx:168
 #: src/app/routes/_authenticated/_orders/components/fulfill-order-dialog.tsx:310
-#: src/app/routes/_authenticated/_orders/components/order-modification-preview-dialog.tsx:347
+#: src/app/routes/_authenticated/_orders/components/order-modification-preview-dialog.tsx:352
 #: src/app/routes/_authenticated/_orders/components/refund-order-dialog.tsx:358
 #: src/app/routes/_authenticated/_orders/components/settle-refund-dialog.tsx:71
 #: src/app/routes/_authenticated/_products/components/assign-facet-values-dialog.tsx:270
@@ -1545,12 +1589,17 @@ msgstr "Aller à la dernière page"
 msgid "Cancel"
 msgstr "Annuler"
 
+#. placeholder {0}: error.message
+#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:95
+msgid "Failed to update order custom fields: {0}"
+msgstr ""
+
 #: src/app/routes/_authenticated/_product-variants/product-variants_.$id.tsx:127
 #: src/app/routes/_authenticated/_products/components/add-product-variant-dialog.tsx:160
 msgid "Successfully created product variant"
 msgstr "Variante de produit créée avec succès"
 
-#: src/app/routes/_authenticated/_orders/components/order-modification-preview-dialog.tsx:229
+#: src/app/routes/_authenticated/_orders/components/order-modification-preview-dialog.tsx:236
 msgid "Refund from this method"
 msgstr "Remboursement de cette méthode"
 
@@ -1576,7 +1625,7 @@ msgstr "Nouvelle catégorie fiscale"
 msgid "Partial refund completed"
 msgstr "Remboursement partiel effectué"
 
-#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:413
+#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:452
 msgid "Set custom fields"
 msgstr "Définir les champs personnalisés"
 
@@ -1604,7 +1653,7 @@ msgstr "Motif :"
 
 #: src/app/routes/_authenticated/_orders/components/order-detail-shared.tsx:291
 #: src/app/routes/_authenticated/_orders/orders_.$id_.modify.tsx:248
-#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:431
+#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:470
 msgid "Shipping address"
 msgstr "Adresse de livraison"
 
@@ -1661,7 +1710,7 @@ msgstr "Adresse de livraison par défaut"
 msgid "{operator}"
 msgstr "{operator}"
 
-#: src/app/routes/_authenticated/_orders/components/order-modification-preview-dialog.tsx:170
+#: src/app/routes/_authenticated/_orders/components/order-modification-preview-dialog.tsx:177
 msgid "Refund required"
 msgstr "Remboursement requis"
 
@@ -1777,7 +1826,7 @@ msgstr "Note ajoutée"
 msgid "Select quantities to fulfill and configure the fulfillment handler"
 msgstr "Sélectionnez les quantités à exécuter et configurez le gestionnaire d'exécution"
 
-#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:207
+#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:228
 msgid "Billing address unset for order"
 msgstr "Adresse de facturation supprimée de la commande"
 
@@ -2287,7 +2336,12 @@ msgstr "Collections déplacées avec succès"
 msgid "Registered"
 msgstr "Enregistré"
 
-#: src/app/routes/_authenticated/_system/job-queue.tsx:208
+#. placeholder {0}: error.message
+#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:199
+msgid "Failed to set shipping address for order: {0}"
+msgstr ""
+
+#: src/app/routes/_authenticated/_system/job-queue.tsx:231
 msgid "Cancel Job"
 msgstr "Annuler la tâche"
 
@@ -2371,7 +2425,7 @@ msgstr "Éléments sélectionnés"
 msgid "Values"
 msgstr "Valeurs"
 
-#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:161
+#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:170
 msgid "Customer set for order"
 msgstr "Client défini pour la commande"
 
@@ -2488,7 +2542,7 @@ msgstr "Canal créé avec succès"
 msgid "Successfully updated customer"
 msgstr "Client mis à jour avec succès"
 
-#: src/app/routes/_authenticated/_system/job-queue.tsx:139
+#: src/app/routes/_authenticated/_system/job-queue.tsx:166
 msgid "View data"
 msgstr "Voir les données"
 
@@ -2547,7 +2601,7 @@ msgstr "Cela supprimera tous les groupes d'options de ce produit et reviendra au
 
 #: src/app/routes/_authenticated/_orders/components/order-detail-shared.tsx:299
 #: src/app/routes/_authenticated/_orders/orders_.$id_.modify.tsx:277
-#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:463
+#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:502
 msgid "Billing address"
 msgstr "Adresse de facturation"
 
@@ -2560,7 +2614,7 @@ msgstr "Ajouter une valeur de facette"
 msgid "Please select a target collection"
 msgstr "Veuillez sélectionner une collection cible"
 
-#: src/app/routes/_authenticated/_orders/components/order-modification-preview-dialog.tsx:152
+#: src/app/routes/_authenticated/_orders/components/order-modification-preview-dialog.tsx:159
 msgid "Review the changes before applying them to the order."
 msgstr "Examinez les modifications avant de les appliquer à la commande."
 
@@ -2731,7 +2785,7 @@ msgstr "Supprimer la vue globale"
 msgid "Create"
 msgstr "Créer"
 
-#: src/app/routes/_authenticated/_system/job-queue.tsx:88
+#: src/app/routes/_authenticated/_system/job-queue.tsx:117
 msgid "Every 30 seconds"
 msgstr "Toutes les 30 secondes"
 
@@ -2951,7 +3005,7 @@ msgstr "Créer une variante"
 msgid "Facet values for {facetName}"
 msgstr "Valeurs de facette pour {facetName}"
 
-#: src/app/routes/_authenticated/index.tsx:190
+#: src/app/routes/_authenticated/index.tsx:199
 msgid "Save Layout"
 msgstr "Enregistrer la disposition"
 
@@ -3076,6 +3130,10 @@ msgstr "dans"
 #: src/lib/components/shared/role-selector.tsx:53
 msgid "Search roles..."
 msgstr "Rechercher des rôles..."
+
+#: src/app/routes/_authenticated/_system/components/cancel-jobs-bulk-action.tsx:35
+msgid "Successfully cancelled {fulfilled} jobs"
+msgstr ""
 
 #: src/app/routes/_authenticated/_product-variants/product-variants_.$id.tsx:69
 #: src/app/routes/_authenticated/_product-variants/product-variants.tsx:19
@@ -3267,7 +3325,7 @@ msgid "Update the note content or visibility"
 msgstr "Mettre à jour le contenu ou la visibilité de la note"
 
 #. js-lingui-explicit-id
-#: src/lib/framework/defaults.ts:271
+#: src/lib/framework/defaults.ts:272
 msgid "Latest Orders Widget"
 msgstr "Widget Dernières Commandes"
 
@@ -3404,7 +3462,7 @@ msgstr "Ajouter une ligne après"
 msgid "Tax total"
 msgstr "Total des taxes"
 
-#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:335
+#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:374
 msgid "Draft order status"
 msgstr "Statut du brouillon de commande"
 
@@ -3425,7 +3483,7 @@ msgstr "Valeur de facette créée avec succès"
 msgid "Marketing"
 msgstr "Marketing"
 
-#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:275
+#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:311
 msgid "Draft order deleted"
 msgstr "Brouillon de commande supprimé"
 
@@ -3493,6 +3551,12 @@ msgstr "Aucune adresse de facturation"
 #: src/app/routes/_authenticated/_facets/facets_.$facetId.values_.$id.tsx:119
 msgid "Facet"
 msgstr "Facette"
+
+#. placeholder {0}: import { DataTableBulkActionItem } from '@/vdb/components/data-table/data-table-bulk-action-item.js'; import { BulkActionComponent } from '@/vdb/framework/extension-api/types/data-table.js'; import { api } from '@/vdb/graphql/api.js'; import { usePaginatedList } from '@/vdb/hooks/use-paginated-list.js'; import { plural } from '@lingui/core/macro'; import { Plural, useLingui } from '@lingui/react/macro'; import { useMutation } from '@tanstack/react-query'; import { Ban } from 'lucide-react'; import { toast } from 'sonner'; import { cancelJobDocument } from '../job-queue.graphql.js'; export const CancelJobsBulkAction: BulkActionComponent<any> = ({ selection, table }) => { const { refetchPaginatedList } = usePaginatedList(); const { t } = useLingui(); const cancellableJobs = selection.filter(job => job.state === 'RUNNING' || job.state === 'PENDING'); const cancellableCount = cancellableJobs.length; const { mutate, isPending } = useMutation({ mutationFn: async () => { const results = await Promise.allSettled( cancellableJobs.map(job => api.mutate(cancelJobDocument, { jobId: job.id })), ); const fulfilled = results.filter(r => r.status === 'fulfilled').length; const rejected = results.filter(r => r.status === 'rejected').length; return { fulfilled, rejected }; }, onSuccess: ({ fulfilled, rejected }) => { if (fulfilled > 0) { toast.success( plural(fulfilled, { one: t`Successfully cancelled ${fulfilled} job`, other: t`Successfully cancelled ${fulfilled} jobs`, }), ); } if (rejected > 0) { toast.error( plural(rejected, { one: t`Failed to cancel ${rejected} job`, other: t`Failed to cancel ${rejected} jobs`, }), ); } refetchPaginatedList(); table.resetRowSelection(); }, }); if (cancellableCount === 0) { return null; } return ( <DataTableBulkActionItem requiresPermission={['DeleteSettings', 'DeleteSystem']} onClick={() => mutate()} disabled={isPending} label={ <Plural value={cancellableCount} one={`Cancel ${cancellableCount} job`} other={`Cancel ${cancellableCount} jobs`} /> } confirmationText={ <Plural value={cancellableCount} one={`Are you sure you want to cancel ${cancellableCount} job? This action cannot be undone.`} other={`Are you sure you want to cancel ${cancellableCount} jobs? This action cannot be undone.`} /> } icon={Ban} className="text-destructive" /> ); }; 
+#. placeholder {1}: import { DataTableBulkActionItem } from '@/vdb/components/data-table/data-table-bulk-action-item.js'; import { BulkActionComponent } from '@/vdb/framework/extension-api/types/data-table.js'; import { api } from '@/vdb/graphql/api.js'; import { usePaginatedList } from '@/vdb/hooks/use-paginated-list.js'; import { plural } from '@lingui/core/macro'; import { Plural, useLingui } from '@lingui/react/macro'; import { useMutation } from '@tanstack/react-query'; import { Ban } from 'lucide-react'; import { toast } from 'sonner'; import { cancelJobDocument } from '../job-queue.graphql.js'; export const CancelJobsBulkAction: BulkActionComponent<any> = ({ selection, table }) => { const { refetchPaginatedList } = usePaginatedList(); const { t } = useLingui(); const cancellableJobs = selection.filter(job => job.state === 'RUNNING' || job.state === 'PENDING'); const cancellableCount = cancellableJobs.length; const { mutate, isPending } = useMutation({ mutationFn: async () => { const results = await Promise.allSettled( cancellableJobs.map(job => api.mutate(cancelJobDocument, { jobId: job.id })), ); const fulfilled = results.filter(r => r.status === 'fulfilled').length; const rejected = results.filter(r => r.status === 'rejected').length; return { fulfilled, rejected }; }, onSuccess: ({ fulfilled, rejected }) => { if (fulfilled > 0) { toast.success( plural(fulfilled, { one: t`Successfully cancelled ${fulfilled} job`, other: t`Successfully cancelled ${fulfilled} jobs`, }), ); } if (rejected > 0) { toast.error( plural(rejected, { one: t`Failed to cancel ${rejected} job`, other: t`Failed to cancel ${rejected} jobs`, }), ); } refetchPaginatedList(); table.resetRowSelection(); }, }); if (cancellableCount === 0) { return null; } return ( <DataTableBulkActionItem requiresPermission={['DeleteSettings', 'DeleteSystem']} onClick={() => mutate()} disabled={isPending} label={ <Plural value={cancellableCount} one={`Cancel ${cancellableCount} job`} other={`Cancel ${cancellableCount} jobs`} /> } confirmationText={ <Plural value={cancellableCount} one={`Are you sure you want to cancel ${cancellableCount} job? This action cannot be undone.`} other={`Are you sure you want to cancel ${cancellableCount} jobs? This action cannot be undone.`} /> } icon={Ban} className="text-destructive" /> ); }; 
+#: src/app/routes/_authenticated/_system/components/cancel-jobs-bulk-action.tsx:41
+msgid "{rejected, plural, one {{0}} other {{1}}}"
+msgstr ""
 
 #: src/lib/components/shared/assigned-channels.tsx:58
 msgid "Cannot remove from active channel"
@@ -3572,7 +3636,7 @@ msgstr "Rembourser {0}"
 msgid "Enter slug manually"
 msgstr "Saisir le slug manuellement"
 
-#: src/app/routes/_authenticated/index.tsx:221
+#: src/app/routes/_authenticated/index.tsx:230
 msgid "No widgets available"
 msgstr "Aucun widget disponible"
 
@@ -3697,7 +3761,7 @@ msgstr "Ajouter un élément"
 msgid "Successfully created API key"
 msgstr "API Key créé avec succès"
 
-#: src/app/routes/_authenticated/_orders/components/order-modification-preview-dialog.tsx:158
+#: src/app/routes/_authenticated/_orders/components/order-modification-preview-dialog.tsx:165
 msgid "Loading preview…"
 msgstr "Chargement de l'aperçu…"
 
@@ -3733,6 +3797,11 @@ msgstr "Description"
 msgid "Countries"
 msgstr "Pays"
 
+#. placeholder {0}: error.message
+#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:160
+msgid "Failed to remove order line: {0}"
+msgstr ""
+
 #: src/app/routes/_authenticated/_shipping-methods/components/test-address-form.tsx:182
 msgid "Street Address 2"
 msgstr "Adresse de Rue 2"
@@ -3741,7 +3810,7 @@ msgstr "Adresse de Rue 2"
 msgid "Global view deleted successfully"
 msgstr "Vue globale supprimée avec succès"
 
-#: src/app/routes/_authenticated/index.tsx:190
+#: src/app/routes/_authenticated/index.tsx:199
 msgid "Edit Layout"
 msgstr "Modifier la disposition"
 
@@ -3877,7 +3946,7 @@ msgstr "+ {0} de plus"
 msgid "Option Groups"
 msgstr "Groupes d'options"
 
-#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:392
+#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:431
 msgid "Custom fields"
 msgstr "Champs personnalisés"
 
@@ -3891,7 +3960,7 @@ msgid "Orders"
 msgstr "Commandes"
 
 #. js-lingui-explicit-id
-#: src/lib/framework/defaults.ts:278
+#: src/lib/framework/defaults.ts:280
 msgid "Orders Summary Widget"
 msgstr "Widget Résumé des Commandes"
 
@@ -3964,7 +4033,7 @@ msgstr "Expédié"
 #~ msgid "Monitored Resources"
 #~ msgstr "Ressources surveillées"
 
-#: src/lib/framework/layout-engine/page-layout.tsx:622
+#: src/lib/framework/layout-engine/page-layout.tsx:677
 msgid "Entity Information"
 msgstr "Informations de l'entité"
 
@@ -3992,6 +4061,11 @@ msgstr "Super Administrateur"
 #: src/app/routes/_authenticated/_system/healthchecks.tsx:74
 #~ msgid "Some resources are down"
 #~ msgstr "Certaines ressources sont indisponibles"
+
+#. placeholder {0}: error.message
+#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:141
+msgid "Failed to update order line: {0}"
+msgstr ""
 
 #: src/lib/components/shared/rich-text-editor/link-dialog.tsx:84
 msgid "Insert link"
@@ -4108,7 +4182,7 @@ msgstr "Insérer un nouveau lien hypertexte avec URL et options de cible"
 msgid "Height"
 msgstr "Hauteur"
 
-#: src/app/routes/_authenticated/_orders/components/order-modification-preview-dialog.tsx:173
+#: src/app/routes/_authenticated/_orders/components/order-modification-preview-dialog.tsx:180
 msgid "A refund of {formattedDiff} is required. Select payment amounts and enter a note to proceed."
 msgstr "Un remboursement de {formattedDiff} est requis. Sélectionnez les montants de paiement et saisissez une note pour continuer."
 
@@ -4161,6 +4235,11 @@ msgstr "Mode de paiement créé avec succès"
 #: src/app/routes/_authenticated/_orders/components/order-history/default-order-history-components.tsx:86
 msgid "Customer information updated"
 msgstr "Informations du client mises à jour"
+
+#. placeholder {0}: error.message
+#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:318
+msgid "Failed to delete draft order: {0}"
+msgstr ""
 
 #: src/lib/components/data-table/views-sheet.tsx:120
 msgid "Failed to convert view to global"
@@ -4293,7 +4372,7 @@ msgstr "OU"
 msgid "Manage tags"
 msgstr "Gérer les étiquettes"
 
-#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:247
+#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:277
 msgid "Coupon code removed from order"
 msgstr "Code de coupon retiré de la commande"
 
@@ -4315,6 +4394,11 @@ msgstr "Échec de la mise à jour de la valeur de facette"
 #: src/app/routes/_authenticated/_orders/components/order-history/order-history-utils.tsx:82
 msgid "Order fulfilled"
 msgstr "Commande exécutée"
+
+#. placeholder {0}: error.message
+#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:210
+msgid "Failed to set billing address for order: {0}"
+msgstr ""
 
 #: src/app/routes/_authenticated/_orders/orders_.$id_.modify.tsx:271
 msgid "No shipping address"
@@ -4370,7 +4454,7 @@ msgstr "Les conditions de vérification d'éligibilité de cette méthode d'exp�
 msgid "Add coupon code"
 msgstr "Ajouter un code coupon"
 
-#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:234
+#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:261
 msgid "Coupon code set for order"
 msgstr "Code de coupon défini pour la commande"
 
@@ -4453,7 +4537,7 @@ msgstr "Reconstruire l'index de recherche"
 msgid "Running"
 msgstr "En cours d'exécution"
 
-#: src/app/routes/_authenticated/_system/job-queue.tsx:89
+#: src/app/routes/_authenticated/_system/job-queue.tsx:118
 msgid "Every 60 seconds"
 msgstr "Toutes les 60 secondes"
 
@@ -4482,7 +4566,7 @@ msgstr "Appliquez des filtres au tableau et cliquez sur « Enregistrer la vue »
 msgid "Roles"
 msgstr "Rôles"
 
-#: src/app/routes/_authenticated/_orders/components/order-modification-preview-dialog.tsx:319
+#: src/app/routes/_authenticated/_orders/components/order-modification-preview-dialog.tsx:322
 msgid "Additional payment required"
 msgstr "Paiement supplémentaire requis"
 
@@ -4510,7 +4594,7 @@ msgstr "Membres du groupe de clients pour {customerGroupName}"
 #: src/app/routes/_authenticated/_orders/components/fulfillment-details.tsx:118
 #: src/app/routes/_authenticated/_orders/components/payment-details.tsx:217
 #: src/app/routes/_authenticated/_orders/orders.tsx:101
-#: src/app/routes/_authenticated/_system/job-queue.tsx:245
+#: src/app/routes/_authenticated/_system/job-queue.tsx:268
 msgid "State"
 msgstr "État"
 
@@ -4736,6 +4820,10 @@ msgstr "Aller à la page précédente"
 msgid "Contents"
 msgstr "Contenu"
 
+#: src/app/routes/_authenticated/_system/components/cancel-jobs-bulk-action.tsx:43
+msgid "Failed to cancel {rejected} jobs"
+msgstr ""
+
 #: src/lib/components/data-table/views-sheet.tsx:110
 msgid "Failed to convert global view to personal view"
 msgstr "Échec de la conversion de la vue globale en vue personnelle"
@@ -4744,7 +4832,7 @@ msgstr "Échec de la conversion de la vue globale en vue personnelle"
 #~ msgid "The assigned option groups have no options yet. Add options to your option groups before generating variants."
 #~ msgstr ""
 
-#: src/app/routes/_authenticated/_system/job-queue.tsx:155
+#: src/app/routes/_authenticated/_system/job-queue.tsx:182
 #: src/app/routes/_authenticated/_system/scheduled-tasks.tsx:177
 msgid "The result of the job"
 msgstr "Le résultat du travail"
@@ -4763,7 +4851,7 @@ msgstr "Système"
 msgid "Variant name"
 msgstr "Nom de la variante"
 
-#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:504
+#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:543
 msgid "Remove"
 msgstr "Supprimer"
 
@@ -4809,7 +4897,7 @@ msgstr "Enregistrer"
 #~ msgid "{selectedRowCount} of {0} row(s) selected."
 #~ msgstr "{selectedRowCount} sur {0} ligne(s) sélectionnée(s)."
 
-#: src/app/routes/_authenticated/_orders/components/order-modification-preview-dialog.tsx:149
+#: src/app/routes/_authenticated/_orders/components/order-modification-preview-dialog.tsx:156
 msgid "Preview order modifications"
 msgstr "Aperçu des modifications de commande"
 
@@ -4986,7 +5074,7 @@ msgstr "Groupe d'options mis à jour avec succès"
 msgid "New shipping method"
 msgstr "Nouvelle méthode d'expédition"
 
-#: src/app/routes/_authenticated/_system/job-queue.tsx:87
+#: src/app/routes/_authenticated/_system/job-queue.tsx:116
 msgid "Every 10 seconds"
 msgstr "Toutes les 10 secondes"
 
@@ -5015,7 +5103,7 @@ msgstr "Groupe d'options supprimé"
 msgid "Transition to selected state"
 msgstr "Transition vers l'état sélectionné"
 
-#: src/app/routes/_authenticated/_orders/components/order-modification-preview-dialog.tsx:322
+#: src/app/routes/_authenticated/_orders/components/order-modification-preview-dialog.tsx:325
 msgid "An additional payment of {formattedDiff} will be required."
 msgstr "Un paiement supplémentaire de {formattedDiff} sera requis."
 
@@ -5132,7 +5220,7 @@ msgstr "Les données de test ont été mises à jour. Cliquez sur « Lancer le T
 msgid "is not in"
 msgstr "n'est pas dans"
 
-#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:129
+#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:132
 msgid "Order line updated"
 msgstr "Ligne de commande mise à jour"
 
@@ -5180,6 +5268,10 @@ msgstr "Valeurs de facette actuelles"
 msgid "Page {page} of {totalPages}"
 msgstr "Page {page} sur {totalPages}"
 
+#: src/app/routes/_authenticated/_system/components/cancel-jobs-bulk-action.tsx:42
+msgid "Failed to cancel {rejected} job"
+msgstr ""
+
 #: src/lib/components/date-range-picker.tsx:79
 msgctxt "date-range"
 msgid "Last month"
@@ -5202,7 +5294,7 @@ msgstr "Vidéo"
 msgid "less than"
 msgstr "inférieur à"
 
-#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:118
+#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:121
 msgid "The variant could not be added. Ensure the parent product is enabled."
 msgstr "La variante n'a pas pu être ajoutée. Assurez-vous que le produit parent est activé."
 
@@ -5264,7 +5356,7 @@ msgstr "Langues globales"
 msgid "New administrator"
 msgstr "Nouvel administrateur"
 
-#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:316
+#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:355
 msgid "Delete draft"
 msgstr "Supprimer le brouillon"
 
@@ -5282,7 +5374,7 @@ msgstr "Aucune action disponible"
 msgid "Failed to update channel"
 msgstr "Échec de la mise à jour du canal"
 
-#: src/lib/components/shared/custom-fields-form.tsx:99
+#: src/lib/components/shared/custom-fields-form.tsx:101
 msgid "General"
 msgstr "Général"
 
@@ -5342,9 +5434,13 @@ msgstr "Aucune étiquette trouvée"
 msgid "Default currency"
 msgstr "Devise par défaut"
 
-#: src/app/routes/_authenticated/_orders/components/order-modification-preview-dialog.tsx:334
+#: src/app/routes/_authenticated/_orders/components/order-modification-preview-dialog.tsx:337
 msgid "No payment or refund is required for these changes."
 msgstr "Aucun paiement ou remboursement n'est requis pour ces modifications."
+
+#: src/app/routes/_authenticated/_system/components/cancel-jobs-bulk-action.tsx:70
+msgid "{cancellableCount, plural, one {Are you sure you want to cancel {cancellableCount} job? This action cannot be undone.} other {Are you sure you want to cancel {cancellableCount} jobs? This action cannot be undone.}}"
+msgstr ""
 
 #: src/lib/framework/dashboard-widget/orders-summary/index.tsx:100
 msgid "Total Revenue"
@@ -5424,7 +5520,7 @@ msgstr "Calculateur"
 msgid "Failed to remove option group from channel: {message}"
 msgstr "Échec de la suppression du groupe d'options du canal : {message}"
 
-#: src/app/routes/_authenticated/_system/job-queue.tsx:134
+#: src/app/routes/_authenticated/_system/job-queue.tsx:161
 msgid "View job data"
 msgstr "Voir les données du travail"
 
@@ -5529,7 +5625,7 @@ msgstr "Définit le niveau de stock à partir duquel cette variante est considé
 msgid "Saving..."
 msgstr "Enregistrement..."
 
-#: src/app/routes/_authenticated/_system/job-queue.tsx:158
+#: src/app/routes/_authenticated/_system/job-queue.tsx:185
 #: src/app/routes/_authenticated/_system/scheduled-tasks.tsx:180
 msgid "View result"
 msgstr "Voir le résultat"
@@ -5570,6 +5666,11 @@ msgstr "Échec de l'ajout de la valeur d'option"
 msgid "Add option value to {groupName}"
 msgstr "Ajouter une valeur d'option à {groupName}"
 
+#. placeholder {0}: error.message
+#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:221
+msgid "Failed to unset shipping address for order: {0}"
+msgstr ""
+
 #: src/app/routes/_authenticated/_orders/components/add-surcharge-form.tsx:82
 #: src/app/routes/_authenticated/_orders/components/edit-order-table.tsx:96
 #: src/app/routes/_authenticated/_product-variants/product-variants_.$id.tsx:271
@@ -5596,7 +5697,7 @@ msgstr "Nouvel e-mail :"
 msgid "Failed to update payment method"
 msgstr "Échec de la mise à jour de la méthode de paiement"
 
-#: src/app/routes/_authenticated/_orders/components/order-modification-preview-dialog.tsx:235
+#: src/app/routes/_authenticated/_orders/components/order-modification-preview-dialog.tsx:242
 msgid "Available:"
 msgstr "Disponible :"
 
@@ -5661,7 +5762,7 @@ msgstr "Duplication réussie de {count} {entityName}"
 msgid "New Option Group"
 msgstr "Nouveau groupe d'options"
 
-#: src/app/routes/_authenticated/_system/job-queue.tsx:164
+#: src/app/routes/_authenticated/_system/job-queue.tsx:191
 #: src/app/routes/_authenticated/_system/scheduled-tasks.tsx:186
 msgid "No result yet"
 msgstr "Aucun résultat pour l'instant"

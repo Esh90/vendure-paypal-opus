@@ -45,7 +45,7 @@ msgstr "Nova porezna stopa"
 
 #: src/app/routes/_authenticated/_products/components/add-option-group-dialog.tsx:150
 msgid "Assign an existing option group or create a new one"
-msgstr "تعيين مجموعة خيارات موجودة أو إنشاء مجموعة جديدة"
+msgstr "Dodijelite postojeću grupu opcija ili stvorite novu"
 
 #: src/app/routes/_authenticated/_roles/roles_.$id.tsx:33
 #: src/app/routes/_authenticated/_roles/roles_.$id.tsx:77
@@ -84,7 +84,7 @@ msgstr "Prebaci sve"
 
 #: src/app/routes/_authenticated/_system/settings-store.tsx:123
 msgid "Edit JSON value"
-msgstr "تعديل قيمة JSON"
+msgstr "Uredi JSON vrijednost"
 
 #: src/app/routes/_authenticated/_customers/components/customer-history/default-customer-history-components.tsx:17
 msgid "Using external authentication strategy: {strategy}"
@@ -104,7 +104,7 @@ msgstr "Naslov 5"
 msgid "Failed to add payment"
 msgstr "Dodavanje plaćanja nije uspjelo"
 
-#: src/lib/framework/layout-engine/page-layout.tsx:663
+#: src/lib/framework/layout-engine/page-layout.tsx:718
 msgid "Updated"
 msgstr "Ažurirano"
 
@@ -159,7 +159,7 @@ msgstr "Unesite prilagođeni razlog..."
 
 #: src/lib/components/shared/asset/asset-gallery.tsx:744
 msgid "Type"
-msgstr "النوع"
+msgstr "Vrsta"
 
 #. placeholder {0}: entityName.toLowerCase()
 #. placeholder {0}: group.name
@@ -198,14 +198,18 @@ msgstr "Kada je ovo omogućeno, cijene unesene u katalog proizvoda bit će uklju
 #~ msgid "Create variants for your product"
 #~ msgstr "Stvorite varijante za svoj proizvod"
 
-#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:258
+#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:291
 msgid "Draft order completed"
 msgstr "Skica narudžbe dovršena"
 
 #. placeholder {0}: currentInterval?.label
-#: src/app/routes/_authenticated/_system/job-queue.tsx:258
+#: src/app/routes/_authenticated/_system/job-queue.tsx:287
 msgid "Auto refresh: {0}"
 msgstr "Automatsko osvježavanje: {0}"
+
+#: src/app/routes/_authenticated/_system/components/cancel-jobs-bulk-action.tsx:34
+msgid "Successfully cancelled {fulfilled} job"
+msgstr ""
 
 #: src/app/routes/_authenticated/_system/healthchecks.tsx:43
 #~ msgid "Health checks"
@@ -239,7 +243,7 @@ msgstr "Šifra:"
 
 #: src/app/routes/_authenticated/_orders/components/add-manual-payment-dialog.tsx:121
 msgid "Add payment"
-msgstr "إضافة دفعة"
+msgstr "Dodaj plaćanje"
 
 #: src/app/routes/_authenticated/_shipping-methods/components/test-single-shipping-method-sheet.tsx:40
 msgid "Test this shipping method by simulating an order to see if it's eligible and what the shipping cost would be."
@@ -272,7 +276,7 @@ msgstr "Narudžbe"
 
 #: src/app/routes/_authenticated/_api-keys/api-keys_.$id.tsx:187
 msgid "Select roles"
-msgstr "تحديد الأدوار"
+msgstr "Odaberi uloge"
 
 #: src/app/routes/_authenticated/_roles/roles_.$id.tsx:62
 msgid "Successfully created role"
@@ -292,7 +296,7 @@ msgstr "Neuspješno kreiranje administratora"
 
 #: src/app/routes/_authenticated/_system/settings-store.tsx:327
 msgid "No"
-msgstr "لا"
+msgstr "Ne"
 
 #: src/app/routes/_authenticated/_product-variants/product-variants_.$id.tsx:128
 msgid "Successfully updated product variant"
@@ -336,7 +340,7 @@ msgstr "Prilagođena polja promijenjena"
 msgid "Successfully created stock location"
 msgstr "Lokacija zaliha uspješno stvorena"
 
-#: src/app/routes/_authenticated/_orders/components/order-modification-preview-dialog.tsx:102
+#: src/app/routes/_authenticated/_orders/components/order-modification-preview-dialog.tsx:109
 #: src/app/routes/_authenticated/_orders/hooks/use-refund-order.ts:303
 #: src/app/routes/_authenticated/_products/components/add-option-group-dialog.tsx:78
 #: src/app/routes/_authenticated/_products/components/add-option-group-dialog.tsx:120
@@ -397,7 +401,7 @@ msgstr "Vidljivost"
 
 #: src/app/routes/_authenticated/_products/products_.$id.tsx:288
 msgid "Product variants"
-msgstr "متغيرات المنتج"
+msgstr "Varijante proizvoda"
 
 #: src/app/routes/_authenticated/_customer-groups/customer-groups_.$id.tsx:36
 #: src/app/routes/_authenticated/_customer-groups/customer-groups_.$id.tsx:85
@@ -416,7 +420,7 @@ msgstr "Preimenuj"
 
 #: src/lib/components/layout/language-dialog.tsx:52
 msgid "Choose your preferred display language and locale settings"
-msgstr "اختر لغة العرض المفضلة وإعدادات المنطقة"
+msgstr "Odaberite željeni jezik prikaza i regionalne postavke"
 
 #: src/app/routes/_authenticated/_products/products_.$id.tsx:89
 #~ msgid "← Back"
@@ -424,7 +428,7 @@ msgstr "اختر لغة العرض المفضلة وإعدادات المنطق�
 
 #: src/app/routes/_authenticated/_option-groups/components/option-group-bulk-actions.tsx:87
 msgid "Successfully removed {successCount} option groups from channel"
-msgstr "تمت إزالة {successCount} مجموعة خيارات من القناة بنجاح"
+msgstr "Uspješno uklonjeno {successCount} grupa opcija iz kanala"
 
 #: src/app/routes/_authenticated/_shipping-methods/components/test-single-method-result.tsx:76
 msgid "Shipping method is not eligible for this order"
@@ -443,6 +447,12 @@ msgstr "Adresa uspješno obrisana"
 msgid "Tax rate"
 msgstr "Porezna stopa"
 
+#. placeholder {0}: import { DataTableBulkActionItem } from '@/vdb/components/data-table/data-table-bulk-action-item.js'; import { BulkActionComponent } from '@/vdb/framework/extension-api/types/data-table.js'; import { api } from '@/vdb/graphql/api.js'; import { usePaginatedList } from '@/vdb/hooks/use-paginated-list.js'; import { plural } from '@lingui/core/macro'; import { Plural, useLingui } from '@lingui/react/macro'; import { useMutation } from '@tanstack/react-query'; import { Ban } from 'lucide-react'; import { toast } from 'sonner'; import { cancelJobDocument } from '../job-queue.graphql.js'; export const CancelJobsBulkAction: BulkActionComponent<any> = ({ selection, table }) => { const { refetchPaginatedList } = usePaginatedList(); const { t } = useLingui(); const cancellableJobs = selection.filter(job => job.state === 'RUNNING' || job.state === 'PENDING'); const cancellableCount = cancellableJobs.length; const { mutate, isPending } = useMutation({ mutationFn: async () => { const results = await Promise.allSettled( cancellableJobs.map(job => api.mutate(cancelJobDocument, { jobId: job.id })), ); const fulfilled = results.filter(r => r.status === 'fulfilled').length; const rejected = results.filter(r => r.status === 'rejected').length; return { fulfilled, rejected }; }, onSuccess: ({ fulfilled, rejected }) => { if (fulfilled > 0) { toast.success( plural(fulfilled, { one: t`Successfully cancelled ${fulfilled} job`, other: t`Successfully cancelled ${fulfilled} jobs`, }), ); } if (rejected > 0) { toast.error( plural(rejected, { one: t`Failed to cancel ${rejected} job`, other: t`Failed to cancel ${rejected} jobs`, }), ); } refetchPaginatedList(); table.resetRowSelection(); }, }); if (cancellableCount === 0) { return null; } return ( <DataTableBulkActionItem requiresPermission={['DeleteSettings', 'DeleteSystem']} onClick={() => mutate()} disabled={isPending} label={ <Plural value={cancellableCount} one={`Cancel ${cancellableCount} job`} other={`Cancel ${cancellableCount} jobs`} /> } confirmationText={ <Plural value={cancellableCount} one={`Are you sure you want to cancel ${cancellableCount} job? This action cannot be undone.`} other={`Are you sure you want to cancel ${cancellableCount} jobs? This action cannot be undone.`} /> } icon={Ban} className="text-destructive" /> ); }; 
+#. placeholder {1}: import { DataTableBulkActionItem } from '@/vdb/components/data-table/data-table-bulk-action-item.js'; import { BulkActionComponent } from '@/vdb/framework/extension-api/types/data-table.js'; import { api } from '@/vdb/graphql/api.js'; import { usePaginatedList } from '@/vdb/hooks/use-paginated-list.js'; import { plural } from '@lingui/core/macro'; import { Plural, useLingui } from '@lingui/react/macro'; import { useMutation } from '@tanstack/react-query'; import { Ban } from 'lucide-react'; import { toast } from 'sonner'; import { cancelJobDocument } from '../job-queue.graphql.js'; export const CancelJobsBulkAction: BulkActionComponent<any> = ({ selection, table }) => { const { refetchPaginatedList } = usePaginatedList(); const { t } = useLingui(); const cancellableJobs = selection.filter(job => job.state === 'RUNNING' || job.state === 'PENDING'); const cancellableCount = cancellableJobs.length; const { mutate, isPending } = useMutation({ mutationFn: async () => { const results = await Promise.allSettled( cancellableJobs.map(job => api.mutate(cancelJobDocument, { jobId: job.id })), ); const fulfilled = results.filter(r => r.status === 'fulfilled').length; const rejected = results.filter(r => r.status === 'rejected').length; return { fulfilled, rejected }; }, onSuccess: ({ fulfilled, rejected }) => { if (fulfilled > 0) { toast.success( plural(fulfilled, { one: t`Successfully cancelled ${fulfilled} job`, other: t`Successfully cancelled ${fulfilled} jobs`, }), ); } if (rejected > 0) { toast.error( plural(rejected, { one: t`Failed to cancel ${rejected} job`, other: t`Failed to cancel ${rejected} jobs`, }), ); } refetchPaginatedList(); table.resetRowSelection(); }, }); if (cancellableCount === 0) { return null; } return ( <DataTableBulkActionItem requiresPermission={['DeleteSettings', 'DeleteSystem']} onClick={() => mutate()} disabled={isPending} label={ <Plural value={cancellableCount} one={`Cancel ${cancellableCount} job`} other={`Cancel ${cancellableCount} jobs`} /> } confirmationText={ <Plural value={cancellableCount} one={`Are you sure you want to cancel ${cancellableCount} job? This action cannot be undone.`} other={`Are you sure you want to cancel ${cancellableCount} jobs? This action cannot be undone.`} /> } icon={Ban} className="text-destructive" /> ); }; 
+#: src/app/routes/_authenticated/_system/components/cancel-jobs-bulk-action.tsx:33
+msgid "{fulfilled, plural, one {{0}} other {{1}}}"
+msgstr ""
+
 #: src/app/routes/_authenticated/_orders/components/draft-order-status.tsx:34
 msgid "Order draft isn't ready to be completed"
 msgstr "Nacrt narudžbe nije spreman za dovršenje"
@@ -452,7 +462,7 @@ msgstr "Nacrt narudžbe nije spreman za dovršenje"
 msgid "New collection"
 msgstr "Nova kolekcija"
 
-#: src/app/routes/_authenticated/index.tsx:175
+#: src/app/routes/_authenticated/index.tsx:184
 msgid "Insights"
 msgstr "Uvidi"
 
@@ -505,7 +515,7 @@ msgstr "Ukloni poveznicu"
 
 #: src/app/routes/_authenticated/_system/settings-store.tsx:123
 msgid "This field is readonly"
-msgstr "هذا الحقل للقراءة فقط"
+msgstr "Ovo polje je samo za čitanje"
 
 #: src/lib/framework/dashboard-widget/metrics-widget/index.tsx:32
 #: src/lib/framework/dashboard-widget/metrics-widget/index.tsx:80
@@ -529,13 +539,13 @@ msgstr "Upravljajte globalnim spremljenim prikazima vidljivim svim korisnicima"
 msgid "Search payment methods..."
 msgstr "Pretraži načine plaćanja..."
 
-#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:199
+#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:217
 msgid "Shipping address unset for order"
 msgstr "Adresa dostave uklonjena za narudžbu"
 
 #: src/app/routes/_authenticated/_products/components/generate-variants-panel.tsx:332
 msgid "Create {enabledCount} variants"
-msgstr "إنشاء {enabledCount} متغيرات"
+msgstr "Stvori {enabledCount} varijanti"
 
 #. placeholder {0}: entry.data.paymentId
 #. placeholder {1}: entry.data.to
@@ -595,7 +605,7 @@ msgstr "Uloge"
 
 #: src/lib/components/shared/asset/asset-gallery.tsx:395
 msgid "Grid view"
-msgstr "عرض شبكي"
+msgstr "Prikaz rešetke"
 
 #: src/app/routes/_authenticated/_customers/components/customer-address-card.tsx:48
 msgid "Failed to delete address"
@@ -623,7 +633,7 @@ msgstr "Prijava"
 
 #: src/lib/components/shared/asset/asset-gallery.tsx:398
 msgid "List view"
-msgstr "عرض قائمة"
+msgstr "Prikaz popisa"
 
 #: src/app/routes/_authenticated/_shipping-methods/components/test-order-builder.tsx:164
 msgid "Test Order"
@@ -635,7 +645,7 @@ msgstr "Odaberite kupca za nastavak"
 
 #: src/app/routes/_authenticated/_products/components/add-option-group-dialog.tsx:73
 msgid "Successfully assigned option group"
-msgstr "تم تعيين مجموعة الخيارات بنجاح"
+msgstr "Grupa opcija uspješno dodijeljena"
 
 #: src/app/routes/_authenticated/_shipping-methods/components/shipping-method-test-result-wrapper.tsx:30
 msgid "Run Test"
@@ -674,6 +684,11 @@ msgstr "Nacrt narudžbe je spreman za dovršenje"
 msgid "Metadata"
 msgstr "Metapodaci"
 
+#. placeholder {0}: error.message
+#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:251
+msgid "Failed to set shipping method for order: {0}"
+msgstr ""
+
 #: src/app/routes/_authenticated/_option-groups/components/option-group-products-block.tsx:48
 #: src/lib/components/data-table/data-table.tsx:367
 msgid "Filter..."
@@ -711,9 +726,9 @@ msgstr "Naručeno"
 
 #: src/app/routes/_authenticated/_api-keys/components/rotate-api-key-button.tsx:53
 msgid "Rotating this key will immediately invalidate the current key. Any integrations using it will stop working until updated with the new key."
-msgstr "سيؤدي تدوير هذا المفتاح إلى إبطال المفتاح الحالي فورًا. ستتوقف أي عمليات تكامل تستخدمه عن العمل حتى يتم تحديثها بالمفتاح الجديد."
+msgstr "Rotiranje ovog ključa odmah će poništiti trenutni ključ. Sve integracije koje ga koriste prestat će raditi dok se ne ažuriraju novim ključem."
 
-#: src/app/routes/_authenticated/_system/job-queue.tsx:136
+#: src/app/routes/_authenticated/_system/job-queue.tsx:163
 msgid "The data that has been passed to the job"
 msgstr "Podaci koji su proslijeđeni zadatku"
 
@@ -725,7 +740,7 @@ msgstr "Potvrdi navigaciju"
 msgid "Link target"
 msgstr "Cilj poveznice"
 
-#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:326
+#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:365
 msgid "Complete draft"
 msgstr "Dovrši skicu"
 
@@ -774,9 +789,9 @@ msgstr "Unesite ID transakcije za ovo izvršenje povrata"
 
 #: src/app/routes/_authenticated/_api-keys/components/api-key-secret-dialog.tsx:67
 msgid "Your API Key"
-msgstr "مفتاح API الخاص بك"
+msgstr "Vaš API ključ"
 
-#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:310
+#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:349
 msgid "Are you sure you want to delete this draft order?"
 msgstr "Jeste li sigurni da želite obrisati ovu skicu narudžbe?"
 
@@ -792,7 +807,7 @@ msgstr "Pronađeno {0} prikladnih načina dostave"
 
 #: src/lib/components/shared/asset/asset-gallery.tsx:746
 msgid "Dimensions"
-msgstr "الأبعاد"
+msgstr "Dimenzije"
 
 #: src/lib/components/ui/password-input.tsx:20
 msgid "Show password"
@@ -823,11 +838,11 @@ msgstr "Radnje"
 msgid "Discounts"
 msgstr "Popusti"
 
-#: src/app/routes/_authenticated/_orders/components/order-modification-preview-dialog.tsx:304
+#: src/app/routes/_authenticated/_orders/components/order-modification-preview-dialog.tsx:307
 msgid "Enter refund note"
 msgstr "Unesite napomenu povrata"
 
-#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:145
+#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:151
 msgid "Order line removed"
 msgstr "Redak narudžbe uklonjen"
 
@@ -837,12 +852,17 @@ msgstr "Sadržaj:"
 
 #: src/app/routes/_authenticated/_system/settings-store.tsx:260
 msgid "Key"
-msgstr "المفتاح"
+msgstr "Ključ"
 
-#: src/app/routes/_authenticated/_orders/components/order-modification-preview-dialog.tsx:355
+#: src/app/routes/_authenticated/_orders/components/order-modification-preview-dialog.tsx:360
 #: src/lib/components/shared/navigation-confirmation.tsx:58
 msgid "Confirm"
 msgstr "Potvrdi"
+
+#. placeholder {0}: error.message
+#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:303
+msgid "Failed to complete draft order: {0}"
+msgstr ""
 
 #: src/app/routes/_authenticated/_collections/collections_.$id.tsx:118
 msgid "Failed to create collection"
@@ -858,7 +878,7 @@ msgstr "Stvaranje proizvoda nije uspjelo"
 
 #: src/app/routes/_authenticated/_orders/components/order-detail-shared.tsx:276
 #: src/app/routes/_authenticated/_orders/orders_.$id_.modify.tsx:233
-#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:418
+#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:457
 #: src/lib/components/shared/role-code-label.tsx:8
 msgid "Customer"
 msgstr "Kupac"
@@ -868,7 +888,7 @@ msgstr "Kupac"
 msgid "Error loading order history: {0}"
 msgstr "Greška učitavanja povijesti narudžbe: {0}"
 
-#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:183
+#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:195
 msgid "Shipping address set for order"
 msgstr "Adresa dostave postavljena za narudžbu"
 
@@ -878,7 +898,7 @@ msgstr "Žarišna točka"
 
 #: src/app/routes/_authenticated/_products/products_.$id.tsx:99
 msgid "Single variant, no options"
-msgstr "متغير واحد، بدون خيارات"
+msgstr "Jedna varijanta, bez opcija"
 
 #: src/app/routes/_authenticated/_orders/components/use-transition-order-to-state.tsx:107
 msgid "Select the next state for the order"
@@ -914,7 +934,7 @@ msgstr "Ovo su vrijednosti svojstava za svojstvo <0>{facetName}</0>."
 msgid "Successfully added payment to order"
 msgstr "Plaćanje uspješno dodano narudžbi"
 
-#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:191
+#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:206
 msgid "Billing address set for order"
 msgstr "Adresa za naplatu postavljena za narudžbu"
 
@@ -953,7 +973,7 @@ msgstr "Adresa za dostavu promijenjena"
 
 #: src/app/routes/_authenticated/_option-groups/components/option-group-products-block.tsx:63
 msgid "No products found"
-msgstr "لم يتم العثور على منتجات"
+msgstr "Nisu pronađeni proizvodi"
 
 #: src/lib/components/shared/rich-text-editor/table-edit-icons.tsx:193
 msgid "Add row before"
@@ -991,11 +1011,16 @@ msgstr "Dodijeljeno"
 #~ msgid "Add another option group"
 #~ msgstr "Dodaj još jednu grupu opcija"
 
+#. placeholder {0}: error.message
+#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:270
+msgid "Failed to set coupon code for order: {0}"
+msgstr ""
+
 #: src/lib/components/layout/nav-user.tsx:102
 msgid "Explore Platform & Cloud"
-msgstr "استكشاف المنصة والسحابة"
+msgstr "Istražite platformu i Cloud"
 
-#: src/app/routes/_authenticated/_system/job-queue.tsx:86
+#: src/app/routes/_authenticated/_system/job-queue.tsx:115
 msgid "Every 5 seconds"
 msgstr "Svakih 5 sekundi"
 
@@ -1012,7 +1037,7 @@ msgstr "Kolekcija uspješno stvorena"
 msgid "Price"
 msgstr "Cijena"
 
-#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:304
+#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:343
 #: src/app/routes/_authenticated/_orders/orders.tsx:115
 msgid "Draft order"
 msgstr "Skica narudžbe"
@@ -1020,7 +1045,7 @@ msgstr "Skica narudžbe"
 #: src/app/routes/_authenticated/_system/settings-store.tsx:281
 #: src/app/routes/_authenticated/_system/settings-store.tsx:314
 msgid "Scope"
-msgstr "النطاق"
+msgstr "Opseg"
 
 #: src/app/routes/_authenticated/_shipping-methods/components/test-single-method-result.tsx:58
 msgid "Shipping method is eligible for this order"
@@ -1039,13 +1064,13 @@ msgstr "Uklonjeno iz grupe"
 msgid "Width"
 msgstr "Širina"
 
-#: src/app/routes/_authenticated/_orders/components/order-modification-preview-dialog.tsx:331
+#: src/app/routes/_authenticated/_orders/components/order-modification-preview-dialog.tsx:334
 msgid "No payment or refund required"
 msgstr "Nije potrebno plaćanje ili povrat"
 
 #: src/app/routes/_authenticated/_api-keys/components/api-key-secret-dialog.tsx:108
 msgid "Download as .env file"
-msgstr "تنزيل كملف .env"
+msgstr "Preuzmi kao .env datoteku"
 
 #: src/app/routes/_authenticated/_promotions/promotions_.$id.tsx:154
 msgid "When enabled, a promotion is available in the shop"
@@ -1055,7 +1080,7 @@ msgstr "Kada je omogućeno, promocija je dostupna u trgovini"
 msgid "When tracked, product variant stock levels will be automatically adjusted when sold. This setting can be overridden by individual product variants."
 msgstr "Kada se prati, razine zaliha varijanti proizvoda će se automatski prilagoditi pri prodaji. Ovu postavku mogu nadjačati pojedinačne varijante proizvoda."
 
-#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:218
+#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:242
 msgid "Shipping method set for order"
 msgstr "Način dostave postavljen za narudžbu"
 
@@ -1067,12 +1092,12 @@ msgstr "Ažuriranje promocije nije uspjelo"
 #: src/lib/components/shared/asset/asset-gallery.tsx:368
 #: src/lib/components/shared/asset/asset-gallery.tsx:380
 msgid "Images"
-msgstr "الصور"
+msgstr "Slike"
 
 #. js-lingui-explicit-id
 #: src/lib/framework/defaults.ts:158
 msgid "API Keys"
-msgstr "مفاتيح API"
+msgstr "API ključevi"
 
 #: src/app/routes/_authenticated/_products/components/product-option-select.tsx:64
 msgid "Search {name}..."
@@ -1086,8 +1111,8 @@ msgstr "Uredi datoteku"
 msgid "Cancel payment"
 msgstr "Otkaži uplatu"
 
-#: src/app/routes/_authenticated/_system/job-queue.tsx:48
-#: src/app/routes/_authenticated/_system/job-queue.tsx:118
+#: src/app/routes/_authenticated/_system/job-queue.tsx:77
+#: src/app/routes/_authenticated/_system/job-queue.tsx:147
 msgid "Job Queue"
 msgstr "Red zadataka"
 
@@ -1099,6 +1124,11 @@ msgstr "Datoteke"
 #: src/app/routes/_authenticated/_customers/customers_.$id.tsx:188
 msgid "Email address"
 msgstr "Adresa e-pošte"
+
+#. placeholder {0}: error.message
+#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:281
+msgid "Failed to remove coupon code from order: {0}"
+msgstr ""
 
 #: src/lib/components/data-input/slug-input.tsx:266
 #: src/lib/components/data-input/slug-input.tsx:267
@@ -1124,16 +1154,16 @@ msgstr "Nisu pronađeni rezultati"
 msgid "Set a shipping address and select a shipping method"
 msgstr "Postavite adresu dostave i odaberite način dostave"
 
-#: src/app/routes/_authenticated/_system/job-queue.tsx:85
+#: src/app/routes/_authenticated/_system/job-queue.tsx:114
 msgid "Off"
 msgstr "Isključeno"
 
 #: src/app/routes/_authenticated/_system/settings-store.tsx:37
 #: src/app/routes/_authenticated/_system/settings-store.tsx:304
 msgid "Settings Store"
-msgstr "متجر الإعدادات"
+msgstr "Pohrana postavki"
 
-#: src/app/routes/_authenticated/_system/job-queue.tsx:234
+#: src/app/routes/_authenticated/_system/job-queue.tsx:257
 msgid "Queue"
 msgstr "Red"
 
@@ -1146,7 +1176,7 @@ msgstr "Nova porezna stopa"
 msgid "Payment transitioned"
 msgstr "Plaćanje prevedeno"
 
-#: src/app/routes/_authenticated/_orders/components/order-modification-preview-dialog.tsx:287
+#: src/app/routes/_authenticated/_orders/components/order-modification-preview-dialog.tsx:290
 msgid "Remaining:"
 msgstr "Preostalo:"
 
@@ -1158,11 +1188,11 @@ msgstr "Nije pronađen duplicator s kodom \"{duplicatorCode}\" za {entityName}"
 msgid "Prices include tax for default tax zone"
 msgstr "Cijene uključuju porez za zadanu poreznu zonu"
 
-#: src/app/routes/_authenticated/_orders/components/order-modification-preview-dialog.tsx:273
+#: src/app/routes/_authenticated/_orders/components/order-modification-preview-dialog.tsx:276
 msgid "Total refund:"
 msgstr "Ukupan povrat:"
 
-#: src/app/routes/_authenticated/_system/job-queue.tsx:153
+#: src/app/routes/_authenticated/_system/job-queue.tsx:180
 #: src/app/routes/_authenticated/_system/scheduled-tasks.tsx:176
 msgid "View job result"
 msgstr "Pregled rezultata zadatka"
@@ -1178,7 +1208,7 @@ msgstr "Nisu odabrane stavke"
 #. placeholder {0}: selected.length
 #: src/lib/components/shared/asset/asset-gallery.tsx:469
 msgid ", {0} selected"
-msgstr "، {0} محدد"
+msgstr ", {0} odabrano"
 
 #: src/lib/components/shared/country-selector.tsx:86
 msgid "No countries found"
@@ -1186,7 +1216,7 @@ msgstr "Nisu pronađene države"
 
 #: src/app/routes/_authenticated/_products/components/generate-variants-panel.tsx:176
 msgid "Successfully created variants"
-msgstr "تم إنشاء المتغيرات بنجاح"
+msgstr "Varijante uspješno stvorene"
 
 #: src/lib/components/data-input/slug-input.tsx:280
 #: src/lib/components/data-input/slug-input.tsx:282
@@ -1225,7 +1255,7 @@ msgstr "Stanje plaćanja uspješno ažurirano"
 
 #: src/app/routes/_authenticated/_products/components/add-option-group-dialog.tsx:161
 msgid "Create new"
-msgstr "إنشاء جديد"
+msgstr "Stvori novo"
 
 #: src/app/routes/_authenticated/_orders/components/refund-order-dialog.tsx:249
 msgid "Refund total"
@@ -1238,7 +1268,11 @@ msgstr "Adresa obrisana"
 
 #: src/app/routes/_authenticated/_api-keys/api-keys_.$id.tsx:195
 msgid "Only roles assigned to your account are available."
-msgstr "الأدوار المعيّنة لحسابك فقط هي المتاحة."
+msgstr "Dostupne su samo uloge dodijeljene vašem računu."
+
+#: src/app/routes/_authenticated/_system/components/cancel-jobs-bulk-action.tsx:63
+msgid "{cancellableCount, plural, one {Cancel {cancellableCount} job} other {Cancel {cancellableCount} jobs}}"
+msgstr ""
 
 #: src/lib/components/data-input/product-multi-selector-input.tsx:399
 #: src/lib/components/shared/configurable-operation-multi-selector.tsx:264
@@ -1246,7 +1280,7 @@ msgstr "الأدوار المعيّنة لحسابك فقط هي المتاحة.
 msgid "{buttonText}"
 msgstr "{buttonText}"
 
-#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:108
+#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:111
 msgid "Item added to order"
 msgstr "Stavka dodana narudžbi"
 
@@ -1256,7 +1290,7 @@ msgstr "Stavka dodana narudžbi"
 
 #: src/app/routes/_authenticated/_products/components/shared-option-group-warning.tsx:13
 msgid "{productCount, plural, one {This option group is used by one other product. Changes will affect it too.} other {This option group is shared across # products. Changes will affect all of them.}}"
-msgstr "{productCount, plural, one {تُستخدم مجموعة الخيارات هذه بواسطة منتج آخر واحد. ستؤثر التغييرات عليه أيضًا.} other {تتم مشاركة مجموعة الخيارات هذه عبر # منتجات. ستؤثر التغييرات على جميعها.}}"
+msgstr "{productCount, plural, one {Ova grupa opcija koristi se u jednom drugom proizvodu. Promjene će utjecati i na njega.} other {Ova grupa opcija dijeljena je na # proizvoda. Promjene će utjecati na sve njih.}}"
 
 #: src/lib/components/data-table/views-sheet.tsx:125
 msgid "My Saved Views"
@@ -1274,7 +1308,7 @@ msgstr "Stvaranje prodavača nije uspjelo"
 #. placeholder {0}: entityName.toLowerCase()
 #: src/app/common/duplicate-entity-dialog.tsx:87
 msgid "Configure duplication settings for {0}s"
-msgstr "تكوين إعدادات النسخ لـ {0}s"
+msgstr "Konfiguriraj postavke dupliciranja za {0}"
 
 #: src/app/routes/_authenticated/_customers/customers_.$id.tsx:203
 #: src/app/routes/_authenticated/_orders/orders_.$id_.modify.tsx:245
@@ -1283,7 +1317,7 @@ msgstr "Adrese"
 
 #: src/app/routes/_authenticated/_products/products_.$id_.variants.tsx:143
 msgid "Add a new option value to the {groupName} option group"
-msgstr "إضافة قيمة خيار جديدة إلى مجموعة الخيارات {groupName}"
+msgstr "Dodajte novu vrijednost opcije u grupu opcija {groupName}"
 
 #. placeholder {0}: entry.data.modificationId
 #: src/app/routes/_authenticated/_orders/components/order-history/default-order-history-components.tsx:76
@@ -1323,7 +1357,7 @@ msgstr "Narudžba prevedena"
 msgid "is before"
 msgstr "je prije"
 
-#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:309
+#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:348
 msgid "Delete draft order"
 msgstr "Obriši skicu narudžbe"
 
@@ -1371,9 +1405,14 @@ msgstr "Prikaz uspješno pretvoren u globalni"
 msgid "before"
 msgstr "prije"
 
+#. placeholder {0}: error.message
+#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:188
+msgid "Failed to set customer for order: {0}"
+msgstr ""
+
 #: src/lib/components/shared/asset/asset-gallery.tsx:745
 msgid "Size"
-msgstr "الحجم"
+msgstr "Veličina"
 
 #. placeholder {0}: formatLanguageName(contentLanguage)
 #: src/lib/components/shared/translatable-form-field.tsx:68
@@ -1484,7 +1523,7 @@ msgstr "Adresa uspješno ažurirana"
 #: src/app/routes/_authenticated/_api-keys/api-keys_.$id.tsx:226
 #: src/app/routes/_authenticated/_orders/components/fulfillment-details.tsx:124
 #: src/lib/components/shared/asset/asset-gallery.tsx:747
-#: src/lib/framework/layout-engine/page-layout.tsx:650
+#: src/lib/framework/layout-engine/page-layout.tsx:705
 msgid "Created"
 msgstr "Stvoreno"
 
@@ -1496,6 +1535,11 @@ msgstr "Učitavanje adresa..."
 #: src/app/routes/_authenticated/_collections/components/move-collections-dialog.tsx:343
 msgid "Select a target collection to move {0} to."
 msgstr "Odaberite ciljnu kolekciju za premještanje {0}."
+
+#. placeholder {0}: error.message
+#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:232
+msgid "Failed to unset billing address for order: {0}"
+msgstr ""
 
 #: src/app/routes/_authenticated/_customers/components/customer-history/customer-history-utils.tsx:45
 msgid "Customer details updated"
@@ -1523,7 +1567,7 @@ msgstr "Idi na posljednju stranicu"
 #: src/app/routes/_authenticated/_collections/components/move-collections-dialog.tsx:418
 #: src/app/routes/_authenticated/_orders/components/add-manual-payment-dialog.tsx:168
 #: src/app/routes/_authenticated/_orders/components/fulfill-order-dialog.tsx:310
-#: src/app/routes/_authenticated/_orders/components/order-modification-preview-dialog.tsx:347
+#: src/app/routes/_authenticated/_orders/components/order-modification-preview-dialog.tsx:352
 #: src/app/routes/_authenticated/_orders/components/refund-order-dialog.tsx:358
 #: src/app/routes/_authenticated/_orders/components/settle-refund-dialog.tsx:71
 #: src/app/routes/_authenticated/_products/components/assign-facet-values-dialog.tsx:270
@@ -1545,12 +1589,17 @@ msgstr "Idi na posljednju stranicu"
 msgid "Cancel"
 msgstr "Otkaži"
 
+#. placeholder {0}: error.message
+#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:95
+msgid "Failed to update order custom fields: {0}"
+msgstr ""
+
 #: src/app/routes/_authenticated/_product-variants/product-variants_.$id.tsx:127
 #: src/app/routes/_authenticated/_products/components/add-product-variant-dialog.tsx:160
 msgid "Successfully created product variant"
 msgstr "Varijanta proizvoda uspješno stvorena"
 
-#: src/app/routes/_authenticated/_orders/components/order-modification-preview-dialog.tsx:229
+#: src/app/routes/_authenticated/_orders/components/order-modification-preview-dialog.tsx:236
 msgid "Refund from this method"
 msgstr "Povrat iz ove metode"
 
@@ -1576,7 +1625,7 @@ msgstr "Nova porezna kategorija"
 msgid "Partial refund completed"
 msgstr "Djelomični povrat završen"
 
-#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:413
+#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:452
 msgid "Set custom fields"
 msgstr "Postavi prilagođena polja"
 
@@ -1588,7 +1637,7 @@ msgstr "Kolekcije"
 
 #: src/app/routes/_authenticated/_products/products_.$id_.variants.tsx:453
 msgid "Delete variant"
-msgstr "حذف المتغير"
+msgstr "Obriši varijantu"
 
 #: src/app/routes/_authenticated/_orders/components/order-modification-summary.tsx:249
 msgid "No modifications made"
@@ -1604,7 +1653,7 @@ msgstr "Razlog:"
 
 #: src/app/routes/_authenticated/_orders/components/order-detail-shared.tsx:291
 #: src/app/routes/_authenticated/_orders/orders_.$id_.modify.tsx:248
-#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:431
+#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:470
 msgid "Shipping address"
 msgstr "Adresa za dostavu"
 
@@ -1661,7 +1710,7 @@ msgstr "Zadana adresa za dostavu"
 msgid "{operator}"
 msgstr "{operator}"
 
-#: src/app/routes/_authenticated/_orders/components/order-modification-preview-dialog.tsx:170
+#: src/app/routes/_authenticated/_orders/components/order-modification-preview-dialog.tsx:177
 msgid "Refund required"
 msgstr "Potreban povrat"
 
@@ -1690,7 +1739,7 @@ msgstr "Potreban je razlog povrata"
 
 #: src/app/routes/_authenticated/_products/products_.$id.tsx:194
 msgid "Could not remove option group"
-msgstr "تعذرت إزالة مجموعة الخيارات"
+msgstr "Nije moguće ukloniti grupu opcija"
 
 #: src/app/routes/_authenticated/_tax-categories/tax-categories_.$id.tsx:77
 msgid "Failed to update tax category"
@@ -1777,7 +1826,7 @@ msgstr "Bilješka dodana"
 msgid "Select quantities to fulfill and configure the fulfillment handler"
 msgstr "Odaberite količine za izvršenje i konfigurirajte rukovatelja izvršenja"
 
-#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:207
+#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:228
 msgid "Billing address unset for order"
 msgstr "Adresa za naplatu uklonjena s narudžbe"
 
@@ -1816,7 +1865,7 @@ msgstr "Kod"
 
 #: src/app/routes/_authenticated/_products/products_.$id.tsx:203
 msgid "Failed to remove option groups"
-msgstr "فشل في إزالة مجموعات الخيارات"
+msgstr "Uklanjanje grupa opcija nije uspjelo"
 
 #: src/app/routes/_authenticated/_orders/components/order-history/order-history-utils.tsx:97
 msgid "Order delivered"
@@ -1836,7 +1885,7 @@ msgstr "Jeste li sigurni da želite obrisati ovu adresu?"
 
 #: src/app/routes/_authenticated/_products/components/add-option-group-dialog.tsx:77
 msgid "Failed to assign option group"
-msgstr "فشل في تعيين مجموعة الخيارات"
+msgstr "Dodjela grupe opcija nije uspjela"
 
 #: src/app/routes/_authenticated/_assets/assets_.$id.tsx:89
 msgid "Failed to update asset"
@@ -1890,7 +1939,7 @@ msgstr "Povrat dostave"
 #: src/app/routes/_authenticated/_system/settings-store.tsx:293
 #: src/app/routes/_authenticated/_system/settings-store.tsx:324
 msgid "Readonly"
-msgstr "للقراءة فقط"
+msgstr "Samo za čitanje"
 
 #: src/lib/components/data-table/views-sheet.tsx:100
 msgid "Failed to duplicate global view"
@@ -1922,7 +1971,7 @@ msgstr "{0} kupaca"
 #: src/app/routes/_authenticated/_api-keys/api-keys.tsx:14
 #: src/app/routes/_authenticated/_api-keys/api-keys.tsx:25
 msgid "API Keys"
-msgstr "مفاتيح API"
+msgstr "API ključevi"
 
 #: src/lib/components/shared/language-selector.tsx:52
 msgid "Select a language"
@@ -2287,7 +2336,12 @@ msgstr "Kolekcije uspješno premještene"
 msgid "Registered"
 msgstr "Registriran"
 
-#: src/app/routes/_authenticated/_system/job-queue.tsx:208
+#. placeholder {0}: error.message
+#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:199
+msgid "Failed to set shipping address for order: {0}"
+msgstr ""
+
+#: src/app/routes/_authenticated/_system/job-queue.tsx:231
 msgid "Cancel Job"
 msgstr "Otkaži zadatak"
 
@@ -2307,7 +2361,7 @@ msgstr "Stopa"
 
 #: src/app/routes/_authenticated/_products/products_.$id.tsx:114
 msgid "Size, colour, etc."
-msgstr "الحجم، اللون، إلخ."
+msgstr "Veličina, boja itd."
 
 #: src/lib/components/shared/facet-value-selector.tsx:155
 #: src/lib/components/shared/facet-value-selector.tsx:172
@@ -2357,7 +2411,7 @@ msgstr "{0} odabrano"
 
 #: src/app/routes/_authenticated/_products/components/add-option-group-dialog.tsx:239
 msgid "Search option groups..."
-msgstr "البحث في مجموعات الخيارات..."
+msgstr "Pretraži grupe opcija..."
 
 #: src/app/routes/_authenticated/_orders/orders_.$id_.modify.tsx:168
 msgid "Modify order"
@@ -2371,7 +2425,7 @@ msgstr "Odabrane stavke"
 msgid "Values"
 msgstr "Vrijednosti"
 
-#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:161
+#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:170
 msgid "Customer set for order"
 msgstr "Kupac postavljen za narudžbu"
 
@@ -2405,7 +2459,7 @@ msgstr "Nova zona"
 #: src/app/routes/_authenticated/_api-keys/api-keys_.$id.tsx:136
 #: src/app/routes/_authenticated/_api-keys/api-keys.tsx:79
 msgid "New API Key"
-msgstr "مفتاح API جديد"
+msgstr "Novi API ključ"
 
 #: src/lib/components/shared/rich-text-editor/table-edit-icons.tsx:164
 msgid "Delete column"
@@ -2413,7 +2467,7 @@ msgstr "Obriši stupac"
 
 #: src/app/routes/_authenticated/_products/components/add-option-group-dialog.tsx:157
 msgid "Assign existing"
-msgstr "تعيين موجود"
+msgstr "Dodijeli postojeće"
 
 #: src/lib/components/data-table/human-readable-operator.tsx:34
 msgid "is null"
@@ -2433,7 +2487,7 @@ msgstr "Zadani kanal"
 
 #: src/lib/components/shared/rich-text-editor/image-dialog.tsx:109
 msgid "Insert a new image with source, title, and dimensions"
-msgstr "إدراج صورة جديدة بالمصدر والعنوان والأبعاد"
+msgstr "Umetni novu sliku s izvorom, naslovom i dimenzijama"
 
 #: src/app/routes/_authenticated/_facets/facets_.$facetId.values_.$id.tsx:93
 msgid "Failed to create facet value"
@@ -2488,7 +2542,7 @@ msgstr "Kanal uspješno stvoren"
 msgid "Successfully updated customer"
 msgstr "Kupac uspješno ažuriran"
 
-#: src/app/routes/_authenticated/_system/job-queue.tsx:139
+#: src/app/routes/_authenticated/_system/job-queue.tsx:166
 msgid "View data"
 msgstr "Pregled podataka"
 
@@ -2506,7 +2560,7 @@ msgstr "Više prikaza"
 
 #: src/lib/components/shared/rich-text-editor/image-dialog.tsx:109
 msgid "Edit the selected image properties"
-msgstr "تعديل خصائص الصورة المحددة"
+msgstr "Uredi svojstva odabrane slike"
 
 #: src/lib/components/data-table/views-sheet.tsx:49
 msgid "Applied view \"{viewName}\""
@@ -2543,11 +2597,11 @@ msgstr "Datoteke"
 
 #: src/app/routes/_authenticated/_products/products_.$id.tsx:307
 msgid "This will remove all option groups from this product and return to the variant setup choice."
-msgstr "سيؤدي هذا إلى إزالة جميع مجموعات الخيارات من هذا المنتج والعودة إلى اختيار إعداد المتغيرات."
+msgstr "Ovo će ukloniti sve grupe opcija s ovog proizvoda i vratiti se na izbor postavljanja varijanti."
 
 #: src/app/routes/_authenticated/_orders/components/order-detail-shared.tsx:299
 #: src/app/routes/_authenticated/_orders/orders_.$id_.modify.tsx:277
-#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:463
+#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:502
 msgid "Billing address"
 msgstr "Adresa za naplatu"
 
@@ -2560,7 +2614,7 @@ msgstr "Dodaj vrijednost svojstva"
 msgid "Please select a target collection"
 msgstr "Molimo odaberite ciljnu kolekciju"
 
-#: src/app/routes/_authenticated/_orders/components/order-modification-preview-dialog.tsx:152
+#: src/app/routes/_authenticated/_orders/components/order-modification-preview-dialog.tsx:159
 msgid "Review the changes before applying them to the order."
 msgstr "Pregledajte izmjene prije njihove primjene na narudžbu."
 
@@ -2581,7 +2635,7 @@ msgstr "Popust"
 #: src/lib/components/shared/asset/asset-gallery.tsx:367
 #: src/lib/components/shared/asset/asset-gallery.tsx:379
 msgid "All types"
-msgstr "جميع الأنواع"
+msgstr "Sve vrste"
 
 #: src/app/routes/_authenticated/_orders/components/draft-order-status.tsx:29
 msgid "Only draft orders can be completed"
@@ -2731,7 +2785,7 @@ msgstr "Obriši globalni prikaz"
 msgid "Create"
 msgstr "Stvori"
 
-#: src/app/routes/_authenticated/_system/job-queue.tsx:88
+#: src/app/routes/_authenticated/_system/job-queue.tsx:117
 msgid "Every 30 seconds"
 msgstr "Svakih 30 sekundi"
 
@@ -2804,7 +2858,7 @@ msgstr "URL poveznice"
 
 #: src/lib/utils/get-locale-fallback-placeholder.ts:31
 msgid "Fallback: {value}"
-msgstr "القيمة الاحتياطية: {value}"
+msgstr "Zamjenska vrijednost: {value}"
 
 #: src/app/routes/_authenticated/_orders/components/order-detail-shared.tsx:260
 #: src/app/routes/_authenticated/_orders/components/order-history/order-history-container.tsx:30
@@ -2951,7 +3005,7 @@ msgstr "Stvori varijantu"
 msgid "Facet values for {facetName}"
 msgstr "Vrijednosti svojstava za {facetName}"
 
-#: src/app/routes/_authenticated/index.tsx:190
+#: src/app/routes/_authenticated/index.tsx:199
 msgid "Save Layout"
 msgstr "Spremi raspored"
 
@@ -2983,7 +3037,7 @@ msgstr "Naziv vrijednosti opcije"
 #: src/app/routes/_authenticated/_api-keys/api-keys_.$id.tsx:214
 #: src/app/routes/_authenticated/_api-keys/api-keys.tsx:46
 msgid "Last used"
-msgstr "آخر استخدام"
+msgstr "Zadnji put korišteno"
 
 #: src/app/routes/_authenticated/_tax-categories/tax-categories_.$id.tsx:112
 msgid "Is default tax category"
@@ -3003,7 +3057,7 @@ msgstr "Država/Pokrajina"
 
 #: src/app/routes/_authenticated/_option-groups/option-groups_.$id.tsx:138
 msgid "Failed to update option group"
-msgstr "فشل في تحديث مجموعة الخيارات"
+msgstr "Ažuriranje grupe opcija nije uspjelo"
 
 #: src/app/routes/_authenticated/_channels/channels_.$id.tsx:183
 msgid "Channel defaults"
@@ -3015,7 +3069,7 @@ msgstr "Stvaranje porezne kategorije nije uspjelo"
 
 #: src/lib/components/data-table/data-table-filter-dialog.tsx:55
 msgid "Set filter criteria for the {columnId} column"
-msgstr "تعيين معايير التصفية لعمود {columnId}"
+msgstr "Postavi kriterije filtriranja za stupac {columnId}"
 
 #: src/app/routes/_authenticated/_shipping-methods/components/test-address-form.tsx:217
 #: src/app/routes/_authenticated/_zones/components/zone-countries-table.tsx:53
@@ -3025,7 +3079,7 @@ msgstr "Država"
 
 #: src/app/routes/_authenticated/_products/products_.$id.tsx:97
 msgid "Simple product"
-msgstr "منتج بسيط"
+msgstr "Jednostavan proizvod"
 
 #. js-lingui-explicit-id
 #: src/lib/framework/defaults.ts:137
@@ -3034,7 +3088,7 @@ msgstr "Red zadataka"
 
 #: src/app/routes/_authenticated/_api-keys/components/api-key-secret-dialog.tsx:53
 msgid "Please confirm you have saved the API key before closing."
-msgstr "يرجى التأكد من حفظ مفتاح API قبل الإغلاق."
+msgstr "Potvrdite da ste spremili API ključ prije zatvaranja."
 
 #: src/lib/components/data-table/use-generated-columns.tsx:411
 msgid "Confirm deletion"
@@ -3066,7 +3120,7 @@ msgstr "početak"
 
 #: src/app/routes/_authenticated/_api-keys/components/rotate-api-key-button.tsx:35
 msgid "Failed to rotate API key"
-msgstr "فشل في تدوير مفتاح API"
+msgstr "Rotiranje API ključa nije uspjelo"
 
 #: src/lib/components/data-table/human-readable-operator.tsx:36
 msgid "in"
@@ -3076,6 +3130,10 @@ msgstr "u"
 #: src/lib/components/shared/role-selector.tsx:53
 msgid "Search roles..."
 msgstr "Pretraži uloge..."
+
+#: src/app/routes/_authenticated/_system/components/cancel-jobs-bulk-action.tsx:35
+msgid "Successfully cancelled {fulfilled} jobs"
+msgstr ""
 
 #: src/app/routes/_authenticated/_product-variants/product-variants_.$id.tsx:69
 #: src/app/routes/_authenticated/_product-variants/product-variants.tsx:19
@@ -3094,7 +3152,7 @@ msgstr "Obrada..."
 #. placeholder {0}: totalItems === 1 ? 'asset' : 'assets'
 #: src/lib/components/shared/asset/asset-gallery.tsx:465
 msgid "{totalItems} {0} found"
-msgstr "تم العثور على {totalItems} {0}"
+msgstr "Pronađeno {totalItems} {0}"
 
 #: src/lib/components/date-range-picker.tsx:126
 msgid "Select date range"
@@ -3108,7 +3166,7 @@ msgstr "Proizvod"
 
 #: src/app/routes/_authenticated/_api-keys/components/rotate-api-key-button.tsx:51
 msgid "Rotate API Key"
-msgstr "تدوير مفتاح API"
+msgstr "Rotiraj API ključ"
 
 #: src/app/routes/_authenticated/_tax-rates/tax-rates.tsx:62
 msgid "Category"
@@ -3243,7 +3301,7 @@ msgstr "Odaberite adresu"
 
 #: src/app/routes/_authenticated/_system/settings-store.tsx:326
 msgid "Yes"
-msgstr "نعم"
+msgstr "Da"
 
 #: src/app/routes/_authenticated/_collections/collections_.$id.tsx:175
 #: src/app/routes/_authenticated/_products/products_.$id.tsx:246
@@ -3267,7 +3325,7 @@ msgid "Update the note content or visibility"
 msgstr "Ažurirajte sadržaj ili vidljivost bilješke"
 
 #. js-lingui-explicit-id
-#: src/lib/framework/defaults.ts:271
+#: src/lib/framework/defaults.ts:272
 msgid "Latest Orders Widget"
 msgstr "Widget najnovijih narudžbi"
 
@@ -3319,7 +3377,7 @@ msgstr "Dostava vraćena"
 
 #: src/lib/components/shared/asset/asset-gallery.tsx:376
 msgid "Asset type"
-msgstr "نوع الملف"
+msgstr "Vrsta datoteke"
 
 #: src/app/routes/_authenticated/_stock-locations/stock-locations.tsx:58
 msgid "New Stock Location"
@@ -3362,7 +3420,7 @@ msgstr "Ažuriranje stanja izvršenja nije uspjelo"
 
 #: src/app/routes/_authenticated/_products/components/add-product-variant-dialog.tsx:233
 msgid "Create a new product variant with options, pricing, and stock"
-msgstr "إنشاء متغير منتج جديد بالخيارات والأسعار والمخزون"
+msgstr "Stvorite novu varijantu proizvoda s opcijama, cijenama i zalihama"
 
 #: src/app/routes/_authenticated/_facets/facets_.$id.tsx:109
 msgid "Private facets are not visible in the shop"
@@ -3381,7 +3439,7 @@ msgstr "Ne izvršava se"
 
 #: src/app/routes/_authenticated/_products/components/add-option-group-dialog.tsx:267
 msgid "Assigned"
-msgstr "معيّن"
+msgstr "Dodijeljeno"
 
 #: src/lib/components/shared/rich-text-editor/responsive-toolbar.tsx:75
 msgid "Heading 1"
@@ -3404,7 +3462,7 @@ msgstr "Dodaj redak nakon"
 msgid "Tax total"
 msgstr "Ukupno poreza"
 
-#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:335
+#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:374
 msgid "Draft order status"
 msgstr "Status nacrta narudžbe"
 
@@ -3425,7 +3483,7 @@ msgstr "Vrijednost svojstva uspješno stvorena"
 msgid "Marketing"
 msgstr "Marketing"
 
-#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:275
+#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:311
 msgid "Draft order deleted"
 msgstr "Skica narudžbe obrisana"
 
@@ -3444,7 +3502,7 @@ msgstr "Pretraži valute..."
 
 #: src/lib/components/shared/remove-from-channel-bulk-action.tsx:82
 msgid "Remove from channel"
-msgstr "إزالة من القناة"
+msgstr "Ukloni iz kanala"
 
 #: src/app/routes/_authenticated/_customers/customers_.$id.tsx:169
 #: src/lib/components/shared/rich-text-editor/image-dialog.tsx:157
@@ -3493,6 +3551,12 @@ msgstr "Nema adrese za naplatu"
 #: src/app/routes/_authenticated/_facets/facets_.$facetId.values_.$id.tsx:119
 msgid "Facet"
 msgstr "Svojstvo"
+
+#. placeholder {0}: import { DataTableBulkActionItem } from '@/vdb/components/data-table/data-table-bulk-action-item.js'; import { BulkActionComponent } from '@/vdb/framework/extension-api/types/data-table.js'; import { api } from '@/vdb/graphql/api.js'; import { usePaginatedList } from '@/vdb/hooks/use-paginated-list.js'; import { plural } from '@lingui/core/macro'; import { Plural, useLingui } from '@lingui/react/macro'; import { useMutation } from '@tanstack/react-query'; import { Ban } from 'lucide-react'; import { toast } from 'sonner'; import { cancelJobDocument } from '../job-queue.graphql.js'; export const CancelJobsBulkAction: BulkActionComponent<any> = ({ selection, table }) => { const { refetchPaginatedList } = usePaginatedList(); const { t } = useLingui(); const cancellableJobs = selection.filter(job => job.state === 'RUNNING' || job.state === 'PENDING'); const cancellableCount = cancellableJobs.length; const { mutate, isPending } = useMutation({ mutationFn: async () => { const results = await Promise.allSettled( cancellableJobs.map(job => api.mutate(cancelJobDocument, { jobId: job.id })), ); const fulfilled = results.filter(r => r.status === 'fulfilled').length; const rejected = results.filter(r => r.status === 'rejected').length; return { fulfilled, rejected }; }, onSuccess: ({ fulfilled, rejected }) => { if (fulfilled > 0) { toast.success( plural(fulfilled, { one: t`Successfully cancelled ${fulfilled} job`, other: t`Successfully cancelled ${fulfilled} jobs`, }), ); } if (rejected > 0) { toast.error( plural(rejected, { one: t`Failed to cancel ${rejected} job`, other: t`Failed to cancel ${rejected} jobs`, }), ); } refetchPaginatedList(); table.resetRowSelection(); }, }); if (cancellableCount === 0) { return null; } return ( <DataTableBulkActionItem requiresPermission={['DeleteSettings', 'DeleteSystem']} onClick={() => mutate()} disabled={isPending} label={ <Plural value={cancellableCount} one={`Cancel ${cancellableCount} job`} other={`Cancel ${cancellableCount} jobs`} /> } confirmationText={ <Plural value={cancellableCount} one={`Are you sure you want to cancel ${cancellableCount} job? This action cannot be undone.`} other={`Are you sure you want to cancel ${cancellableCount} jobs? This action cannot be undone.`} /> } icon={Ban} className="text-destructive" /> ); }; 
+#. placeholder {1}: import { DataTableBulkActionItem } from '@/vdb/components/data-table/data-table-bulk-action-item.js'; import { BulkActionComponent } from '@/vdb/framework/extension-api/types/data-table.js'; import { api } from '@/vdb/graphql/api.js'; import { usePaginatedList } from '@/vdb/hooks/use-paginated-list.js'; import { plural } from '@lingui/core/macro'; import { Plural, useLingui } from '@lingui/react/macro'; import { useMutation } from '@tanstack/react-query'; import { Ban } from 'lucide-react'; import { toast } from 'sonner'; import { cancelJobDocument } from '../job-queue.graphql.js'; export const CancelJobsBulkAction: BulkActionComponent<any> = ({ selection, table }) => { const { refetchPaginatedList } = usePaginatedList(); const { t } = useLingui(); const cancellableJobs = selection.filter(job => job.state === 'RUNNING' || job.state === 'PENDING'); const cancellableCount = cancellableJobs.length; const { mutate, isPending } = useMutation({ mutationFn: async () => { const results = await Promise.allSettled( cancellableJobs.map(job => api.mutate(cancelJobDocument, { jobId: job.id })), ); const fulfilled = results.filter(r => r.status === 'fulfilled').length; const rejected = results.filter(r => r.status === 'rejected').length; return { fulfilled, rejected }; }, onSuccess: ({ fulfilled, rejected }) => { if (fulfilled > 0) { toast.success( plural(fulfilled, { one: t`Successfully cancelled ${fulfilled} job`, other: t`Successfully cancelled ${fulfilled} jobs`, }), ); } if (rejected > 0) { toast.error( plural(rejected, { one: t`Failed to cancel ${rejected} job`, other: t`Failed to cancel ${rejected} jobs`, }), ); } refetchPaginatedList(); table.resetRowSelection(); }, }); if (cancellableCount === 0) { return null; } return ( <DataTableBulkActionItem requiresPermission={['DeleteSettings', 'DeleteSystem']} onClick={() => mutate()} disabled={isPending} label={ <Plural value={cancellableCount} one={`Cancel ${cancellableCount} job`} other={`Cancel ${cancellableCount} jobs`} /> } confirmationText={ <Plural value={cancellableCount} one={`Are you sure you want to cancel ${cancellableCount} job? This action cannot be undone.`} other={`Are you sure you want to cancel ${cancellableCount} jobs? This action cannot be undone.`} /> } icon={Ban} className="text-destructive" /> ); }; 
+#: src/app/routes/_authenticated/_system/components/cancel-jobs-bulk-action.tsx:41
+msgid "{rejected, plural, one {{0}} other {{1}}}"
+msgstr ""
 
 #: src/lib/components/shared/assigned-channels.tsx:58
 msgid "Cannot remove from active channel"
@@ -3557,7 +3621,7 @@ msgstr "Adresa stvorena"
 
 #: src/app/routes/_authenticated/_api-keys/components/rotate-api-key-button.tsx:32
 msgid "API key rotated successfully"
-msgstr "تم تدوير مفتاح API بنجاح"
+msgstr "API ključ uspješno rotiran"
 
 #: src/app/routes/_authenticated/_products/components/add-option-group-dialog.tsx:141
 msgid "Add option group"
@@ -3572,7 +3636,7 @@ msgstr "Povrat {0}"
 msgid "Enter slug manually"
 msgstr "Ručno unesite URL naziv"
 
-#: src/app/routes/_authenticated/index.tsx:221
+#: src/app/routes/_authenticated/index.tsx:230
 msgid "No widgets available"
 msgstr "Nema dostupnih widgeta"
 
@@ -3592,7 +3656,7 @@ msgstr "Globalni prikaz uspješno dupliciran"
 #: src/app/routes/_authenticated/_api-keys/api-keys_.$id.tsx:210
 #: src/app/routes/_authenticated/_api-keys/api-keys.tsx:66
 msgid "Created by"
-msgstr "أنشأه"
+msgstr "Kreirao"
 
 #: src/app/routes/_authenticated/_product-variants/components/add-currency-dropdown.tsx:35
 msgid "Add a price in another currency"
@@ -3695,9 +3759,9 @@ msgstr "Dodaj stavku"
 
 #: src/app/routes/_authenticated/_api-keys/api-keys_.$id.tsx:108
 msgid "Successfully created API key"
-msgstr "تم إنشاء مفتاح API بنجاح"
+msgstr "API ključ uspješno stvoren"
 
-#: src/app/routes/_authenticated/_orders/components/order-modification-preview-dialog.tsx:158
+#: src/app/routes/_authenticated/_orders/components/order-modification-preview-dialog.tsx:165
 msgid "Loading preview…"
 msgstr "Učitavanje pregleda..."
 
@@ -3733,6 +3797,11 @@ msgstr "Opis"
 msgid "Countries"
 msgstr "Zemlje"
 
+#. placeholder {0}: error.message
+#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:160
+msgid "Failed to remove order line: {0}"
+msgstr ""
+
 #: src/app/routes/_authenticated/_shipping-methods/components/test-address-form.tsx:182
 msgid "Street Address 2"
 msgstr "Ulica 2"
@@ -3741,7 +3810,7 @@ msgstr "Ulica 2"
 msgid "Global view deleted successfully"
 msgstr "Globalni prikaz uspješno obrisan"
 
-#: src/app/routes/_authenticated/index.tsx:190
+#: src/app/routes/_authenticated/index.tsx:199
 msgid "Edit Layout"
 msgstr "Uredi raspored"
 
@@ -3825,7 +3894,7 @@ msgstr "ne sadrži"
 
 #: src/app/routes/_authenticated/_option-groups/option-groups_.$groupId.options_.$id.tsx:186
 msgid "Option Group"
-msgstr "مجموعة الخيارات"
+msgstr "Grupa opcija"
 
 #: src/app/routes/_authenticated/_customers/components/customer-address-card.tsx:132
 msgid "Edit the address details below."
@@ -3854,7 +3923,7 @@ msgstr "Prenesi"
 
 #: src/app/routes/_authenticated/_products/products_.$id.tsx:112
 msgid "Product with options"
-msgstr "منتج بخيارات"
+msgstr "Proizvod s opcijama"
 
 #. placeholder {0}: filteredTags.length
 #: src/app/routes/_authenticated/_assets/components/asset-tag-filter.tsx:165
@@ -3865,7 +3934,7 @@ msgstr "Prikazivanje svih {0} rezultata"
 #: src/app/routes/_authenticated/_api-keys/api-keys.tsx:60
 #: src/app/routes/_authenticated/_api-keys/components/api-key-secret-dialog.tsx:95
 msgid "Lookup ID"
-msgstr "معرّف البحث"
+msgstr "ID pretraživanja"
 
 #. placeholder {0}: list.totalItems - 3
 #: src/app/routes/_authenticated/_facets/facets.tsx:65
@@ -3875,15 +3944,15 @@ msgstr "+ {0} više"
 #. js-lingui-explicit-id
 #: src/lib/framework/defaults.ts:45
 msgid "Option Groups"
-msgstr "مجموعات الخيارات"
+msgstr "Grupe opcija"
 
-#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:392
+#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:431
 msgid "Custom fields"
 msgstr "Prilagođena polja"
 
 #: src/app/routes/_authenticated/_orders/components/order-process-dialog.tsx:85
 msgid "All possible order states and their transitions. The current state is highlighted."
-msgstr "جميع حالات الطلب المحتملة وتحولاتها. الحالة الحالية مميزة."
+msgstr "Sva moguća stanja narudžbe i njihovi prijelazi. Trenutno stanje je istaknuto."
 
 #. js-lingui-explicit-id
 #: src/lib/framework/defaults.ts:82
@@ -3891,7 +3960,7 @@ msgid "Orders"
 msgstr "Narudžbe"
 
 #. js-lingui-explicit-id
-#: src/lib/framework/defaults.ts:278
+#: src/lib/framework/defaults.ts:280
 msgid "Orders Summary Widget"
 msgstr "Widget sažetka narudžbi"
 
@@ -3964,7 +4033,7 @@ msgstr "Poslano"
 #~ msgid "Monitored Resources"
 #~ msgstr "Praćeni resursi"
 
-#: src/lib/framework/layout-engine/page-layout.tsx:622
+#: src/lib/framework/layout-engine/page-layout.tsx:677
 msgid "Entity Information"
 msgstr "Informacije o entitetu"
 
@@ -3992,6 +4061,11 @@ msgstr "Super administrator"
 #: src/app/routes/_authenticated/_system/healthchecks.tsx:74
 #~ msgid "Some resources are down"
 #~ msgstr "Neki resursi nisu dostupni"
+
+#. placeholder {0}: error.message
+#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:141
+msgid "Failed to update order line: {0}"
+msgstr ""
 
 #: src/lib/components/shared/rich-text-editor/link-dialog.tsx:84
 msgid "Insert link"
@@ -4084,7 +4158,7 @@ msgstr "Razine zaliha"
 
 #: src/app/routes/_authenticated/_api-keys/api-keys_.$id.tsx:121
 msgid "Failed to update API key"
-msgstr "فشل في تحديث مفتاح API"
+msgstr "Ažuriranje API ključa nije uspjelo"
 
 #: src/lib/framework/dashboard-widget/base-widget.tsx:76
 msgid "{title}"
@@ -4102,13 +4176,13 @@ msgstr "Preimenovanje globalnog prikaza nije uspjelo"
 
 #: src/lib/components/shared/rich-text-editor/link-dialog.tsx:87
 msgid "Insert a new hyperlink with URL and target options"
-msgstr "إدراج رابط جديد بـ URL وخيارات الهدف"
+msgstr "Umetni novu hipervezu s URL-om i opcijama cilja"
 
 #: src/lib/components/shared/rich-text-editor/image-dialog.tsx:194
 msgid "Height"
 msgstr "Visina"
 
-#: src/app/routes/_authenticated/_orders/components/order-modification-preview-dialog.tsx:173
+#: src/app/routes/_authenticated/_orders/components/order-modification-preview-dialog.tsx:180
 msgid "A refund of {formattedDiff} is required. Select payment amounts and enter a note to proceed."
 msgstr "Potreban je povrat novca u iznosu {formattedDiff}. Odaberite iznose plaćanja i unesite bilješku za nastavak."
 
@@ -4148,7 +4222,7 @@ msgstr "Dostupni jezici"
 
 #: src/lib/components/data-table/data-table-bulk-actions.tsx:119
 msgid "Reset selection"
-msgstr "إعادة تعيين التحديد"
+msgstr "Poništi odabir"
 
 #: src/app/routes/_authenticated/_orders/components/order-address.tsx:30
 msgid "No address"
@@ -4161,6 +4235,11 @@ msgstr "Način plaćanja uspješno stvoren"
 #: src/app/routes/_authenticated/_orders/components/order-history/default-order-history-components.tsx:86
 msgid "Customer information updated"
 msgstr "Informacije o kupcu ažurirane"
+
+#. placeholder {0}: error.message
+#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:318
+msgid "Failed to delete draft order: {0}"
+msgstr ""
 
 #: src/lib/components/data-table/views-sheet.tsx:120
 msgid "Failed to convert view to global"
@@ -4195,7 +4274,7 @@ msgstr "Spremite prikaz kao \"Globalni\" kako bi bio dostupan svim korisnicima."
 
 #: src/app/routes/_authenticated/_products/components/generate-variants-panel.tsx:179
 msgid "Failed to create variants"
-msgstr "فشل في إنشاء المتغيرات"
+msgstr "Stvaranje varijanti nije uspjelo"
 
 #: src/app/routes/_authenticated/_global-settings/global-settings.tsx:133
 msgid "Sets the stock level at which this a variant is considered to be out of stock. Using a negative value enables backorder support. Can be overridden by product variants."
@@ -4204,7 +4283,7 @@ msgstr "Postavlja razinu zaliha pri kojoj se ova varijanta smatra rasprodanom. K
 #: src/app/routes/_authenticated/_api-keys/components/rotate-api-key-button.tsx:45
 #: src/app/routes/_authenticated/_api-keys/components/rotate-api-key-button.tsx:68
 msgid "Rotate Key"
-msgstr "تدوير المفتاح"
+msgstr "Rotiraj ključ"
 
 #: src/app/routes/_authenticated/_products/components/create-product-variants-dialog.tsx:132
 #~ msgid "Failed to create product variants"
@@ -4241,7 +4320,7 @@ msgstr "Regije"
 
 #: src/lib/components/shared/asset/asset-gallery.tsx:438
 msgid "Drop files here to upload"
-msgstr "أفلت الملفات هنا للتحميل"
+msgstr "Ispustite datoteke ovdje za prijenos"
 
 #: src/app/routes/_authenticated/_customers/components/customer-status-badge.tsx:18
 msgid "Verified"
@@ -4251,7 +4330,7 @@ msgstr "Verificiran"
 #: src/app/routes/_authenticated/_option-groups/option-groups_.$id.tsx:82
 #: src/app/routes/_authenticated/_option-groups/option-groups_.$id.tsx:149
 msgid "New option group"
-msgstr "مجموعة خيارات جديدة"
+msgstr "Nova grupa opcija"
 
 #: src/app/routes/_authenticated/_system/healthchecks.tsx:58
 #~ msgid "Last updated {0}"
@@ -4267,7 +4346,7 @@ msgstr "Ažuriranje uloge nije uspjelo"
 
 #: src/app/routes/_authenticated/_api-keys/components/api-key-secret-dialog.tsx:77
 msgid "This is the only time the full API key will be displayed. Copy or download it now — it cannot be retrieved later."
-msgstr "هذه هي المرة الوحيدة التي سيتم فيها عرض مفتاح API الكامل. انسخه أو قم بتنزيله الآن — لا يمكن استرجاعه لاحقًا."
+msgstr "Ovo je jedini put kada će se prikazati cijeli API ključ. Kopirajte ga ili preuzmite sada — kasnije ga neće biti moguće dohvatiti."
 
 #: src/app/routes/_authenticated/_collections/collections_.$id.tsx:104
 msgid "Successfully updated collection"
@@ -4293,7 +4372,7 @@ msgstr "ILI"
 msgid "Manage tags"
 msgstr "Upravljaj oznakama"
 
-#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:247
+#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:277
 msgid "Coupon code removed from order"
 msgstr "Kod kupona uklonjen s narudžbe"
 
@@ -4315,6 +4394,11 @@ msgstr "Ažuriranje vrijednosti svojstva nije uspjelo"
 #: src/app/routes/_authenticated/_orders/components/order-history/order-history-utils.tsx:82
 msgid "Order fulfilled"
 msgstr "Narudžba izvršena"
+
+#. placeholder {0}: error.message
+#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:210
+msgid "Failed to set billing address for order: {0}"
+msgstr ""
 
 #: src/app/routes/_authenticated/_orders/orders_.$id_.modify.tsx:271
 msgid "No shipping address"
@@ -4370,7 +4454,7 @@ msgstr "Uvjeti provjere prihvatljivosti ovog načina dostave nisu ispunjeni za t
 msgid "Add coupon code"
 msgstr "Dodaj kod kupona"
 
-#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:234
+#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:261
 msgid "Coupon code set for order"
 msgstr "Kod kupona postavljen za narudžbu"
 
@@ -4453,7 +4537,7 @@ msgstr "Ponovno izgradi indeks pretraživanja"
 msgid "Running"
 msgstr "Pokrenuto"
 
-#: src/app/routes/_authenticated/_system/job-queue.tsx:89
+#: src/app/routes/_authenticated/_system/job-queue.tsx:118
 msgid "Every 60 seconds"
 msgstr "Svakih 60 sekundi"
 
@@ -4482,7 +4566,7 @@ msgstr "Primijenite filtere na tablicu i kliknite \"Spremi prikaz\" za početak.
 msgid "Roles"
 msgstr "Uloge"
 
-#: src/app/routes/_authenticated/_orders/components/order-modification-preview-dialog.tsx:319
+#: src/app/routes/_authenticated/_orders/components/order-modification-preview-dialog.tsx:322
 msgid "Additional payment required"
 msgstr "Potrebno dodatno plaćanje"
 
@@ -4510,7 +4594,7 @@ msgstr "Članovi grupe kupaca {customerGroupName}"
 #: src/app/routes/_authenticated/_orders/components/fulfillment-details.tsx:118
 #: src/app/routes/_authenticated/_orders/components/payment-details.tsx:217
 #: src/app/routes/_authenticated/_orders/orders.tsx:101
-#: src/app/routes/_authenticated/_system/job-queue.tsx:245
+#: src/app/routes/_authenticated/_system/job-queue.tsx:268
 msgid "State"
 msgstr "Stanje"
 
@@ -4559,7 +4643,7 @@ msgstr "Omogućeno"
 
 #: src/lib/components/shared/asset/asset-gallery.tsx:476
 msgid "Items per page"
-msgstr "العناصر في الصفحة"
+msgstr "Stavki po stranici"
 
 #: src/app/routes/_authenticated/_zones/zones.tsx:39
 msgid "Edit members"
@@ -4591,7 +4675,7 @@ msgstr "Pregled izmjena"
 
 #: src/lib/components/shared/assigned-channels.tsx:52
 msgid "Failed to remove {entityType} from channel"
-msgstr "فشل في إزالة {entityType} من القناة"
+msgstr "Uklanjanje {entityType} iz kanala nije uspjelo"
 
 #: src/app/routes/_authenticated/_products/products_.$id_.variants.tsx:191
 msgid "Variant deleted successfully"
@@ -4599,7 +4683,7 @@ msgstr "Varijanta uspješno obrisana"
 
 #: src/lib/components/shared/rich-text-editor/link-dialog.tsx:87
 msgid "Edit the selected link properties"
-msgstr "تعديل خصائص الرابط المحدد"
+msgstr "Uredi svojstva odabrane poveznice"
 
 #. js-lingui-explicit-id
 #: src/lib/framework/defaults.ts:75
@@ -4640,7 +4724,7 @@ msgstr "Postavke"
 #. js-lingui-explicit-id
 #: src/lib/framework/defaults.ts:151
 msgid "Settings Store"
-msgstr "متجر الإعدادات"
+msgstr "Pohrana postavki"
 
 #: src/lib/components/shared/rich-text-editor/responsive-toolbar.tsx:77
 msgid "Heading 3"
@@ -4736,6 +4820,10 @@ msgstr "Idi na prethodnu stranicu"
 msgid "Contents"
 msgstr "Sadržaj"
 
+#: src/app/routes/_authenticated/_system/components/cancel-jobs-bulk-action.tsx:43
+msgid "Failed to cancel {rejected} jobs"
+msgstr ""
+
 #: src/lib/components/data-table/views-sheet.tsx:110
 msgid "Failed to convert global view to personal view"
 msgstr "Pretvaranje globalnog prikaza u osobni prikaz nije uspjelo"
@@ -4744,7 +4832,7 @@ msgstr "Pretvaranje globalnog prikaza u osobni prikaz nije uspjelo"
 #~ msgid "The assigned option groups have no options yet. Add options to your option groups before generating variants."
 #~ msgstr ""
 
-#: src/app/routes/_authenticated/_system/job-queue.tsx:155
+#: src/app/routes/_authenticated/_system/job-queue.tsx:182
 #: src/app/routes/_authenticated/_system/scheduled-tasks.tsx:177
 msgid "The result of the job"
 msgstr "Rezultat zadatka"
@@ -4763,7 +4851,7 @@ msgstr "Sustav"
 msgid "Variant name"
 msgstr "Naziv varijante"
 
-#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:504
+#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:543
 msgid "Remove"
 msgstr "Ukloni"
 
@@ -4774,7 +4862,7 @@ msgstr "Ažuriranje kupca nije uspjelo"
 
 #: src/app/routes/_authenticated/_products/products_.$id.tsx:306
 msgid "Remove option groups?"
-msgstr "إزالة مجموعات الخيارات؟"
+msgstr "Ukloniti grupe opcija?"
 
 #: src/app/routes/_authenticated/_collections/components/collection-contents-preview-table.tsx:91
 msgid "This is a preview of the collection contents based on the current filter settings. Once you save the collection, the contents will be updated to reflect the new filter settings."
@@ -4809,7 +4897,7 @@ msgstr "Spremi"
 #~ msgid "{selectedRowCount} of {0} row(s) selected."
 #~ msgstr "{selectedRowCount} od {0} redak(a) odabrano."
 
-#: src/app/routes/_authenticated/_orders/components/order-modification-preview-dialog.tsx:149
+#: src/app/routes/_authenticated/_orders/components/order-modification-preview-dialog.tsx:156
 msgid "Preview order modifications"
 msgstr "Pregled izmjena narudžbe"
 
@@ -4899,7 +4987,7 @@ msgstr "Stvaranje porezne stope nije uspjelo"
 
 #: src/app/routes/_authenticated/_api-keys/components/api-key-secret-dialog.tsx:118
 msgid "I have saved this API key"
-msgstr "لقد حفظت مفتاح API هذا"
+msgstr "Spremio sam ovaj API ključ"
 
 #: src/lib/components/layout/manage-languages-dialog.tsx:244
 msgid "Configure available languages for your store and channels"
@@ -4924,7 +5012,7 @@ msgstr "Uredi bilješku"
 
 #: src/lib/components/shared/asset/asset-gallery.tsx:628
 msgid "No assets found. Try adjusting your filters."
-msgstr "لم يتم العثور على ملفات. حاول تعديل عوامل التصفية."
+msgstr "Nisu pronađene datoteke. Pokušajte prilagoditi filtere."
 
 #: src/app/routes/_authenticated/_products/components/option-groups-editor.tsx:161
 msgid "Add Option"
@@ -4975,18 +5063,18 @@ msgstr "Status"
 #: src/lib/components/shared/asset/asset-gallery.tsx:370
 #: src/lib/components/shared/asset/asset-gallery.tsx:382
 msgid "Binary"
-msgstr "ثنائي"
+msgstr "Binarno"
 
 #: src/app/routes/_authenticated/_option-groups/option-groups_.$id.tsx:127
 msgid "Successfully updated option group"
-msgstr "تم تحديث مجموعة الخيارات بنجاح"
+msgstr "Grupa opcija uspješno ažurirana"
 
 #: src/app/routes/_authenticated/_shipping-methods/shipping-methods_.$id.tsx:43
 #: src/app/routes/_authenticated/_shipping-methods/shipping-methods_.$id.tsx:117
 msgid "New shipping method"
 msgstr "Novi način dostave"
 
-#: src/app/routes/_authenticated/_system/job-queue.tsx:87
+#: src/app/routes/_authenticated/_system/job-queue.tsx:116
 msgid "Every 10 seconds"
 msgstr "Svakih 10 sekundi"
 
@@ -5015,7 +5103,7 @@ msgstr "Grupa opcija uklonjena"
 msgid "Transition to selected state"
 msgstr "Prijelaz u odabrano stanje"
 
-#: src/app/routes/_authenticated/_orders/components/order-modification-preview-dialog.tsx:322
+#: src/app/routes/_authenticated/_orders/components/order-modification-preview-dialog.tsx:325
 msgid "An additional payment of {formattedDiff} will be required."
 msgstr "Bit će potrebno dodatno plaćanje od {formattedDiff}."
 
@@ -5080,7 +5168,7 @@ msgstr "sadrži"
 
 #: src/app/routes/_authenticated/_products/components/add-option-group-dialog.tsx:245
 msgid "No option groups found"
-msgstr "لم يتم العثور على مجموعات خيارات"
+msgstr "Nisu pronađene grupe opcija"
 
 #: src/lib/components/data-input/product-multi-selector-input.tsx:91
 msgid "No items found"
@@ -5097,7 +5185,7 @@ msgstr "Izvršene stavke ({0})"
 
 #: src/app/routes/_authenticated/_system/settings-store.tsx:236
 msgid "Value updated"
-msgstr "تم تحديث القيمة"
+msgstr "Vrijednost ažurirana"
 
 #: src/app/routes/_authenticated/_customers/components/customer-status-badge.tsx:28
 msgid "Unverified"
@@ -5132,7 +5220,7 @@ msgstr "Podaci testa su ažurirani. Kliknite \"Pokreni test\" za pregled ažurir
 msgid "is not in"
 msgstr "nije u"
 
-#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:129
+#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:132
 msgid "Order line updated"
 msgstr "Redak narudžbe ažuriran"
 
@@ -5155,7 +5243,7 @@ msgstr "Grupe kupaca"
 
 #: src/lib/components/shared/assigned-channels.tsx:48
 msgid "Successfully removed {entityType} from channel"
-msgstr "تمت إزالة {entityType} من القناة بنجاح"
+msgstr "Uspješno uklonjeno {entityType} iz kanala"
 
 #: src/app/routes/_authenticated/_option-groups/option-groups_.$groupId.options_.$id.tsx:81
 #: src/app/routes/_authenticated/_option-groups/option-groups_.$groupId.options_.$id.tsx:90
@@ -5178,7 +5266,11 @@ msgstr "Trenutne vrijednosti svojstava"
 
 #: src/app/routes/_authenticated/_option-groups/components/option-group-products-block.tsx:80
 msgid "Page {page} of {totalPages}"
-msgstr "صفحة {page} من {totalPages}"
+msgstr "Stranica {page} od {totalPages}"
+
+#: src/app/routes/_authenticated/_system/components/cancel-jobs-bulk-action.tsx:42
+msgid "Failed to cancel {rejected} job"
+msgstr ""
 
 #: src/lib/components/date-range-picker.tsx:79
 msgctxt "date-range"
@@ -5196,13 +5288,13 @@ msgstr "Ukloni stavku"
 #: src/lib/components/shared/asset/asset-gallery.tsx:369
 #: src/lib/components/shared/asset/asset-gallery.tsx:381
 msgid "Video"
-msgstr "فيديو"
+msgstr "Video"
 
 #: src/lib/components/data-table/human-readable-operator.tsx:48
 msgid "less than"
 msgstr "manje od"
 
-#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:118
+#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:121
 msgid "The variant could not be added. Ensure the parent product is enabled."
 msgstr "Varijanta se ne može dodati. Provjerite je li nadređeni proizvod omogućen."
 
@@ -5264,7 +5356,7 @@ msgstr "Globalni jezici"
 msgid "New administrator"
 msgstr "Novi administrator"
 
-#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:316
+#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:355
 msgid "Delete draft"
 msgstr "Obriši skicu"
 
@@ -5282,7 +5374,7 @@ msgstr "Nema dostupnih radnji"
 msgid "Failed to update channel"
 msgstr "Ažuriranje kanala nije uspjelo"
 
-#: src/lib/components/shared/custom-fields-form.tsx:99
+#: src/lib/components/shared/custom-fields-form.tsx:101
 msgid "General"
 msgstr "Općenito"
 
@@ -5305,7 +5397,7 @@ msgstr "Zona uspješno stvorena"
 
 #: src/app/routes/_authenticated/_system/settings-store.tsx:268
 msgid "Value"
-msgstr "القيمة"
+msgstr "Vrijednost"
 
 #: src/app/routes/_authenticated/_orders/components/order-history/order-history-utils.tsx:105
 msgid "Customer updated"
@@ -5342,9 +5434,13 @@ msgstr "Nisu pronađene oznake"
 msgid "Default currency"
 msgstr "Zadana valuta"
 
-#: src/app/routes/_authenticated/_orders/components/order-modification-preview-dialog.tsx:334
+#: src/app/routes/_authenticated/_orders/components/order-modification-preview-dialog.tsx:337
 msgid "No payment or refund is required for these changes."
 msgstr "Za ove izmjene nije potrebno plaćanje ili povrat."
+
+#: src/app/routes/_authenticated/_system/components/cancel-jobs-bulk-action.tsx:70
+msgid "{cancellableCount, plural, one {Are you sure you want to cancel {cancellableCount} job? This action cannot be undone.} other {Are you sure you want to cancel {cancellableCount} jobs? This action cannot be undone.}}"
+msgstr ""
 
 #: src/lib/framework/dashboard-widget/orders-summary/index.tsx:100
 msgid "Total Revenue"
@@ -5364,7 +5460,7 @@ msgstr "Srednji datum"
 
 #: src/app/routes/_authenticated/_system/settings-store.tsx:169
 msgid "Invalid number"
-msgstr "رقم غير صالح"
+msgstr "Nevažeći broj"
 
 #: src/lib/components/data-table/views-sheet.tsx:152
 msgid "You haven't saved any views yet."
@@ -5376,7 +5472,7 @@ msgstr "Jeste li sigurni da želite obrisati ovaj prikaz? Ova radnja se ne može
 
 #: src/app/routes/_authenticated/_orders/components/order-process-dialog.tsx:73
 msgid "View order process"
-msgstr "عرض عملية الطلب"
+msgstr "Pregled procesa narudžbe"
 
 #: src/lib/components/data-table/views-sheet.tsx:100
 msgid "Failed to duplicate view"
@@ -5422,9 +5518,9 @@ msgstr "Kalkulator"
 
 #: src/app/routes/_authenticated/_option-groups/components/option-group-bulk-actions.tsx:78
 msgid "Failed to remove option group from channel: {message}"
-msgstr "فشل في إزالة مجموعة الخيارات من القناة: {message}"
+msgstr "Uklanjanje grupe opcija iz kanala nije uspjelo: {message}"
 
-#: src/app/routes/_authenticated/_system/job-queue.tsx:134
+#: src/app/routes/_authenticated/_system/job-queue.tsx:161
 msgid "View job data"
 msgstr "Pregled podataka zadatka"
 
@@ -5442,7 +5538,7 @@ msgstr "Sažetak narudžbi"
 
 #: src/lib/components/shared/asset/asset-gallery.tsx:349
 msgid "Search assets..."
-msgstr "البحث في الملفات..."
+msgstr "Pretraži datoteke..."
 
 #: src/app/routes/_authenticated/_facets/facets.tsx:114
 msgid "New Facet"
@@ -5529,7 +5625,7 @@ msgstr "Postavlja razinu zaliha pri kojoj se ova varijanta smatra rasprodanom. K
 msgid "Saving..."
 msgstr "Spremanje..."
 
-#: src/app/routes/_authenticated/_system/job-queue.tsx:158
+#: src/app/routes/_authenticated/_system/job-queue.tsx:185
 #: src/app/routes/_authenticated/_system/scheduled-tasks.tsx:180
 msgid "View result"
 msgstr "Pregled rezultata"
@@ -5570,6 +5666,11 @@ msgstr "Dodavanje vrijednosti opcije nije uspjelo"
 msgid "Add option value to {groupName}"
 msgstr "Dodaj vrijednost opcije u {groupName}"
 
+#. placeholder {0}: error.message
+#: src/app/routes/_authenticated/_orders/orders_.draft.$id.tsx:221
+msgid "Failed to unset shipping address for order: {0}"
+msgstr ""
+
 #: src/app/routes/_authenticated/_orders/components/add-surcharge-form.tsx:82
 #: src/app/routes/_authenticated/_orders/components/edit-order-table.tsx:96
 #: src/app/routes/_authenticated/_product-variants/product-variants_.$id.tsx:271
@@ -5596,7 +5697,7 @@ msgstr "Nova e-pošta:"
 msgid "Failed to update payment method"
 msgstr "Ažuriranje načina plaćanja nije uspjelo"
 
-#: src/app/routes/_authenticated/_orders/components/order-modification-preview-dialog.tsx:235
+#: src/app/routes/_authenticated/_orders/components/order-modification-preview-dialog.tsx:242
 msgid "Available:"
 msgstr "Dostupno:"
 
@@ -5651,7 +5752,7 @@ msgstr "Povrat izvršen"
 
 #: src/app/routes/_authenticated/_api-keys/components/api-key-secret-dialog.tsx:85
 msgid "API Key"
-msgstr "مفتاح API"
+msgstr "API ključ"
 
 #: src/app/common/duplicate-bulk-action.tsx:97
 msgid "Successfully duplicated {count} {entityName}"
@@ -5659,9 +5760,9 @@ msgstr "Uspješno duplicirano {count} {entityName}"
 
 #: src/app/routes/_authenticated/_option-groups/option-groups.tsx:71
 msgid "New Option Group"
-msgstr "مجموعة خيارات جديدة"
+msgstr "Nova grupa opcija"
 
-#: src/app/routes/_authenticated/_system/job-queue.tsx:164
+#: src/app/routes/_authenticated/_system/job-queue.tsx:191
 #: src/app/routes/_authenticated/_system/scheduled-tasks.tsx:186
 msgid "No result yet"
 msgstr "Još nema rezultata"
@@ -5672,7 +5773,7 @@ msgstr "Plaćanje izvršeno"
 
 #: src/lib/components/data-table/data-table-active-filters-popover.tsx:27
 msgid "Active filters"
-msgstr "عوامل التصفية النشطة"
+msgstr "Aktivni filteri"
 
 #: src/app/routes/_authenticated/_assets/components/asset-tag-filter.tsx:178
 #: src/lib/components/data-table/data-table-active-filters-popover.tsx:54
@@ -5686,7 +5787,7 @@ msgstr "veće je od"
 
 #: src/app/routes/_authenticated/_api-keys/components/api-key-secret-dialog.tsx:125
 msgid "Close"
-msgstr "إغلاق"
+msgstr "Zatvori"
 
 #: src/app/routes/_authenticated/_orders/components/add-manual-payment-dialog.tsx:127
 msgid "Add payment to order"
@@ -5734,11 +5835,11 @@ msgstr "Prag zaliha"
 
 #: src/app/routes/_authenticated/_system/settings-store.tsx:239
 msgid "Failed to update value"
-msgstr "فشل في تحديث القيمة"
+msgstr "Ažuriranje vrijednosti nije uspjelo"
 
 #: src/app/routes/_authenticated/_api-keys/api-keys_.$id.tsx:121
 msgid "Failed to create API key"
-msgstr "فشل في إنشاء مفتاح API"
+msgstr "Stvaranje API ključa nije uspjelo"
 
 #: src/app/routes/_authenticated/_orders/components/payment-details.tsx:264
 #: src/app/routes/_authenticated/_orders/components/settle-refund-dialog.tsx:49
@@ -5775,7 +5876,7 @@ msgstr "Zone"
 
 #: src/lib/components/shared/seller-selector.tsx:37
 msgid "Search sellers..."
-msgstr "البحث في البائعين..."
+msgstr "Pretraži prodavače..."
 
 #: src/app/routes/_authenticated/_promotions/promotions_.$id.tsx:104
 msgid "Successfully created promotion"
@@ -5787,7 +5888,7 @@ msgstr "Opcija"
 
 #: src/app/routes/_authenticated/_orders/components/order-process-dialog.tsx:82
 msgid "Order process"
-msgstr "عملية الطلب"
+msgstr "Proces narudžbe"
 
 #: src/app/routes/_authenticated/_customers/customers_.$id.tsx:194
 msgid "Phone number"
@@ -5808,7 +5909,7 @@ msgstr "Globalne postavke uspješno ažurirane"
 
 #: src/app/routes/_authenticated/_api-keys/api-keys_.$id.tsx:115
 msgid "Successfully updated API key"
-msgstr "تم تحديث مفتاح API بنجاح"
+msgstr "API ključ uspješno ažuriran"
 
 #: src/lib/components/layout/manage-languages-dialog.tsx:294
 msgid "These languages will be available for all channels to use"

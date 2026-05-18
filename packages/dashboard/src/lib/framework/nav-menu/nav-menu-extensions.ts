@@ -5,6 +5,14 @@ import { globalRegistry } from '../registry/global-registry.js';
 // Define the placement options for navigation sections
 export type NavMenuSectionPlacement = 'top' | 'bottom';
 
+// Minimal subset of Lingui's MessageDescriptor
+export interface NavTitleDescriptor {
+    id: string;
+    comment?: string;
+    message?: string;
+    values?: Record<string, unknown>;
+}
+
 /**
  * @description
  * Defines an items in the navigation menu.

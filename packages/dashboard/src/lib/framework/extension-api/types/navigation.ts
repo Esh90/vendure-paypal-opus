@@ -2,7 +2,7 @@ import { AnyRoute, RouteOptions } from '@tanstack/react-router';
 import { LucideIcon } from 'lucide-react';
 import type React from 'react';
 
-import { NavMenuItem } from '../../nav-menu/nav-menu-extensions.js';
+import { NavMenuItem, NavTitleDescriptor } from '../../nav-menu/nav-menu-extensions.js';
 
 /**
  * @description
@@ -32,7 +32,7 @@ export interface DashboardRouteDefinition {
      * this item should appear in. It can also point to custom nav menu sections that
      * have been defined using the `navSections` extension property.
      */
-    navMenuItem?: Partial<NavMenuItem> & { sectionId: string };
+    navMenuItem?: Omit<Partial<NavMenuItem>, 'title'> & { title?: string | NavTitleDescriptor; sectionId: string };
     /**
      * @description
      * Optional loader function to fetch data before the route renders.
@@ -80,7 +80,7 @@ export interface DashboardNavSectionDefinition {
      * @description
      * The display title for the navigation section.
      */
-    title: string;
+    title: string | NavTitleDescriptor;
     /**
      * @description
      * Optional icon to display next to the section title. The icons should

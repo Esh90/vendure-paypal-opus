@@ -28,6 +28,7 @@ function registerNavSections(
     for (const section of navSections) {
         addNavMenuSection({
             ...section,
+            title: typeof section.title === 'string' ? section.title : section.title.id,
             placement: section.placement ?? 'top',
             order: section.order ?? 999,
             items: [],
@@ -41,10 +42,11 @@ function registerRoutes(routes?: DashboardRouteDefinition[]) {
     }
     for (const route of routes) {
         if (route.navMenuItem) {
+            const rawTitle = route.navMenuItem.title ?? route.path;
             const item: NavMenuItem = {
                 url: route.navMenuItem.url ?? route.path,
                 id: route.navMenuItem.id ?? route.path,
-                title: route.navMenuItem.title ?? route.path,
+                title: typeof rawTitle === 'string' ? rawTitle : rawTitle.id,
                 order: route.navMenuItem.order,
                 requiresPermission: route.navMenuItem.requiresPermission,
                 icon: route.navMenuItem.icon,

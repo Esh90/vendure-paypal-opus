@@ -171,6 +171,41 @@ describe('defineDashboardExtension - navSections', () => {
         warnSpy.mockRestore();
     });
 
+    it('normalizes NavTitleDescriptor to its id for navSection title', () => {
+        defineDashboardExtension({
+            navSections: [{ id: 'my-section', title: { id: 'my-section-title', message: 'My Section' } }],
+        });
+
+        executeDashboardExtensionCallbacks();
+
+        const result = getNavMenuConfig();
+        const section = result.sections.find(s => s.id === 'my-section');
+        expect(section?.title).toBe('my-section-title');
+    });
+
+    it('normalizes NavTitleDescriptor to its id for navMenuItem title', () => {
+        defineDashboardExtension({
+            navSections: [{ id: 'catalog', title: 'Catalog' }],
+            routes: [
+                {
+                    path: '/my-page',
+                    component: () => null,
+                    navMenuItem: {
+                        sectionId: 'catalog',
+                        title: { id: 'my-page-title', message: 'My Page' },
+                    },
+                },
+            ],
+        });
+
+        executeDashboardExtensionCallbacks();
+
+        const result = getNavMenuConfig();
+        const section = result.sections.find(s => s.id === 'catalog');
+        const item = section && 'items' in section ? section.items?.find(i => i.url === '/my-page') : undefined;
+        expect(item?.title).toBe('my-page-title');
+    });
+
     it('can move items between sections', () => {
         addNavMenuSection({
             id: 'settings',

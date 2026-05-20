@@ -5,7 +5,7 @@ import {
     registerInitializer,
     SqljsInitializer,
 } from '@vendure/testing';
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
@@ -48,6 +48,21 @@ export default async function globalSetup() {
         CustomHistoryEntryPlugin: new () => unknown;
     }>(path.join(__dirname, 'fixtures', 'custom-history-entry-plugin.ts'));
 
+    // AssetServerPlugin uses NestJS decorators and class-extends-from-core
+    // patterns that Playwright's static-ESM import path cannot resolve
+    // (hashed-asset-naming-strategy extends a base class from @vendure/core
+    // that ends up `undefined` under Babel transform). Pull it in via Node's
+    // native loader at runtime to side-step the transform path.
+    const { AssetServerPlugin } =
+        (await import('@vendure/asset-server-plugin')) as typeof import('@vendure/asset-server-plugin');
+
+    // Assets uploaded via createAssets during tests are written here. Wipe on
+    // each setup so reruns start from a clean directory; the suite assumes
+    // no asset state survives between full test runs.
+    const assetUploadDir = path.join(__dirname, '__data__/assets');
+    rmSync(assetUploadDir, { recursive: true, force: true });
+    mkdirSync(assetUploadDir, { recursive: true });
+
     const config = mergeConfig(defaultTestConfig, {
         apiOptions: {
             port: VENDURE_PORT,
@@ -55,7 +70,18 @@ export default async function globalSetup() {
         paymentOptions: {
             paymentMethodHandlers: e2ePaymentMethodHandlers,
         },
-        plugins: [CustomHistoryEntryPlugin],
+        // AssetServerPlugin is required so that uploaded assets resolve to a
+        // proper http URL (the default test-asset storage strategy emits a
+        // `test-url/test-assets/...` placeholder that `VendureImage` cannot
+        // parse with `new URL(...)`). Tests that exercise the asset preview
+        // dialog need this to render.
+        plugins: [
+            CustomHistoryEntryPlugin,
+            // Cast to any — the dynamic-import return type cannot satisfy the
+            // mergeConfig `DeepPartial<plugin>` shape that includes nestjs
+            // DynamicModule, but the runtime value is correct.
+            AssetServerPlugin.init({ route: 'assets', assetUploadDir }) as any,
+        ],
         customFields: e2eCustomFields,
     });
 

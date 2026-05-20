@@ -192,7 +192,7 @@ export function AuthProvider({ children }: Readonly<{ children: React.ReactNode 
         async (onLogoutSuccess?: () => void) => {
             setIsLoginLogoutInProgress(true);
             setStatus('verifying');
-            api.mutate(LogOutMutation)({})
+            await api.mutate(LogOutMutation)({})
                 .then(async data => {
                     if (data?.logout.success) {
                         // Clear all cached queries to prevent stale data
@@ -209,15 +209,24 @@ export function AuthProvider({ children }: Readonly<{ children: React.ReactNode 
                         setIsLoginLogoutInProgress(false);
                     }
                 })
-                .catch(error => {
-                    // Network/server failure. Match login()'s rejection handler:
-                    // surface the message and unblock the UI so the user can retry.
+                .catch(async error => {
+                    // Network/server failure. Transport failure doesn't tell us
+                    // whether the server applied the logout, so refetch the
+                    // current user to determine actual state rather than trusting
+                    // the cached isAuthenticated snapshot (staleTime: Infinity
+                    // means react-query won't auto-refetch this query).
                     setAuthenticationError(error?.message);
-                    setStatus(isAuthenticated ? 'authenticated' : 'unauthenticated');
+                    const { data: refreshedData, error: refreshedError } =
+                        await refetchCurrentUser();
+                    if (refreshedError || !refreshedData?.me?.id) {
+                        setStatus('unauthenticated');
+                    } else {
+                        setStatus('authenticated');
+                    }
                     setIsLoginLogoutInProgress(false);
                 });
         },
-        [queryClient, isAuthenticated],
+        [queryClient, isAuthenticated, refetchCurrentUser],
     );
 
     // Handle status transitions based on query state

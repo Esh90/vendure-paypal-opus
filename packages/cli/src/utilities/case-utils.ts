@@ -52,7 +52,9 @@ export function camelCase(input: string): string {
 }
 
 export function pascalCase(input: string): string {
-    return words(input).map(pascalToken).join('');
+    return words(input)
+        .map((w, i) => pascalToken(w, i))
+        .join('');
 }
 
 export function kebabCase(input: string): string {

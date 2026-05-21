@@ -1114,3 +1114,377 @@ union (`transitiveTotal`) when the *last* declared parent of a subtree
 is removed. Worth considering a future enhancement to the snapshot
 script: an "additive transitive" column that reports packages reachable
 *only* via a given direct dep.
+
+## Stage 3 — Drop node-fetch + form-data direct deps (native fetch/FormData)
+
+- **Commit:** `324cc22f3` on `chore/dependency-audit`
+- **Date:** 2026-05-21T09:02:58.355Z
+- **Total unique production packages:** 1807
+
+### Per-Vendure-package transitive footprint
+
+| Package | Direct deps | Unique transitive (prod) |
+|---------|-------------|--------------------------|
+| `@vendure/core` | 40 | 453 |
+| `@vendure/common` | 0 | 0 |
+| `@vendure/email-plugin` | 7 | 216 |
+| `@vendure/asset-server-plugin` | 3 | 20 |
+| `@vendure/admin-ui-plugin` | 3 | 71 |
+| `@vendure/telemetry-plugin` | 9 | 162 |
+| `@vendure/harden-plugin` | 2 | 153 |
+| `@vendure/job-queue-plugin` | 2 | 23 |
+| `@vendure/graphiql-plugin` | 1 | 65 |
+| `@vendure/testing` | 6 | 7 |
+| `@vendure/cli` | 11 | 92 |
+| `@vendure/create` | 11 | 46 |
+| `@vendure/dashboard` | 67 | 838 |
+| `@vendure/ui-devkit` | 11 | 810 |
+| `@vendure/admin-ui` | 48 | 115 |
+
+<details>
+<summary>Per-direct-dep transitive counts (click to expand)</summary>
+
+#### `@vendure/core`
+
+| Direct dep | Transitive count |
+|-----------|------------------|
+| `@nestjs/terminus` | 295 |
+| `@nestjs/typeorm` | 260 |
+| `@nestjs/apollo` | 237 |
+| `typeorm` | 186 |
+| `@apollo/server` | 151 |
+| `@nestjs/graphql` | 149 |
+| `@nestjs/core` | 102 |
+| `@nestjs/platform-express` | 102 |
+| `express` | 65 |
+| `graphql-upload` | 32 |
+| `http-proxy-middleware` | 19 |
+| `@nestjs/common` | 18 |
+| `@graphql-tools/stitch` | 17 |
+| `ioredis` | 11 |
+| `cookie-session` | 9 |
+| `i18next-icu` | 9 |
+| `intl-messageformat` | 8 |
+| `fs-extra` | 4 |
+| `bcrypt` | 3 |
+| `graphql-scalars` | 3 |
+| `graphql-tag` | 3 |
+| `i18next` | 3 |
+| `mime-types` | 2 |
+| `rxjs` | 2 |
+| `@vendure/common` | 1 |
+| `cron-time-generator` | 1 |
+| `croner` | 1 |
+| `cronstrue` | 1 |
+| `csv-parse` | 1 |
+| `graphql` | 1 |
+| `graphql-fields` | 1 |
+| `i18next-fs-backend` | 1 |
+| `i18next-http-middleware` | 1 |
+| `image-size` | 1 |
+| `ms` | 1 |
+| `nanoid` | 1 |
+| `picocolors` | 1 |
+| `progress` | 1 |
+| `reflect-metadata` | 1 |
+| `semver` | 1 |
+
+#### `@vendure/email-plugin`
+
+| Direct dep | Transitive count |
+|-----------|------------------|
+| `mjml` | 140 |
+| `express` | 65 |
+| `handlebars` | 6 |
+| `fs-extra` | 4 |
+| `@types/nodemailer` | 3 |
+| `dateformat` | 1 |
+| `nodemailer` | 1 |
+
+#### `@vendure/asset-server-plugin`
+
+| Direct dep | Transitive count |
+|-----------|------------------|
+| `file-type` | 10 |
+| `sharp` | 6 |
+| `fs-extra` | 4 |
+
+#### `@vendure/admin-ui-plugin`
+
+| Direct dep | Transitive count |
+|-----------|------------------|
+| `express-rate-limit` | 66 |
+| `fs-extra` | 4 |
+| `date-fns` | 1 |
+
+#### `@vendure/telemetry-plugin`
+
+| Direct dep | Transitive count |
+|-----------|------------------|
+| `@opentelemetry/auto-instrumentations-node` | 161 |
+| `@opentelemetry/sdk-node` | 78 |
+| `@opentelemetry/exporter-logs-otlp-proto` | 25 |
+| `@opentelemetry/exporter-trace-otlp-http` | 25 |
+| `@opentelemetry/sdk-logs` | 6 |
+| `@opentelemetry/resources` | 4 |
+| `@opentelemetry/context-async-hooks` | 2 |
+| `@opentelemetry/api` | 1 |
+| `javascript-stringify` | 1 |
+
+#### `@vendure/harden-plugin`
+
+| Direct dep | Transitive count |
+|-----------|------------------|
+| `@apollo/server` | 151 |
+| `graphql-query-complexity` | 3 |
+
+#### `@vendure/job-queue-plugin`
+
+| Direct dep | Transitive count |
+|-----------|------------------|
+| `bullmq` | 23 |
+| `ioredis` | 11 |
+
+#### `@vendure/graphiql-plugin`
+
+| Direct dep | Transitive count |
+|-----------|------------------|
+| `express` | 65 |
+
+#### `@vendure/testing`
+
+| Direct dep | Transitive count |
+|-----------|------------------|
+| `graphql-tag` | 3 |
+| `@graphql-typed-document-node/core` | 2 |
+| `@vendure/common` | 1 |
+| `faker` | 1 |
+| `graphql` | 1 |
+| `sql.js` | 1 |
+
+#### `@vendure/cli`
+
+| Direct dep | Transitive count |
+|-----------|------------------|
+| `ts-node` | 35 |
+| `ts-morph` | 26 |
+| `change-case` | 16 |
+| `@clack/prompts` | 4 |
+| `fs-extra` | 4 |
+| `tsconfig-paths` | 4 |
+| `@vendure/common` | 1 |
+| `commander` | 1 |
+| `dotenv` | 1 |
+| `picocolors` | 1 |
+| `strip-json-comments` | 1 |
+
+#### `@vendure/create`
+
+| Direct dep | Transitive count |
+|-----------|------------------|
+| `open` | 10 |
+| `tcp-port-used` | 7 |
+| `cross-spawn` | 6 |
+| `handlebars` | 6 |
+| `tar` | 6 |
+| `@clack/prompts` | 4 |
+| `fs-extra` | 4 |
+| `@vendure/common` | 1 |
+| `commander` | 1 |
+| `picocolors` | 1 |
+| `semver` | 1 |
+
+#### `@vendure/dashboard`
+
+| Direct dep | Transitive count |
+|-----------|------------------|
+| `@vendure-io/ui` | 424 |
+| `@vendure-io/design-tokens` | 325 |
+| `@lingui/vite-plugin` | 281 |
+| `@tanstack/router-plugin` | 261 |
+| `@lingui/cli` | 191 |
+| `@vitejs/plugin-react` | 175 |
+| `@tailwindcss/vite` | 141 |
+| `vite` | 132 |
+| `@tanstack/eslint-plugin-query` | 113 |
+| `@lingui/react` | 87 |
+| `@lingui/babel-plugin-lingui-macro` | 85 |
+| `@lingui/core` | 85 |
+| `express-rate-limit` | 66 |
+| `@tiptap/starter-kit` | 60 |
+| `@babel/preset-typescript` | 51 |
+| `@tiptap/react` | 51 |
+| `@babel/preset-react` | 47 |
+| `recharts` | 44 |
+| `@tiptap/extension-floating-menu` | 40 |
+| `@babel/core` | 39 |
+| `@tiptap/extension-placeholder` | 38 |
+| `@tiptap/extension-image` | 37 |
+| `@tiptap/extension-table` | 37 |
+| `@tiptap/extension-text-style` | 37 |
+| `@tiptap/pm` | 35 |
+| `vaul` | 33 |
+| `@tanstack/router-devtools` | 21 |
+| `fast-glob` | 18 |
+| `@tanstack/react-router` | 15 |
+| `react-dropzone` | 10 |
+| `@dnd-kit/modifiers` | 8 |
+| `@dnd-kit/sortable` | 8 |
+| `motion` | 8 |
+| `@dnd-kit/core` | 7 |
+| `gql.tada` | 7 |
+| `react-day-picker` | 6 |
+| `@tanstack/react-query-devtools` | 5 |
+| `@tanstack/react-table` | 5 |
+| `@hookform/resolvers` | 4 |
+| `@uidotdev/usehooks` | 4 |
+| `fs-extra` | 4 |
+| `input-otp` | 4 |
+| `json-edit-react` | 4 |
+| `next-themes` | 4 |
+| `sonner` | 4 |
+| `tsconfig-paths` | 4 |
+| `@tanstack/react-query` | 3 |
+| `@types/react-dom` | 3 |
+| `react-dom` | 3 |
+| `@types/react` | 2 |
+| `acorn-walk` | 2 |
+| `lucide-react` | 2 |
+| `react-hook-form` | 2 |
+| `@fontsource-variable/geist-mono` | 1 |
+| `@fontsource-variable/inter` | 1 |
+| `@fontsource-variable/public-sans` | 1 |
+| `acorn` | 1 |
+| `awesome-graphql-client` | 1 |
+| `clsx` | 1 |
+| `date-fns` | 1 |
+| `graphql` | 1 |
+| `react` | 1 |
+| `strip-json-comments` | 1 |
+| `tailwind-merge` | 1 |
+| `tailwindcss` | 1 |
+| `tw-animate-css` | 1 |
+| `zod` | 1 |
+
+#### `@vendure/ui-devkit`
+
+| Direct dep | Transitive count |
+|-----------|------------------|
+| `@angular-devkit/build-angular` | 705 |
+| `@angular/cli` | 221 |
+| `@angular/compiler-cli` | 62 |
+| `chokidar` | 15 |
+| `glob` | 8 |
+| `chalk` | 6 |
+| `fs-extra` | 4 |
+| `@angular/compiler` | 2 |
+| `rxjs` | 2 |
+| `@vendure/admin-ui` | 1 |
+| `@vendure/common` | 1 |
+
+#### `@vendure/admin-ui`
+
+| Direct dep | Transitive count |
+|-----------|------------------|
+| `apollo-angular` | 36 |
+| `apollo-upload-client` | 35 |
+| `@apollo/client` | 32 |
+| `@clr/angular` | 20 |
+| `ngx-translate-messageformat-compiler` | 16 |
+| `@clr/core` | 14 |
+| `@clr/ui` | 12 |
+| `@cds/core` | 11 |
+| `prosemirror-menu` | 10 |
+| `@angular/platform-browser-dynamic` | 9 |
+| `@ng-select/ng-select` | 9 |
+| `@angular/cdk` | 8 |
+| `@angular/forms` | 8 |
+| `@angular/router` | 8 |
+| `@messageformat/core` | 8 |
+| `prosemirror-gapcursor` | 8 |
+| `prosemirror-tables` | 8 |
+| `@angular/platform-browser` | 7 |
+| `prosemirror-history` | 7 |
+| `prosemirror-keymap` | 7 |
+| `@angular/animations` | 6 |
+| `@ngx-translate/core` | 6 |
+| `@ngx-translate/http-loader` | 6 |
+| `ngx-pagination` | 6 |
+| `prosemirror-commands` | 6 |
+| `prosemirror-dropcursor` | 6 |
+| `prosemirror-inputrules` | 6 |
+| `prosemirror-schema-list` | 6 |
+| `@angular/common` | 5 |
+| `messageformat` | 5 |
+| `prosemirror-state` | 5 |
+| `@angular/core` | 4 |
+| `prosemirror-schema-basic` | 3 |
+| `react-dom` | 3 |
+| `@biesbjerg/ngx-translate-extract-marker` | 2 |
+| `@clr/icons` | 2 |
+| `rxjs` | 2 |
+| `@angular/language-service` | 1 |
+| `@vendure/common` | 1 |
+| `@webcomponents/custom-elements` | 1 |
+| `chartist` | 1 |
+| `codejar` | 1 |
+| `dayjs` | 1 |
+| `graphql` | 1 |
+| `just-extend` | 1 |
+| `react` | 1 |
+| `tslib` | 1 |
+| `zone.js` | 1 |
+
+</details>
+
+### Changes
+
+Removed `node-fetch@^2.7.0` and `form-data@^4.0.0` from the workspace.
+Three call-sites were rewritten to use Node's built-in `fetch`, `FormData`,
+`Blob`, and `AbortSignal.timeout` (all available on the supported engine
+range `^20.19.0 || >=22.12.0`):
+
+| File | Before | After |
+|------|--------|-------|
+| `packages/core/src/health-check/http-health-check-strategy.ts` | `import fetch from 'node-fetch'`; `fetch(url, { timeout })` | native `fetch`; `fetch(url, { signal: AbortSignal.timeout(timeout) })` when a timeout is supplied |
+| `packages/testing/src/simple-graphql-client.ts` | `node-fetch` (with named `RequestInit`/`Response` imports) + `form-data` for multipart upload | native `fetch`/`FormData`/`Blob`; a minimal inline extension to MIME table preserves per-part `Content-Type` for common test fixtures (images, pdf, txt, json) — the same behaviour `form-data` previously got from `mime-types` |
+| `packages/asset-server-plugin/e2e/asset-server-plugin.e2e-spec.ts` | `node-fetch` + `res.buffer()` | native `fetch` + `Buffer.from(await res.arrayBuffer())` |
+
+Package-level changes:
+
+- `packages/testing/package.json`: dropped `node-fetch`, `form-data`,
+  `@types/node-fetch`.
+- `packages/asset-server-plugin/package.json`: dropped `node-fetch`,
+  `@types/node-fetch` (both `devDependencies`).
+- `packages/core`: no `package.json` change — the `node-fetch` import in
+  `http-health-check-strategy.ts` was never declared in `dependencies`. It
+  had been working purely via Bun's flat-hoisted `node_modules` resolving a
+  sibling-workspace copy. The native-fetch rewrite incidentally fixes that
+  latent declaration bug.
+
+### Impact
+
+- **Workspace direct declarations** of `node-fetch` / `form-data` /
+  `@types/node-fetch`: **0** (down from 3 / 1 / 2 respectively).
+- **`@vendure/testing` published footprint**: direct deps **8 → 6**, unique
+  transitive **34 → 7**. Downstream users installing just
+  `@vendure/testing` no longer pull either subtree.
+- **Repo-wide unique production package count**: **1807 (unchanged)** —
+  same subtree-overlap effect observed in Stage 2:
+  - `node-fetch@2.x` is still anchored by `@apollo/server@4`,
+    `cross-fetch`, `fbjs` (via mjml), `gaxios`, `web-resource-inliner`.
+  - `form-data@4.x` is still anchored by `axios` (mjml subtree) and by
+    `@types/node-fetch` — which is itself only present because
+    `@apollo/server@4` declares it.
+
+So the bulk transitive collapse for both packages is gated on the same
+Apollo Server v5 upgrade noted in the [#4761 Apollo v5
+comment](https://github.com/vendurehq/vendure/issues/4761#issuecomment-4506325570).
+Once `@apollo/server@5` lands (which itself is gated on
+`@nestjs/apollo@14`), `@types/node-fetch`, `node-fetch@2.x`, and a chunk of
+the `form-data` subtree all drop in one cascade alongside `body-parser`.
+
+The correctness win is independent and unconditional: our published
+packages no longer declare `node-fetch` or `form-data` at all, and the
+undeclared-dep latent bug in `@vendure/core`'s deprecated health-check is
+fixed at the same time.

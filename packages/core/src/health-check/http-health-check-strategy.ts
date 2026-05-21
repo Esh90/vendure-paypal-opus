@@ -1,7 +1,6 @@
 import { Injectable, Scope } from '@nestjs/common';
 import { HealthCheckError, HealthIndicatorFunction, HealthIndicatorResult } from '@nestjs/terminus';
 import { HealthIndicator } from '@nestjs/terminus/dist/health-indicator/index';
-import fetch from 'node-fetch';
 
 import { Injector } from '../common/injector';
 import { HealthCheckStrategy } from '../config/system/health-check-strategy';
@@ -86,7 +85,7 @@ export class CustomHttpHealthIndicator extends HealthIndicator {
         let isHealthy = false;
 
         try {
-            await fetch(url, { timeout });
+            await fetch(url, timeout != null ? { signal: AbortSignal.timeout(timeout) } : undefined);
             isHealthy = true;
         } catch (err) {
             this.generateHttpError(key, err);

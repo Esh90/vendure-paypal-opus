@@ -1,16 +1,34 @@
 import { TypedDocumentNode } from '@graphql-typed-document-node/core';
 import { SUPER_ADMIN_USER_IDENTIFIER, SUPER_ADMIN_USER_PASSWORD } from '@vendure/common/lib/shared-constants';
 import { VendureConfig } from '@vendure/core';
-import FormData from 'form-data';
 import fs from 'fs';
 import { DocumentNode } from 'graphql';
 import { print } from 'graphql/language/printer';
 import gql from 'graphql-tag';
-import fetch, { RequestInit, Response } from 'node-fetch';
+import path from 'path';
 import { stringify } from 'querystring';
 
 import { QueryParams } from './types';
 import { createUploadPostData } from './utils/create-upload-post-data';
+
+// Minimal extension-to-MIME map used by fileUploadMutation to preserve the
+// per-part Content-Type behaviour previously provided by `form-data` (which
+// relied on the `mime-types` package). Anything outside this set is sent with
+// the default empty Blob type.
+const TEST_FIXTURE_MIME_TYPES: Record<string, string> = {
+    '.jpg': 'image/jpeg',
+    '.jpeg': 'image/jpeg',
+    '.png': 'image/png',
+    '.gif': 'image/gif',
+    '.webp': 'image/webp',
+    '.svg': 'image/svg+xml',
+    '.pdf': 'application/pdf',
+    '.txt': 'text/plain',
+    '.json': 'application/json',
+    '.html': 'text/html',
+    '.css': 'text/css',
+    '.js': 'application/javascript',
+};
 
 const LOGIN = gql`
     mutation ($username: String!, $password: String!) {
@@ -260,13 +278,15 @@ export class SimpleGraphQLClient {
             'map',
             '{' +
                 Object.entries(postData.map)
-                    .map(([i, path]) => `"${i}":["${path}"]`)
+                    .map(([i, mapPath]) => `"${i}":["${mapPath}"]`)
                     .join(',') +
                 '}',
         );
         for (const filePath of postData.filePaths) {
             const file = fs.readFileSync(filePath.file);
-            body.append(filePath.name, file, { filename: filePath.file });
+            const type = TEST_FIXTURE_MIME_TYPES[path.extname(filePath.file).toLowerCase()];
+            const blob = type ? new Blob([file], { type }) : new Blob([file]);
+            body.append(filePath.name, blob, filePath.file);
         }
 
         const result = await fetch(this.apiUrl, {
@@ -276,7 +296,7 @@ export class SimpleGraphQLClient {
                 ...this.headers,
             },
         });
-        const response = await result.json();
+        const response = (await result.json()) as any;
         if (response.errors && response.errors.length) {
             const error = response.errors[0];
             throw new Error(error.message);

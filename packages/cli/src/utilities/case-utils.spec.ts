@@ -104,6 +104,12 @@ describe('Vendure CLI input shapes', () => {
         expect(kebabCase('image-resize')).toBe('image-resize');
     });
 
+    it('kebabCase: handles service-name inputs from getServiceFilePath', () => {
+        // add-service.ts:270 does `kebabCase(serviceName).replace(/-service$/, '.service')`
+        expect(kebabCase('MyService')).toBe('my-service');
+        expect(kebabCase('ImageResizeService')).toBe('image-resize-service');
+    });
+
     it('constantCase: handles plugin options token names', () => {
         // Used as e.g. `pluginInitOptionsName: constantCase(name) + '_OPTIONS'`
         expect(constantCase('ImageResizePlugin')).toBe('IMAGE_RESIZE_PLUGIN');

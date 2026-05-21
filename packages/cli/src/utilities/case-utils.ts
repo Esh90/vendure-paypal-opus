@@ -10,14 +10,16 @@
  */
 
 /**
- * Splits a string into lowercase words at:
+ * Splits a string into words at:
  *   - any non-alphanumeric character ("foo-bar" → ["foo", "bar"])
  *   - the boundary between a lowercase/digit and an uppercase letter
- *     ("camelCase" → ["camel", "case"])
+ *     ("camelCase" → ["camel", "Case"])
  *   - the boundary between consecutive uppercase letters and an
- *     uppercase-lowercase pair ("CAMELCase" → ["camel", "case"])
+ *     uppercase-lowercase pair ("CAMELCase" → ["CAMEL", "Case"])
  *
- * Empty input yields an empty array.
+ * Tokens retain their original casing; the case-style functions below
+ * apply their own lower/upper transforms when joining. Empty input
+ * yields an empty array.
  */
 function words(input: string): string[] {
     return input
@@ -30,10 +32,10 @@ function words(input: string): string[] {
 }
 
 /**
- * Capitalises a token, with the upstream-compatible "digit prefix" rule:
- * for any token after the first whose first character is a digit, the
- * result is prefixed with `_` to disambiguate concatenation. Matches the
- * behaviour of `pascalCaseTransform` from change-case v4.
+ * Capitalises a token. For any token after the first whose first
+ * character is a digit, the result is prefixed with `_` so that
+ * `pascalCase("version 1.2.10")` yields `"Version_1_2_10"` rather than
+ * the ambiguous `"Version1210"`.
  */
 function pascalToken(word: string, index: number): string {
     const first = word.charAt(0);

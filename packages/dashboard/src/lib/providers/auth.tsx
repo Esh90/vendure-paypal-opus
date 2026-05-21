@@ -192,39 +192,37 @@ export function AuthProvider({ children }: Readonly<{ children: React.ReactNode 
         async (onLogoutSuccess?: () => void) => {
             setIsLoginLogoutInProgress(true);
             setStatus('verifying');
-            await api.mutate(LogOutMutation)({})
-                .then(async data => {
-                    if (data?.logout.success) {
-                        // Clear all cached queries to prevent stale data
-                        queryClient.clear();
-                        // Clear selected channel from localStorage
-                        localStorage.removeItem(LS_KEY_SELECTED_CHANNEL_TOKEN);
-                        setStatus('unauthenticated');
-                        setIsLoginLogoutInProgress(false);
-                        onLogoutSuccess?.();
-                    } else {
-                        // Server responded but reported success=false. Restore the
-                        // pre-logout authenticated status so the UI is interactive again.
-                        setStatus(isAuthenticated ? 'authenticated' : 'unauthenticated');
-                        setIsLoginLogoutInProgress(false);
-                    }
-                })
-                .catch(async error => {
-                    // Network/server failure. Transport failure doesn't tell us
-                    // whether the server applied the logout, so refetch the
-                    // current user to determine actual state rather than trusting
-                    // the cached isAuthenticated snapshot (staleTime: Infinity
-                    // means react-query won't auto-refetch this query).
-                    setAuthenticationError(error?.message);
-                    const { data: refreshedData, error: refreshedError } =
-                        await refetchCurrentUser();
-                    if (refreshedError || !refreshedData?.me?.id) {
-                        setStatus('unauthenticated');
-                    } else {
-                        setStatus('authenticated');
-                    }
+            try {
+                const data = await api.mutate(LogOutMutation)({});
+                if (data?.logout.success) {
+                    // Clear all cached queries to prevent stale data
+                    queryClient.clear();
+                    // Clear selected channel from localStorage
+                    localStorage.removeItem(LS_KEY_SELECTED_CHANNEL_TOKEN);
+                    setStatus('unauthenticated');
                     setIsLoginLogoutInProgress(false);
-                });
+                    onLogoutSuccess?.();
+                } else {
+                    // Server responded but reported success=false. Restore the
+                    // pre-logout authenticated status so the UI is interactive again.
+                    setStatus(isAuthenticated ? 'authenticated' : 'unauthenticated');
+                    setIsLoginLogoutInProgress(false);
+                }
+            } catch (error) {
+                // Network/server failure. Transport failure doesn't tell us
+                // whether the server applied the logout, so refetch the
+                // current user to determine actual state rather than trusting
+                // the cached isAuthenticated snapshot (staleTime: Infinity
+                // means react-query won't auto-refetch this query).
+                setAuthenticationError(error instanceof Error ? error.message : String(error));
+                const { data: refreshedData, error: refreshedError } = await refetchCurrentUser();
+                if (refreshedError || !refreshedData?.me?.id) {
+                    setStatus('unauthenticated');
+                } else {
+                    setStatus('authenticated');
+                }
+                setIsLoginLogoutInProgress(false);
+            }
         },
         [queryClient, isAuthenticated, refetchCurrentUser],
     );

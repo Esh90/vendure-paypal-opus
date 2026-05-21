@@ -192,22 +192,13 @@ export function AuthProvider({ children }: Readonly<{ children: React.ReactNode 
         async (onLogoutSuccess?: () => void) => {
             setIsLoginLogoutInProgress(true);
             setStatus('verifying');
+            // Try block scoped to the mutation call only. Exceptions thrown
+            // by the success-branch side-effects below (queryClient.clear,
+            // localStorage.removeItem, onLogoutSuccess) propagate naturally
+            // rather than being misclassified as transport failures.
+            let data;
             try {
-                const data = await api.mutate(LogOutMutation)({});
-                if (data?.logout.success) {
-                    // Clear all cached queries to prevent stale data
-                    queryClient.clear();
-                    // Clear selected channel from localStorage
-                    localStorage.removeItem(LS_KEY_SELECTED_CHANNEL_TOKEN);
-                    setStatus('unauthenticated');
-                    setIsLoginLogoutInProgress(false);
-                    onLogoutSuccess?.();
-                } else {
-                    // Server responded but reported success=false. Restore the
-                    // pre-logout authenticated status so the UI is interactive again.
-                    setStatus(isAuthenticated ? 'authenticated' : 'unauthenticated');
-                    setIsLoginLogoutInProgress(false);
-                }
+                data = await api.mutate(LogOutMutation)({});
             } catch (error) {
                 // Network/server failure. Transport failure doesn't tell us
                 // whether the server applied the logout, so refetch the
@@ -221,6 +212,22 @@ export function AuthProvider({ children }: Readonly<{ children: React.ReactNode 
                 } else {
                     setStatus('authenticated');
                 }
+                setIsLoginLogoutInProgress(false);
+                return;
+            }
+
+            if (data?.logout.success) {
+                // Clear all cached queries to prevent stale data
+                queryClient.clear();
+                // Clear selected channel from localStorage
+                localStorage.removeItem(LS_KEY_SELECTED_CHANNEL_TOKEN);
+                setStatus('unauthenticated');
+                setIsLoginLogoutInProgress(false);
+                onLogoutSuccess?.();
+            } else {
+                // Server responded but reported success=false. Restore the
+                // pre-logout authenticated status so the UI is interactive again.
+                setStatus(isAuthenticated ? 'authenticated' : 'unauthenticated');
                 setIsLoginLogoutInProgress(false);
             }
         },

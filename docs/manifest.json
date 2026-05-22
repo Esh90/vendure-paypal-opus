@@ -3635,7 +3635,7 @@
                   "title": "GetSdkConfiguration",
                   "slug": "get-sdk-configuration",
                   "file": "docs/reference/core-plugins/telemetry-plugin/get-sdk-configuration.mdx",
-                  "lastModified": "2026-05-21T12:08:14+02:00"
+                  "lastModified": "2026-05-22T06:44:59Z"
                 },
                 {
                   "title": "OtelLogger",

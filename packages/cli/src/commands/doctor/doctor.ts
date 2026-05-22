@@ -1,5 +1,8 @@
 import { log } from '@clack/prompts';
+import { RuntimeVendureConfig } from '@vendure/core';
 
+import { runConfigCheck } from './checks/config-check';
+import { runDependencyCheck } from './checks/dependency-check';
 import { runProjectCheck } from './checks/project-check';
 import { formatConsoleReport } from './formatters/console-formatter';
 import { formatJsonReport } from './formatters/json-formatter';
@@ -15,6 +18,7 @@ export async function doctorCommand(options?: DoctorOptions) {
     const checksToRun = resolveChecks(options?.check);
 
     const results: CheckResult[] = [];
+    let loadedConfig: RuntimeVendureConfig | undefined;
 
     // Check 1: Project detection & config discovery
     if (checksToRun.includes('project')) {
@@ -35,11 +39,33 @@ export async function doctorCommand(options?: DoctorOptions) {
         }
     }
 
-    // Future checks (2-5) will be added here as they are implemented.
-    // Each check will follow the same pattern:
-    //   if (checksToRun.includes('checkName')) {
-    //       results.push(await runCheckName(...));
-    //   }
+    // Check 2: Dependency version alignment, singleton duplication, DB driver
+    if (checksToRun.includes('dependencies')) {
+        results.push(await runDependencyCheck());
+    }
+
+    // Check 3: Config loading, validation, plugin compatibility
+    if (checksToRun.includes('config')) {
+        const configResult = await runConfigCheck(options?.config);
+        results.push(configResult.check);
+        loadedConfig = configResult.config;
+
+        // If config check fails, skip checks that depend on a loaded config
+        if (configResult.check.status === 'fail') {
+            const configDependentChecks = ['schema', 'database'];
+            for (const check of configDependentChecks.filter(c => checksToRun.includes(c))) {
+                results.push({
+                    name: capitalize(check),
+                    status: 'skip',
+                    message: 'Skipped due to config check failure',
+                });
+            }
+            outputReport(buildReport(results, options), options);
+            return;
+        }
+    }
+
+    // Checks 4-5 (schema, database) will use loadedConfig when implemented.
 
     outputReport(buildReport(results, options), options);
 }

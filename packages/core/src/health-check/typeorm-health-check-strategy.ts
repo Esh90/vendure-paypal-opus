@@ -4,8 +4,6 @@ import { TransactionalConnection } from '../connection/transactional-connection'
 
 import { HealthCheckError, HealthIndicatorFunction, HealthIndicatorResult } from './terminus-compat';
 
-let connection: TransactionalConnection;
-
 /**
  * @deprecated This interface is part of the deprecated health check feature and will be removed in v4.0.0.
  */
@@ -42,10 +40,12 @@ export interface TypeORMHealthCheckOptions {
  * load balancer checks) instead of application-level health checks. This class will be removed in v4.0.0.
  */
 export class TypeORMHealthCheckStrategy implements HealthCheckStrategy {
+    private connection!: TransactionalConnection;
+
     constructor(private options?: TypeORMHealthCheckOptions) {}
 
     async init(injector: Injector) {
-        connection = await injector.resolve(TransactionalConnection);
+        this.connection = await injector.resolve(TransactionalConnection);
     }
 
     getHealthIndicator(): HealthIndicatorFunction {
@@ -59,8 +59,13 @@ export class TypeORMHealthCheckStrategy implements HealthCheckStrategy {
                 // `SELECT 1 FROM DUAL` and SAP HANA's `SELECT now() FROM dummy`
                 // variants are not needed because those drivers are not in
                 // Vendure's supported set.
+                // Note: TypeORM's DataSource.query() doesn't accept an AbortSignal,
+                // so if the timeout fires the query continues in the background
+                // until the driver itself gives up (or the connection drops). In
+                // a degraded-DB scenario this can hold a pool connection per probe
+                // — the cost is bounded by the pool size but worth knowing.
                 await Promise.race([
-                    connection.rawConnection.query('SELECT 1'),
+                    this.connection.rawConnection.query('SELECT 1'),
                     new Promise<never>((_, reject) => {
                         timer = setTimeout(
                             () => reject(new Error(`database health check timed out after ${timeout}ms`)),

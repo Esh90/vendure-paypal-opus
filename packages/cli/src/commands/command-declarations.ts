@@ -160,6 +160,39 @@ export const cliCommands: CliCommandDefinition[] = [
         },
     },
     {
+        name: 'dev',
+        description: 'Run Vendure in development mode',
+        arguments: [
+            {
+                name: 'target',
+                description: 'Target to run: all, server, worker or dashboard',
+                required: false,
+            },
+        ],
+        options: [
+            {
+                long: '--server-entry <path>',
+                description: 'Path to the server entry file',
+                required: false,
+            },
+            {
+                long: '--worker-entry <path>',
+                description: 'Path to the worker entry file',
+                required: false,
+            },
+            {
+                long: '--vite-config <path>',
+                description: 'Path to the Vite config file used by the Dashboard',
+                required: false,
+            },
+        ],
+        action: async (target, options) => {
+            const { devCommand } = await import('./dev/dev');
+            const exitCode = await devCommand(target, options);
+            process.exit(exitCode);
+        },
+    },
+    {
         name: 'migrate',
         description: 'Generate, run or revert a database migration',
         options: [

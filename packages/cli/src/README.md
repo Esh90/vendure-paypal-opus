@@ -51,6 +51,30 @@ if (nonInteractive) {
 
 ## Available Commands
 
+### Dev Command
+
+The `dev` command starts the development processes for a Vendure project.
+
+```bash
+# Start the server, worker and Dashboard
+npx vendure dev all
+
+# Start only the server
+npx vendure dev server
+
+# Start only the worker
+npx vendure dev worker
+
+# Start only the Dashboard
+npx vendure dev dashboard
+
+# Start with custom entrypoints
+npx vendure dev all --server-entry ./src/server.ts --worker-entry ./src/jobs.ts
+
+# Start the Dashboard with a custom Vite config
+npx vendure dev dashboard --vite-config ./config/vite.dashboard.mts
+```
+
 ### Add Command
 
 The `add` command supports both modes for adding features to your Vendure project.

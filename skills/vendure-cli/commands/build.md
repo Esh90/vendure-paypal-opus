@@ -6,7 +6,7 @@ with TypeScript, the dashboard with Vite.
 ## Usage
 
 ```
-npx vendure build [target]
+vendure build [target]
 ```
 
 `target` (optional, default `all`): `all` | `server` | `worker` | `dashboard`.
@@ -33,7 +33,7 @@ npx vendure build [target]
 ## Examples
 
 ```bash
-npx vendure build                       # build everything
-npx vendure build server --clean        # clean rebuild of just the server
-npx vendure build --no-progress --verbose
+vendure build                       # build everything
+vendure build server --clean        # clean rebuild of just the server
+vendure build --no-progress --verbose
 ```

@@ -11,7 +11,7 @@ name** so the command runs non-interactively.
 ## Usage
 
 ```
-npx vendure codemod <transform> [path]
+vendure codemod <transform> [path]
 ```
 
 - `transform` — name of the codemod to run (see below).
@@ -24,12 +24,12 @@ npx vendure codemod <transform> [path]
 | ------------------- | --------------------------------------------------------------- |
 | `dashboard-base-ui` | Migrate dashboard extensions from Radix UI to Base UI patterns  |
 
-Run `npx vendure codemod` (interactively) or check the CLI's codemod registry
+Run `vendure codemod` (interactively) or check the CLI's codemod registry
 for the current list if a transform name is not recognised.
 
 ## Examples
 
 ```bash
-npx vendure codemod dashboard-base-ui
-npx vendure codemod dashboard-base-ui ./src/plugins/my-plugin
+vendure codemod dashboard-base-ui
+vendure codemod dashboard-base-ui ./src/plugins/my-plugin
 ```

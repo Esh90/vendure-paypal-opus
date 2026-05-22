@@ -5,7 +5,7 @@ Generates, runs or reverts TypeORM database migrations for a Vendure project.
 ## Usage
 
 ```
-npx vendure migrate <action> [options]
+vendure migrate <action> [options]
 ```
 
 Exactly one action:
@@ -33,8 +33,8 @@ Exactly one action:
 ## Examples
 
 ```bash
-npx vendure migrate -g AddProductReviewTable
-npx vendure migrate -g AddProductReviewTable -o ./src/migrations
-npx vendure migrate -r
-npx vendure migrate --revert
+vendure migrate -g AddProductReviewTable
+vendure migrate -g AddProductReviewTable -o ./src/migrations
+vendure migrate -r
+vendure migrate --revert
 ```

@@ -5,7 +5,7 @@ Generates a schema file from a Vendure GraphQL API (Admin or Shop).
 ## Usage
 
 ```
-npx vendure schema -a <admin|shop> [options]
+vendure schema -a <admin|shop> [options]
 ```
 
 ## Options
@@ -21,7 +21,7 @@ npx vendure schema -a <admin|shop> [options]
 ## Examples
 
 ```bash
-npx vendure schema -a admin                       # admin schema, SDL, cwd
-npx vendure schema -a shop -f json -d ./schemas   # shop schema as JSON
-npx vendure schema -a admin -n admin-api.graphql
+vendure schema -a admin                       # admin schema, SDL, cwd
+vendure schema -a shop -f json -d ./schemas   # shop schema as JSON
+vendure schema -a admin -n admin-api.graphql
 ```

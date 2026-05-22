@@ -5,7 +5,7 @@ Runs a project that has already been compiled with `vendure build`.
 ## Usage
 
 ```
-npx vendure start [target]
+vendure start [target]
 ```
 
 `target` (optional, default `all`): `all` | `server` | `worker`.
@@ -30,6 +30,6 @@ and served by the server.
 ## Examples
 
 ```bash
-npx vendure build && npx vendure start   # build then run
-npx vendure start worker                 # run just the worker
+vendure build && vendure start   # build then run
+vendure start worker                 # run just the worker
 ```

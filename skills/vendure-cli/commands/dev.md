@@ -7,7 +7,7 @@ GraphQL **server** (`ts-node ./src/index.ts`), the **worker**
 ## Usage
 
 ```
-npx vendure dev [target]
+vendure dev [target]
 ```
 
 `target` (optional, default `all`): `all` | `server` | `worker` | `dashboard`.
@@ -36,7 +36,7 @@ npx vendure dev [target]
 ## Examples
 
 ```bash
-npx vendure dev                       # server + worker + dashboard
-npx vendure dev server                # just the GraphQL server
-npx vendure dev server --inspect-brk  # debug the server, break on start
+vendure dev                       # server + worker + dashboard
+vendure dev server                # just the GraphQL server
+vendure dev server --inspect-brk  # debug the server, break on start
 ```

@@ -13,7 +13,7 @@ mode.
 ## Usage
 
 ```
-npx vendure add <feature-flag> [value] [sub-options]
+vendure add <feature-flag> [value] [sub-options]
 ```
 
 | Feature flag                  | Creates                                  | Required sub-options (non-interactive)         |
@@ -53,18 +53,18 @@ npx vendure add <feature-flag> [value] [sub-options]
 
 ```bash
 # New plugin
-npx vendure add -p ReviewsPlugin
+vendure add -p ReviewsPlugin
 
 # Translatable entity with custom fields, in an existing plugin
-npx vendure add -e ProductReview --selected-plugin ReviewsPlugin --custom-fields --translatable
+vendure add -e ProductReview --selected-plugin ReviewsPlugin --custom-fields --translatable
 
 # Entity-backed service
-npx vendure add -s ReviewService --selected-plugin ReviewsPlugin --type entity --selected-entity ProductReview
+vendure add -s ReviewService --selected-plugin ReviewsPlugin --type entity --selected-entity ProductReview
 
 # API extension with a query and mutation
-npx vendure add -a ReviewsPlugin --selected-service ReviewService --query-name reviews --mutation-name createReview
+vendure add -a ReviewsPlugin --selected-service ReviewService --query-name reviews --mutation-name createReview
 
 # GraphQL codegen + dashboard extensions
-npx vendure add -c ReviewsPlugin
-npx vendure add -d ReviewsPlugin
+vendure add -c ReviewsPlugin
+vendure add -d ReviewsPlugin
 ```

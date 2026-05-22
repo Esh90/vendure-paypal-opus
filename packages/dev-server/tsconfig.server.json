@@ -1,24 +1,4 @@
 {
-    "extends": "./tsconfig.json",
-    "compilerOptions": {
-        "outDir": "./dist",
-        "rootDir": ".",
-        "noEmitOnError": true
-    },
-    "include": ["./index.ts", "./index-worker.ts", "./dev-config.ts", "./instrumentation.ts"],
-    "exclude": [
-        "node_modules",
-        "dist",
-        "custom-admin-ui",
-        "load-testing",
-        "scripts",
-        "vite.config.*",
-        "**/*.tsx",
-        "example-plugins/**/ui/**/*",
-        "example-plugins/**/dashboard/**/*",
-        "test-plugins/**/components/**/*",
-        "test-plugins/**/dashboard/**/*",
-        "test-plugins/**/react/**/*",
-        "test-plugins/**/ui/**/*"
-    ]
+    "extends": "./tsconfig.build.json",
+    "include": ["./index.ts", "./dev-config.ts", "./instrumentation.ts"]
 }

@@ -80,20 +80,35 @@ npx vendure dev dashboard --vite-config ./config/vite.dashboard.mts
 The `build` command builds a Vendure project.
 
 ```bash
-# Build the server and Dashboard
+# Build the server, worker and Dashboard
 npx vendure build all
 
-# Build the server and worker entrypoints with tsc
+# Build the server TypeScript project with tsc
 npx vendure build server
+
+# Build the worker TypeScript project with tsc
+npx vendure build worker
 
 # Build the Dashboard
 npx vendure build dashboard
 
+By default, server and worker TypeScript configs are discovered in this order:
+`tsconfig.server.json`/`tsconfig.worker.json`, then `tsconfig.build.json`, then `tsconfig.json`.
+
 # Use a custom TypeScript config
 npx vendure build server --tsconfig ./tsconfig.server.json
 
+# Use a separate worker TypeScript config
+npx vendure build all --tsconfig ./tsconfig.server.json --worker-tsconfig ./tsconfig.worker.json
+
 # Use the experimental native TypeScript compiler
 npx vendure build server --experimental-tsgo
+
+# Show full output from the underlying build tools
+npx vendure build all --verbose
+
+# Disable progress rendering for stable logs in scripts or agents
+npx vendure build all --no-progress
 ```
 
 ### Add Command

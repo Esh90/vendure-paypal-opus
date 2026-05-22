@@ -205,7 +205,13 @@ export const cliCommands: CliCommandDefinition[] = [
         options: [
             {
                 long: '--tsconfig <path>',
-                description: 'Path to the TypeScript config file',
+                description:
+                    'Path to the server TypeScript config file (also used by the worker unless --worker-tsconfig is set)',
+                required: false,
+            },
+            {
+                long: '--worker-tsconfig <path>',
+                description: 'Path to the worker TypeScript config file',
                 required: false,
             },
             {
@@ -215,7 +221,17 @@ export const cliCommands: CliCommandDefinition[] = [
             },
             {
                 long: '--experimental-tsgo',
-                description: 'Use the experimental native TypeScript compiler for the server build',
+                description: 'Use the experimental native TypeScript compiler for server and worker builds',
+                required: false,
+            },
+            {
+                long: '--no-progress',
+                description: 'Disable spinner/progress rendering for stable logs',
+                required: false,
+            },
+            {
+                long: '--verbose',
+                description: 'Show full build output from underlying tools',
                 required: false,
             },
         ],

@@ -582,6 +582,7 @@ function getServerPackageScripts(): Record<string, string> {
         dev: 'vendure dev all',
         build: 'vendure build all',
         'build:server': 'vendure build server',
+        'build:worker': 'vendure build worker',
         'build:dashboard': 'vendure build dashboard',
         'start:server': 'node ./dist/index.js',
         'start:worker': 'node ./dist/index-worker.js',

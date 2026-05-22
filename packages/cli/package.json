@@ -47,12 +47,12 @@
         "ts-morph": "^21.0.1",
         "ts-node": "^10.9.2",
         "tsconfig-paths": "^4.2.0",
+        "typescript": "5.8.2",
         "vite": "^7.3.1"
     },
     "devDependencies": {
         "@vendure/core": "3.6.3",
         "@vendure/testing": "3.6.3",
-        "cross-env": "^7.0.3",
-        "typescript": "5.8.2"
+        "cross-env": "^7.0.3"
     }
 }

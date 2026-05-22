@@ -75,6 +75,27 @@ npx vendure dev all --server-entry ./src/server.ts --worker-entry ./src/jobs.ts
 npx vendure dev dashboard --vite-config ./config/vite.dashboard.mts
 ```
 
+### Build Command
+
+The `build` command builds a Vendure project.
+
+```bash
+# Build the server and Dashboard
+npx vendure build all
+
+# Build the server and worker entrypoints with tsc
+npx vendure build server
+
+# Build the Dashboard
+npx vendure build dashboard
+
+# Use a custom TypeScript config
+npx vendure build server --tsconfig ./tsconfig.server.json
+
+# Use the experimental native TypeScript compiler
+npx vendure build server --experimental-tsgo
+```
+
 ### Add Command
 
 The `add` command supports both modes for adding features to your Vendure project.

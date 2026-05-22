@@ -193,6 +193,39 @@ export const cliCommands: CliCommandDefinition[] = [
         },
     },
     {
+        name: 'build',
+        description: 'Build a Vendure project',
+        arguments: [
+            {
+                name: 'target',
+                description: 'Target to build: all, server, worker or dashboard',
+                required: false,
+            },
+        ],
+        options: [
+            {
+                long: '--tsconfig <path>',
+                description: 'Path to the TypeScript config file',
+                required: false,
+            },
+            {
+                long: '--vite-config <path>',
+                description: 'Path to the Vite config file used by the Dashboard',
+                required: false,
+            },
+            {
+                long: '--experimental-tsgo',
+                description: 'Use the experimental native TypeScript compiler for the server build',
+                required: false,
+            },
+        ],
+        action: async (target, options) => {
+            const { buildCommand } = await import('./build/build');
+            const exitCode = await buildCommand(target, options);
+            process.exit(exitCode);
+        },
+    },
+    {
         name: 'migrate',
         description: 'Generate, run or revert a database migration',
         options: [

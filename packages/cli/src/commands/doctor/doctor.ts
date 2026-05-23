@@ -3,6 +3,7 @@ import { RuntimeVendureConfig } from '@vendure/core';
 
 import { runConfigCheck } from './checks/config-check';
 import { runDependencyCheck } from './checks/dependency-check';
+import { runProductionCheck } from './checks/production-check';
 import { runProjectCheck } from './checks/project-check';
 import { runSchemaCheck } from './checks/schema-check';
 import { formatConsoleReport } from './formatters/console-formatter';
@@ -53,7 +54,7 @@ export async function doctorCommand(options?: DoctorOptions) {
 
         // If config check fails, skip checks that depend on a loaded config
         if (configResult.check.status === 'fail') {
-            const configDependentChecks = ['schema', 'database'];
+            const configDependentChecks = ['schema', 'database', 'production'];
             for (const check of configDependentChecks.filter(c => checksToRun.includes(c))) {
                 results.push({
                     name: capitalize(check),
@@ -80,6 +81,19 @@ export async function doctorCommand(options?: DoctorOptions) {
     }
 
     // Check 5 (database) will use loadedConfig when implemented.
+
+    // Check 6: Production profile checks (only with --profile production)
+    if (options?.profile === 'production') {
+        if (loadedConfig) {
+            results.push(await runProductionCheck(loadedConfig));
+        } else {
+            results.push({
+                name: 'Production',
+                status: 'skip',
+                message: 'Skipped (config check must run first)',
+            });
+        }
+    }
 
     outputReport(buildReport(results, options), options);
 }

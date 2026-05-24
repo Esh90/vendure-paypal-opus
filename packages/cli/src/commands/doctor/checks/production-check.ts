@@ -93,19 +93,25 @@ export async function runProductionCheck(config: RuntimeVendureConfig): Promise<
         warn('Using InMemoryCacheStrategy (not shared across instances)');
     }
 
-    // 10. No asset storage configured
+    // 10. In-memory session cache strategy
+    const sessionCacheStrategy = config.authOptions?.sessionCacheStrategy;
+    if (sessionCacheStrategy?.constructor?.name === 'DefaultSessionCacheStrategy') {
+        warn('Using DefaultSessionCacheStrategy (in-memory, not shared across instances)');
+    }
+
+    // 11. No asset storage configured
     const assetStorage = config.assetOptions?.assetStorageStrategy;
     if (assetStorage?.constructor?.name === 'NoAssetStorageStrategy') {
         warn('No asset storage strategy configured');
     }
 
-    // 11. No asset preview configured
+    // 12. No asset preview configured
     const assetPreview = config.assetOptions?.assetPreviewStrategy;
     if (assetPreview?.constructor?.name === 'NoAssetPreviewStrategy') {
         warn('No asset preview strategy configured');
     }
 
-    // 12. synchronize: true
+    // 13. synchronize: true
     if (config.dbConnectionOptions?.synchronize) {
         fail('dbConnectionOptions.synchronize is enabled (use migrations instead)');
     }

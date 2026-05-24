@@ -205,6 +205,19 @@ describe('production-check', () => {
         expect(result.details?.some(d => d.includes('InMemoryCacheStrategy'))).toBe(true);
     });
 
+    it('detects DefaultSessionCacheStrategy', async () => {
+        const config = createTestConfig({
+            authOptions: {
+                sessionCacheStrategy: { constructor: { name: 'DefaultSessionCacheStrategy' } },
+            },
+        });
+
+        const result = await runProductionCheck(config);
+
+        expect(result.status).toBe('warn');
+        expect(result.details?.some(d => d.includes('DefaultSessionCacheStrategy'))).toBe(true);
+    });
+
     it('detects NoAssetStorageStrategy', async () => {
         const config = createTestConfig({
             assetOptions: {

@@ -52,17 +52,9 @@ for arg in "$@"; do
   esac
 done
 
-# Sanity: npm version
-if ! npm --version | awk -F. '{ exit !($1 > 11 || ($1 == 11 && $2 >= 15)) }'; then
-  echo "npm >= 11.15.0 required (for 'npm stage' subcommand parity). Found: $(npm --version)" >&2
-  echo "Run: npm install -g npm@latest" >&2
-  exit 1
-fi
-
-if ! npm whoami >/dev/null 2>&1; then
-  echo "Not logged into npm. Run 'npm login' first." >&2
-  exit 1
-fi
+# Preflight (shared helpers from _vendure-packages.sh)
+vendure_require_npm || exit 1
+vendure_require_login || exit 1
 
 echo "==> Planned action for each of ${#VENDURE_PACKAGES[@]} packages:"
 echo "    if existing trust entry found: npm trust revoke <pkg> --id <id>"
@@ -128,6 +120,7 @@ for pkg in "${VENDURE_PACKAGES[@]}"; do
     ' 2>/dev/null || true)
   fi
 
+  revoked=0
   if [[ -n "$existing_id" ]]; then
     echo "  - found existing trust id=$existing_id, revoking"
     if [[ "$DRY_RUN" -eq 0 ]]; then
@@ -136,21 +129,45 @@ for pkg in "${VENDURE_PACKAGES[@]}"; do
         failed+=("$pkg (revoke)")
         continue
       fi
+      revoked=1
     fi
   else
     echo "  - no existing trust entry"
   fi
 
-  # Step 2: create new trust entry with both flags.
+  # Step 2: create the new trust entry with both flags.
+  #
+  # npm permits only one trust entry per package, so we had to revoke before
+  # creating — which means a create failure here leaves the package with NO
+  # entry and CI publishing broken. Retry a few times to ride out transient
+  # errors, and if it still fails after a revoke, shout loudly with recovery
+  # instructions rather than burying it in the summary.
   if [[ "$DRY_RUN" -eq 0 ]]; then
-    if ! npm trust github "$pkg" \
-        --file "$WORKFLOW_FILE" \
-        --repo "$REPO" \
-        --allow-publish \
-        --allow-stage-publish \
-        --yes; then
-      echo "  ! npm trust github failed for $pkg" >&2
-      failed+=("$pkg (trust)")
+    create_ok=0
+    for attempt in 1 2 3; do
+      if npm trust github "$pkg" \
+          --file "$WORKFLOW_FILE" \
+          --repo "$REPO" \
+          --allow-publish \
+          --allow-stage-publish \
+          --yes; then
+        create_ok=1
+        break
+      fi
+      echo "  ! npm trust github attempt $attempt/3 failed for $pkg" >&2
+      sleep 2
+    done
+    if [[ "$create_ok" -ne 1 ]]; then
+      if [[ "$revoked" -eq 1 ]]; then
+        echo "  !! BROKEN STATE: $pkg now has NO trust entry. Its previous entry was" >&2
+        echo "  !! revoked but the replacement could not be created, so CI publishing" >&2
+        echo "  !! for this package is broken until fixed. Re-run this script to retry," >&2
+        echo "  !! or recreate manually: npm trust github $pkg --file $WORKFLOW_FILE \\" >&2
+        echo "  !!   --repo $REPO --allow-publish --allow-stage-publish" >&2
+        failed+=("$pkg (trust — LEFT WITH NO ENTRY; re-run to fix)")
+      else
+        failed+=("$pkg (trust)")
+      fi
       continue
     fi
   fi

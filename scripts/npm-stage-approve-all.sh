@@ -42,16 +42,9 @@ for arg in "$@"; do
   esac
 done
 
-if ! npm --version | awk -F. '{ exit !($1 > 11 || ($1 == 11 && $2 >= 15)) }'; then
-  echo "npm >= 11.15.0 required (for 'npm stage'). Found: $(npm --version)" >&2
-  echo "Run: npm install -g npm@latest" >&2
-  exit 1
-fi
-
-if ! npm whoami >/dev/null 2>&1; then
-  echo "Not logged into npm. Run 'npm login' first." >&2
-  exit 1
-fi
+# Preflight (shared helpers from _vendure-packages.sh)
+vendure_require_npm || exit 1
+vendure_require_login || exit 1
 
 # Resolve staged entries matching $TARGET_VERSION for every package.
 # Each PENDING entry is recorded as "<pkg> <id>".
@@ -68,7 +61,7 @@ for pkg in "${VENDURE_PACKAGES[@]}"; do
 
   # Extract the matching stage id (if any) and any non-matching versions
   # for visibility. JSON shape: [{id, version, ...}]
-  parsed=$(echo "$list_json" | node -e '
+  parsed=$(printf '%s' "$list_json" | node -e '
     const data = JSON.parse(require("fs").readFileSync(0, "utf8"));
     const target = process.argv[1];
     if (!Array.isArray(data) || data.length === 0) {
@@ -95,6 +88,11 @@ for pkg in "${VENDURE_PACKAGES[@]}"; do
         ;;
       "OTHER "*)
         other_versions+=("$pkg has staged versions: ${line#OTHER }")
+        ;;
+      "ERROR")
+        # node failed to parse `npm stage list` output — surface it rather
+        # than silently dropping the package from all tracking arrays.
+        missing+=("$pkg (could not parse stage list output)")
         ;;
     esac
   done <<< "$parsed"
@@ -158,6 +156,7 @@ for entry in "${pending[@]}"; do
     continue
   fi
   approved=$((approved + 1))
+  # Stay inside the 5-minute 2FA skip window without hammering the API.
   sleep 2
 done
 

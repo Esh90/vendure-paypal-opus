@@ -723,7 +723,7 @@
           "title": "Production Configuration",
           "slug": "production-configuration",
           "file": "docs/guides/deployment/production-configuration/index.mdx",
-          "lastModified": "2026-02-12T16:47:03+01:00"
+          "lastModified": "2026-05-26T10:53:47+02:00"
         },
         {
           "title": "Using Docker",
@@ -741,7 +741,7 @@
           "title": "Getting Data into Production",
           "slug": "getting-data-into-production",
           "file": "docs/guides/deployment/getting-data-into-production.mdx",
-          "lastModified": "2026-05-26T10:32:10+02:00"
+          "lastModified": "2026-05-26T10:53:46+02:00"
         },
         {
           "title": "Server Resource Requirements",

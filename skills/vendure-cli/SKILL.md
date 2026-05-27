@@ -16,15 +16,22 @@ and migration commands.
 
 ## Detecting a Vendure project
 
-A directory is a Vendure project if its `package.json` — or a parent's —
-depends on `@vendure/core`. The CLI walks up the directory tree to find it, so
-commands can be run from any subdirectory of the project.
+Run CLI commands from a Vendure server package root, or from a monorepo root
+that contains a Vendure package under `packages/`, `apps/`, `libs/`,
+`services/`, or `modules/`.
+
+`dev`, `build`, and `start` resolve the project directory from the current
+working directory if it contains `@vendure/core`, or by scanning those monorepo
+package directories. `add`, `migrate`, and `schema` analyze the TypeScript
+project from `process.cwd()` and require a `tsconfig*.json` there, so do not
+assume they work from arbitrary nested subdirectories.
 
 ## Running the CLI
 
 `@vendure/cli` is normally a project dependency, so run it through the
 project's package manager — do **not** assume `npx`. Detect the package
-manager from the lockfile in the project root and use the matching runner:
+manager from the lockfile in the project root or workspace root and use the
+matching runner:
 
 | Lockfile in project root | Package manager | Run the CLI with              |
 | ------------------------ | --------------- | ----------------------------- |
@@ -39,6 +46,10 @@ List all commands with `vendure --help`.
 
 The `commands/*.md` reference files write examples with a bare `vendure …` —
 prefix each one with the runner for the detected package manager.
+
+Note: CLI scaffolding that installs packages currently detects `yarn.lock`,
+`package-lock.json`, and `pnpm-lock.yaml` internally, then falls back to npm.
+It does not use Bun for those generated dependency installs.
 
 ## Commands
 

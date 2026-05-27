@@ -6,9 +6,9 @@ existing plugin.
 ## Interactive vs non-interactive
 
 `vendure add` with **no flags** launches an interactive wizard and blocks on
-terminal prompts. **Agents must pass flags** so the command takes the
-non-interactive path. Supplying any flag below switches to non-interactive
-mode.
+terminal prompts. **Agents must pass an explicit feature flag** so the command
+takes the non-interactive path. Passing only `--config` is not enough because
+there is no add operation to run.
 
 ## Usage
 
@@ -16,16 +16,16 @@ mode.
 vendure add <feature-flag> [value] [sub-options]
 ```
 
-| Feature flag                  | Creates                                  | Required sub-options (non-interactive)         |
+| Feature flag                  | Creates                                  | Required inputs (non-interactive)              |
 | ------------------------------ | ----------------------------------------- | ---------------------------------------------- |
-| `-p, --plugin <name>`          | A new plugin                              | —                                              |
-| `-e, --entity <name>`          | An entity in an existing plugin           | `--selected-plugin <name>`                     |
-| `-s, --service <name>`         | A service in an existing plugin           | `--selected-plugin <name>`                     |
-| `-j, --job-queue [plugin]`     | A job queue handler                       | `--name <name>`, `--selected-service <name>`   |
-| `-c, --codegen [plugin]`       | GraphQL codegen configuration             | —                                              |
-| `-a, --api-extension [plugin]` | An API extension scaffold                 | `--selected-service <name>`                    |
-| `-d, --dashboard [plugin]`     | Dashboard UI extensions                   | —                                              |
-| `-u, --ui-extensions [plugin]` | Admin UI extensions (**deprecated** — prefer `--dashboard`) | —                     |
+| `-p, --plugin <name>`          | A new plugin                              | Plugin class name                              |
+| `-e, --entity <name>`          | An entity in an existing plugin           | Entity class name, `--selected-plugin <name>`  |
+| `-s, --service <name>`         | A service in an existing plugin           | Service class name, `--selected-plugin <name>` |
+| `-j, --job-queue [plugin]`     | A job queue handler                       | Plugin value, `--name <name>`, `--selected-service <name>` |
+| `-c, --codegen [plugin]`       | GraphQL codegen configuration             | Plugin value                                  |
+| `-a, --api-extension [plugin]` | An API extension scaffold                 | Plugin value, `--selected-service <name>`, and `--query-name` or `--mutation-name` |
+| `-d, --dashboard [plugin]`     | Dashboard UI extensions                   | Plugin value                                  |
+| `-u, --ui-extensions [plugin]` | Admin UI extensions (**deprecated** — prefer `--dashboard`) | Plugin value           |
 
 ### Sub-options
 
@@ -46,6 +46,14 @@ vendure add <feature-flag> [value] [sub-options]
 
 - `--entity` and `--service` require `--selected-plugin` in non-interactive
   mode, or the command errors out.
+- For entity-backed services, pass `--selected-entity <name>`. Using
+  `--type entity` without `--selected-entity` can still prompt for an entity.
+- `--job-queue`, `--codegen`, `--api-extension`, `--dashboard`, and
+  `--ui-extensions` use optional-value plugin flags, but agents should pass the
+  plugin name. In non-interactive mode, omitting it errors before selection can
+  happen.
+- `--api-extension` also requires an existing service plus at least one
+  generated operation name: `--query-name`, `--mutation-name`, or both.
 - If the target plugin/service does not exist yet, create it first
   (`vendure add -p <name>`).
 
@@ -60,6 +68,9 @@ vendure add -e ProductReview --selected-plugin ReviewsPlugin --custom-fields --t
 
 # Entity-backed service
 vendure add -s ReviewService --selected-plugin ReviewsPlugin --type entity --selected-entity ProductReview
+
+# Job queue on an existing service
+vendure add -j ReviewsPlugin --name review-indexing --selected-service ReviewService
 
 # API extension with a query and mutation
 vendure add -a ReviewsPlugin --selected-service ReviewService --query-name reviews --mutation-name createReview

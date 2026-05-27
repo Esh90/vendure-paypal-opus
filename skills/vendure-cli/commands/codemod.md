@@ -11,12 +11,13 @@ name** so the command runs non-interactively.
 ## Usage
 
 ```
-vendure codemod <transform> [path]
+vendure codemod <transform> [directory]
 ```
 
 - `transform` — name of the codemod to run (see below).
-- `path` — optional file or directory to transform. Defaults to the current
-  working directory. Only supported in non-interactive mode.
+- `directory` — optional directory to transform. Defaults to the current
+  working directory. The CLI validates that this path exists and is a
+  directory. Only supported in non-interactive mode.
 
 ## Available transforms
 

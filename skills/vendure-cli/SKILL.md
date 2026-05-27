@@ -67,6 +67,10 @@ prefix each one with the runner for the detected package manager.
 3. **`dev`, `start`, and `build --watch` are long-running processes.** Do not
    run them just to "check" something. Run them only when the user asks, and
    prefer running them in the background.
-4. **Read the relevant `commands/*.md` file before building a command.** Valid
+4. **Production-only installs may not include `@vendure/cli`.** Generated apps
+   keep the CLI as a dev dependency, so after pruning dev dependencies, start
+   compiled server/worker entrypoints with `node ./dist/...` or make the CLI a
+   production dependency explicitly.
+5. **Read the relevant `commands/*.md` file before building a command.** Valid
    targets and flags differ per command (e.g. `start` has no `dashboard`
    target; `--inspect` only applies to `dev`).

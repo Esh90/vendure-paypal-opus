@@ -45,6 +45,10 @@ interface WaitForBuildProcessesOptions {
     progressRenderer?: BuildProgressRenderer;
 }
 
+interface BuildProcessGroupsForTargetOptions {
+    runDashboardFirst?: boolean;
+}
+
 interface BuildProgressRenderer {
     start(buildProcesses: RunningBuildProcess[]): void;
     complete(buildProcess: RunningBuildProcess): void;
@@ -88,28 +92,44 @@ export async function buildCommand(targetArg?: string, options: BuildOptions = {
         }
 
         const buildProcessDefinitions = getBuildProcessDefinitions(options, tsconfigs);
-        const processes = getBuildProcessesForTarget(target, buildProcessDefinitions);
-        const prefixOutput = processes.length > 1;
+        const safeBuildProcessDefinitions = disableDashboardEmptyOutDirForParallelWatchBuilds(
+            target,
+            options,
+            buildProcessDefinitions,
+        );
         const useProgress = shouldUseProgress(options);
-        const progressRenderer =
-            useProgress && shouldUseMultiBuildSpinner(processes) ? createBuildProgressRenderer() : undefined;
+        const processGroups = getBuildProcessGroupsForTarget(target, safeBuildProcessDefinitions, {
+            runDashboardFirst: !options.watch,
+        });
 
-        try {
-            const children = processes.map(processDefinition =>
-                startBuildProcess(projectDir, processDefinition, {
-                    prefixOutput,
-                    disableSpinner: !useProgress,
-                    suppressStatus: progressRenderer != null,
-                }),
-            );
-            progressRenderer?.start(children);
-            return await waitForBuildProcesses(children, {
-                progressRenderer,
-            });
-        } catch (e: unknown) {
-            progressRenderer?.stop();
-            throw e;
+        for (const processes of processGroups) {
+            const prefixOutput = processes.length > 1;
+            const progressRenderer =
+                useProgress && shouldUseMultiBuildSpinner(processes)
+                    ? createBuildProgressRenderer()
+                    : undefined;
+
+            try {
+                const children = processes.map(processDefinition =>
+                    startBuildProcess(projectDir, processDefinition, {
+                        prefixOutput,
+                        disableSpinner: !useProgress,
+                        suppressStatus: progressRenderer != null,
+                    }),
+                );
+                progressRenderer?.start(children);
+                const exitCode = await waitForBuildProcesses(children, {
+                    progressRenderer,
+                });
+                if (exitCode !== 0) {
+                    return exitCode;
+                }
+            } catch (e: unknown) {
+                progressRenderer?.stop();
+                throw e;
+            }
         }
+        return 0;
     } catch (e: unknown) {
         log.error(e instanceof Error ? e.message : String(e));
         return 1;
@@ -195,6 +215,47 @@ export function getBuildProcessesForTarget(
         ];
     }
     return [buildProcessDefinitions[target]];
+}
+
+export function getBuildProcessGroupsForTarget(
+    target: BuildTarget,
+    buildProcessDefinitions: Record<Exclude<BuildTarget, 'all'>, BuildProcessDefinition>,
+    options: BuildProcessGroupsForTargetOptions = {},
+): BuildProcessDefinition[][] {
+    const processes = getBuildProcessesForTarget(target, buildProcessDefinitions);
+    if (target !== 'all' || options.runDashboardFirst === false) {
+        return [processes];
+    }
+
+    const dashboardProcess = processes.find(processDefinition => processDefinition.target === 'dashboard');
+    if (!dashboardProcess) {
+        return [processes];
+    }
+
+    const serverProcesses = processes.filter(processDefinition => processDefinition.target !== 'dashboard');
+    if (serverProcesses.length === 0) {
+        return [[dashboardProcess]];
+    }
+    // Vite empties its outDir at build start, so run it before TypeScript can emit server files.
+    return [[dashboardProcess], serverProcesses];
+}
+
+function disableDashboardEmptyOutDirForParallelWatchBuilds(
+    target: BuildTarget,
+    options: BuildOptions,
+    buildProcessDefinitions: Record<Exclude<BuildTarget, 'all'>, BuildProcessDefinition>,
+): Record<Exclude<BuildTarget, 'all'>, BuildProcessDefinition> {
+    if (target !== 'all' || !options.watch) {
+        return buildProcessDefinitions;
+    }
+    // Watch builds must run in parallel, so prevent Vite from emptying a shared outDir.
+    return {
+        ...buildProcessDefinitions,
+        dashboard: {
+            ...buildProcessDefinitions.dashboard,
+            args: [...buildProcessDefinitions.dashboard.args, '--no-emptyOutDir'],
+        },
+    };
 }
 
 export function resolveBuildTsConfigs(projectDir: string, options: BuildOptions = {}): BuildTsConfigPaths {

@@ -1,4 +1,4 @@
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -7,6 +7,7 @@ import {
     buildCommand,
     getBuildCleanPathsForTarget,
     getBuildProcessDefinitions,
+    getBuildProcessGroupsForTarget,
     getBuildProcessesForTarget,
     getBuildTsConfigsForTarget,
     getTsConfigOutDir,
@@ -69,24 +70,86 @@ describe('build command', () => {
                     },
                 });
                 writeFileSync(path.join(dir, 'index.ts'), 'export const value = 1;\n');
-                writeJsonFile(path.join(dir, 'tsconfig.json'), {
+                writeJsonFile(path.join(dir, 'tsconfig.server.json'), {
                     compilerOptions: {},
                     include: ['index.ts'],
                 });
-                writePackageBin(dir, 'typescript', 'tsc', 'setTimeout(() => process.exit(2), 20);\n');
+                writeJsonFile(path.join(dir, 'tsconfig.worker.json'), {
+                    compilerOptions: {},
+                    include: ['index.ts'],
+                });
+                writePackageBin(
+                    dir,
+                    'typescript',
+                    'tsc',
+                    [
+                        "if (process.argv.includes('./tsconfig.server.json')) {",
+                        '    setTimeout(() => process.exit(2), 20);',
+                        '} else {',
+                        "    process.on('SIGTERM', () => process.exit(0));",
+                        '    setTimeout(() => process.exit(0), 30000);',
+                        '}',
+                    ].join('\n'),
+                );
+                writePackageBin(dir, 'vite', 'vite', 'process.exit(0);\n');
+
+                process.chdir(dir);
+
+                await expect(buildCommand('all', { noProgress: true })).resolves.toBe(2);
+            } finally {
+                rmSync(dir, { recursive: true, force: true });
+            }
+        });
+
+        it('builds the dashboard before TypeScript outputs can be emitted to the same directory', async () => {
+            const dir = createTempDir();
+            try {
+                writeJsonFile(path.join(dir, 'package.json'), {
+                    dependencies: {
+                        '@vendure/core': '0.0.0',
+                    },
+                });
+                writeFileSync(path.join(dir, 'index.ts'), 'export const value = 1;\n');
+                writeJsonFile(path.join(dir, 'tsconfig.json'), {
+                    compilerOptions: {
+                        outDir: './dist',
+                    },
+                    include: ['index.ts'],
+                });
+                writePackageBin(
+                    dir,
+                    'typescript',
+                    'tsc',
+                    [
+                        "const fs = require('node:fs');",
+                        "const path = require('node:path');",
+                        "const outDir = path.join(process.cwd(), 'dist');",
+                        'fs.mkdirSync(outDir, { recursive: true });',
+                        "fs.writeFileSync(path.join(outDir, 'index.js'), 'server');",
+                        'process.exit(0);',
+                    ].join('\n'),
+                );
                 writePackageBin(
                     dir,
                     'vite',
                     'vite',
                     [
-                        "process.on('SIGTERM', () => process.exit(0));",
-                        'setTimeout(() => process.exit(0), 30000);',
+                        "const fs = require('node:fs');",
+                        "const path = require('node:path');",
+                        'setTimeout(() => {',
+                        "    const outDir = path.join(process.cwd(), 'dist');",
+                        '    fs.rmSync(outDir, { recursive: true, force: true });',
+                        '    fs.mkdirSync(outDir, { recursive: true });',
+                        "    fs.writeFileSync(path.join(outDir, 'dashboard.html'), 'dashboard');",
+                        '    process.exit(0);',
+                        '}, 20);',
                     ].join('\n'),
                 );
 
                 process.chdir(dir);
 
-                await expect(buildCommand('all', { noProgress: true })).resolves.toBe(2);
+                await expect(buildCommand('all', { noProgress: true })).resolves.toBe(0);
+                expect(existsSync(path.join(dir, 'dist', 'index.js'))).toBe(true);
             } finally {
                 rmSync(dir, { recursive: true, force: true });
             }
@@ -197,6 +260,18 @@ describe('build command', () => {
             expect(processes.map(process => process.target)).toEqual(['server', 'worker', 'dashboard']);
             expect(processes[0].args).toEqual(['-p', './tsconfig.server.json', '--noEmitOnError']);
             expect(processes[1].args).toEqual(['-p', './tsconfig.worker.json', '--noEmitOnError']);
+        });
+    });
+
+    describe('getBuildProcessGroupsForTarget()', () => {
+        it('runs dashboard builds before server output can be emitted', () => {
+            const definitions = getBuildProcessDefinitions();
+            const groups = getBuildProcessGroupsForTarget('all', definitions);
+
+            expect(groups.map(group => group.map(process => process.target))).toEqual([
+                ['dashboard'],
+                ['server'],
+            ]);
         });
     });
 

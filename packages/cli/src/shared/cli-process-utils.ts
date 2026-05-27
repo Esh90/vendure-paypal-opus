@@ -71,7 +71,9 @@ export function waitForChildProcesses(
     return new Promise(resolve => {
         let resolved = false;
         let shutdownRequested = false;
+        let shutdownExitCode: number | undefined;
         let remainingChildren = children.length;
+        const settledChildren = new Set<ChildProcess>();
 
         const cleanup = () => {
             process.off('SIGINT', handleSigint);
@@ -84,16 +86,30 @@ export function waitForChildProcesses(
                 resolve(code);
             }
         };
-        const stopChildren = (signal: NodeJS.Signals) => {
+        const stopChildren = (signal: NodeJS.Signals, exitCode?: number) => {
             shutdownRequested = true;
+            shutdownExitCode ??= exitCode;
             for (const child of children) {
-                if (!child.killed && child.exitCode === null) {
+                if (!settledChildren.has(child) && !child.killed && child.exitCode === null) {
                     child.kill(signal);
                 }
             }
         };
-        const handleSigint = () => stopChildren('SIGINT');
-        const handleSigterm = () => stopChildren('SIGTERM');
+        const completeChild = (child: ChildProcess, exitCode: number) => {
+            if (settledChildren.has(child)) {
+                return;
+            }
+            settledChildren.add(child);
+            remainingChildren--;
+            if (!shutdownRequested) {
+                stopChildren('SIGTERM', exitCode);
+            }
+            if (remainingChildren === 0) {
+                resolveOnce(shutdownExitCode ?? exitCode);
+            }
+        };
+        const handleSigint = () => stopChildren('SIGINT', signalToExitCode('SIGINT'));
+        const handleSigterm = () => stopChildren('SIGTERM', signalToExitCode('SIGTERM'));
 
         process.once('SIGINT', handleSigint);
         process.once('SIGTERM', handleSigterm);
@@ -101,19 +117,10 @@ export function waitForChildProcesses(
         for (const child of children) {
             child.once('error', error => {
                 options.onError?.(error);
-                stopChildren('SIGTERM');
-                resolveOnce(1);
+                completeChild(child, 1);
             });
             child.once('close', (code, signal) => {
-                remainingChildren--;
-                if (!shutdownRequested) {
-                    stopChildren('SIGTERM');
-                    resolveOnce(code ?? signalToExitCode(signal) ?? 1);
-                    return;
-                }
-                if (remainingChildren === 0) {
-                    resolveOnce(code ?? signalToExitCode(signal) ?? 0);
-                }
+                completeChild(child, code ?? signalToExitCode(signal) ?? (shutdownRequested ? 0 : 1));
             });
         }
     });

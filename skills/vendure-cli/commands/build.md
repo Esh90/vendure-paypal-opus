@@ -28,7 +28,14 @@ vendure build [target]
 
 - For CI or scripted builds, prefer `--no-progress` so logs stay parseable, and
   `--verbose` when you need to diagnose a failure.
+- `vendure build all` protects overlapping outputs by running the Vite dashboard
+  build before TypeScript emits server/worker files. If you manually orchestrate
+  Vite and `tsc`, do not run them in parallel when Vite `build.outDir` overlaps
+  a TypeScript `outDir`; Vite empties its output directory at build start.
 - `--watch` is long-running — do not use it for a one-off build.
+- Watch builds must keep processes running in parallel. The CLI disables Vite's
+  output-directory emptying for `build all --watch`; custom watch scripts should
+  use disjoint output directories or pass Vite `--no-emptyOutDir`.
 
 ## Examples
 

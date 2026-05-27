@@ -24,6 +24,14 @@ and served by the server.
 
 - Run `vendure build` first. `start` does not compile anything; it runs the
   already-compiled output.
+- For production-only installs where dev dependencies are pruned, do not rely on
+  `vendure start` unless `@vendure/cli` is installed as a production dependency.
+  Use the compiled entrypoints directly instead:
+  `node ./dist/index.js` for the server and `node ./dist/index-worker.js` for
+  the worker.
+- `vendure start all` starts server and worker together. If either child exits,
+  the CLI terminates the sibling and waits for it to close so graceful shutdown
+  hooks can complete.
 - This is a **long-running process** — run it only when the user asks, and
   prefer the background.
 
@@ -32,4 +40,5 @@ and served by the server.
 ```bash
 vendure build && vendure start   # build then run
 vendure start worker                 # run just the worker
+node ./dist/index.js                 # production server without the CLI
 ```

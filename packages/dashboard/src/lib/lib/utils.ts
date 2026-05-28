@@ -91,9 +91,13 @@ export function removeReadonlyAndLocalizedCustomFields<T extends Record<string, 
             return [config.name];
         }),
     );
-    const readonlyFieldNames = customFieldConfigs
-        .filter(config => config.readonly === true)
-        .map(config => config.name);
+    const readonlyFieldNames = customFieldConfigs.flatMap(config => {
+        if (config.readonly !== true) return [];
+        if (config.type === 'relation') {
+            return [config.name, `${config.name}Id`, `${config.name}Ids`];
+        }
+        return [config.name];
+    });
     const localeFieldNames = customFieldConfigs
         .filter(config => config.type === 'localeString' || config.type === 'localeText')
         .map(config => config.name);

@@ -38,6 +38,7 @@ export interface DevOptions {
 }
 
 const validTargets: DevTarget[] = ['all', 'server', 'worker', 'dashboard'];
+const DEFAULT_INSPECT_PORT = 9229;
 const reloadDebounceMs = 100;
 const restartShutdownGraceMs = 5000;
 const reloadFileExtensions = new Set(['.cts', '.mts', '.ts']);
@@ -216,7 +217,7 @@ function startSupervisedDevProcess(
     const watcher = chokidar.watch(projectDir, {
         ignoreInitial: true,
         ignored: (filePath: string) =>
-            shouldIgnoreReloadWatchPath(filePath, projectDir, dashboardExtensionDirectories),
+            isAlwaysIgnoredReloadPath(filePath, projectDir, dashboardExtensionDirectories),
     });
 
     const runningProcess = new ManagedDevProcess(signal => {
@@ -281,7 +282,7 @@ interface WaitForDevProcessesOptions {
     onError?: (error: Error) => void;
 }
 
-function waitForDevProcesses(
+export function waitForDevProcesses(
     children: ManagedDevProcess[],
     options: WaitForDevProcessesOptions = {},
 ): Promise<number> {
@@ -292,7 +293,10 @@ function waitForDevProcesses(
     return new Promise(resolve => {
         let resolved = false;
         let shutdownRequested = false;
+        let shutdownExitCode: number | undefined;
         let remainingChildren = children.length;
+        let firstNonZeroExitCode = 0;
+        const settledChildren = new Set<ManagedDevProcess>();
 
         const cleanup = () => {
             process.off('SIGINT', handleSigint);
@@ -305,14 +309,33 @@ function waitForDevProcesses(
                 resolve(code);
             }
         };
-        const stopChildren = (signal: NodeJS.Signals) => {
+        const stopChildren = (signal: NodeJS.Signals, exitCode?: number) => {
             shutdownRequested = true;
+            shutdownExitCode ??= exitCode;
             for (const child of children) {
-                child.stop(signal);
+                if (!settledChildren.has(child)) {
+                    child.stop(signal);
+                }
             }
         };
-        const handleSigint = () => stopChildren('SIGINT');
-        const handleSigterm = () => stopChildren('SIGTERM');
+        const completeChild = (child: ManagedDevProcess, exitCode: number) => {
+            if (settledChildren.has(child)) {
+                return;
+            }
+            settledChildren.add(child);
+            remainingChildren--;
+            if (!shutdownRequested) {
+                if (exitCode !== 0) {
+                    firstNonZeroExitCode = exitCode;
+                }
+                stopChildren('SIGTERM', exitCode);
+            }
+            if (remainingChildren === 0) {
+                resolveOnce(firstNonZeroExitCode || (shutdownExitCode ?? exitCode));
+            }
+        };
+        const handleSigint = () => stopChildren('SIGINT', signalToExitCode('SIGINT'));
+        const handleSigterm = () => stopChildren('SIGTERM', signalToExitCode('SIGTERM'));
 
         process.once('SIGINT', handleSigint);
         process.once('SIGTERM', handleSigterm);
@@ -320,25 +343,16 @@ function waitForDevProcesses(
         for (const child of children) {
             child.once('error', error => {
                 options.onError?.(error);
-                stopChildren('SIGTERM');
-                resolveOnce(1);
+                completeChild(child, 1);
             });
             child.once('close', (code, signal) => {
-                remainingChildren--;
-                if (!shutdownRequested) {
-                    stopChildren('SIGTERM');
-                    resolveOnce(code ?? signalToExitCode(signal) ?? 1);
-                    return;
-                }
-                if (remainingChildren === 0) {
-                    resolveOnce(code ?? signalToExitCode(signal) ?? 0);
-                }
+                completeChild(child, code ?? signalToExitCode(signal) ?? (shutdownRequested ? 0 : 1));
             });
         }
     });
 }
 
-class ManagedDevProcess extends EventEmitter {
+export class ManagedDevProcess extends EventEmitter {
     private closed = false;
 
     constructor(private readonly stopFn: (signal: NodeJS.Signals) => void) {
@@ -414,14 +428,6 @@ export function shouldRestartOnFileChange(
         return true;
     }
     return reloadFileExtensions.has(path.extname(fileName));
-}
-
-function shouldIgnoreReloadWatchPath(
-    filePath: string,
-    projectDir: string,
-    dashboardExtensionDirectories: string[],
-): boolean {
-    return isAlwaysIgnoredReloadPath(filePath, projectDir, dashboardExtensionDirectories);
 }
 
 function isAlwaysIgnoredReloadPath(
@@ -602,12 +608,9 @@ function getInspectArgs(
     return [`${inspectFlag}=${inspectValue}`];
 }
 
-function resolveInspectAddress(inspectValue: boolean | string, portOffset: number): string {
+function resolveInspectAddress(inspectValue: true | string, portOffset: number): string {
     if (inspectValue === true) {
-        return String(9229 + portOffset);
-    }
-    if (inspectValue === false) {
-        return String(9229 + portOffset);
+        return String(DEFAULT_INSPECT_PORT + portOffset);
     }
     const match = /^(.*:)?(\d+)$/.exec(inspectValue);
     if (!match) {

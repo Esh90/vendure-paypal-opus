@@ -11,6 +11,11 @@ import {
 } from './migration-operations';
 
 const cancelledMessage = 'Migrate cancelled.';
+const migrateExamples = ['vendure migrate -g my-migration', 'vendure migrate -r', 'vendure migrate --revert'];
+const migrateInteractiveTimeoutOptions = {
+    examples: migrateExamples,
+    helpCommands: ['vendure migrate --help'],
+};
 
 export interface MigrateOptions {
     generate?: string;
@@ -67,11 +72,8 @@ async function handleNonInteractiveMode(options: MigrateOptions) {
         } else if (options.revert) {
             result = await revertMigrationOperation(options.config);
         }
-    } catch (e: any) {
-        log.error(e.message as string);
-        if (e.stack) {
-            log.error(e.stack);
-        }
+    } catch (e: unknown) {
+        logError(e);
         process.exit(1);
         return;
     } finally {
@@ -90,13 +92,7 @@ async function handleNonInteractiveMode(options: MigrateOptions) {
 }
 
 async function handleInteractiveMode(configFile?: string) {
-    if (
-        abortIfNonInteractive('vendure migrate', [
-            'vendure migrate -g my-migration',
-            'vendure migrate -r',
-            'vendure migrate --revert',
-        ])
-    ) {
+    if (abortIfNonInteractive('vendure migrate', migrateExamples)) {
         return;
     }
 
@@ -113,7 +109,7 @@ async function handleInteractiveMode(configFile?: string) {
                 { value: 'revert', label: 'Revert the last migration' },
             ],
         });
-    });
+    }, migrateInteractiveTimeoutOptions);
 
     if (isCancel(action)) {
         cancel(cancelledMessage);
@@ -134,11 +130,8 @@ async function handleInteractiveMode(configFile?: string) {
             await revertMigrationCommand.run({ configFile });
         }
         outro('✅ Done!');
-    } catch (e: any) {
-        log.error(e.message as string);
-        if (e.stack) {
-            log.error(e.stack);
-        }
+    } catch (e: unknown) {
+        logError(e);
     } finally {
         delete process.env.VENDURE_RUNNING_IN_CLI;
     }
@@ -150,4 +143,11 @@ function getRequestedOperations(options?: MigrateOptions): MigrateOperation[] {
         options?.run ? '--run' : undefined,
         options?.revert ? '--revert' : undefined,
     ].filter((operation): operation is MigrateOperation => operation != null);
+}
+
+function logError(error: unknown) {
+    log.error(error instanceof Error ? error.message : String(error));
+    if (error instanceof Error && error.stack) {
+        log.error(error.stack);
+    }
 }

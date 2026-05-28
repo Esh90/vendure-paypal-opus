@@ -10,6 +10,12 @@ interface NonInteractiveEnvironmentOptions {
     env?: NodeJS.ProcessEnv;
 }
 
+interface InteractiveTimeoutOptions {
+    timeoutMs?: number;
+    examples?: readonly string[];
+    helpCommands?: readonly string[];
+}
+
 /**
  * Since the AST manipulation is blocking, prompts will not get a
  * chance to be displayed unless we give a small async pause.
@@ -61,28 +67,30 @@ export function abortIfNonInteractive(commandName: string, examples: string[]): 
 
 /**
  * Wraps an interactive prompt with a timeout to prevent hanging in automated environments.
- * After 60 seconds, it shows a helpful message for AI agents and exits.
+ * After the timeout, it shows a helpful message for AI agents and exits.
  */
 export async function withInteractiveTimeout<T>(
     promptFn: () => Promise<T>,
-    timeoutMs: number = 60000,
+    options: number | InteractiveTimeoutOptions = 60000,
 ): Promise<T> {
+    const timeoutOptions: InteractiveTimeoutOptions =
+        typeof options === 'number' ? { timeoutMs: options } : options;
+    const timeoutMs = timeoutOptions.timeoutMs ?? 60000;
+    const timeoutSeconds = Math.round(timeoutMs / 1000);
+
     return new Promise((resolve, reject) => {
         const timeout = setTimeout(() => {
-            log.warning('\n⚠Interactive mode timeout after 60 seconds\n');
+            log.warning(`\n⚠Interactive mode timeout after ${timeoutSeconds} seconds\n`);
             log.info('This appears to be an automated environment (AI agent/editor).');
             log.info('Interactive prompts are not suitable for automated tools.\n');
             log.info('Please use the non-interactive mode with specific command flags.\n');
-            log.info('Examples:');
-            log.info('   vendure add -p MyPlugin');
-            log.info('   vendure add -e MyEntity');
-            log.info('   vendure add -s MyService');
-            log.info('   vendure migrate -g my-migration');
-            log.info('   vendure migrate -r\n');
+            if (timeoutOptions.examples?.length) {
+                log.info('Examples:');
+                log.info(`${timeoutOptions.examples.map(example => `   ${example}`).join('\n')}\n`);
+            }
             log.info('--- For complete usage information, run:');
-            log.info('   vendure --help');
-            log.info('   vendure add --help');
-            log.info('   vendure migrate --help\n');
+            const helpCommands = timeoutOptions.helpCommands ?? ['vendure --help'];
+            log.info(`${helpCommands.map(command => `   ${command}`).join('\n')}\n`);
 
             process.exit(1);
         }, timeoutMs);

@@ -4,6 +4,11 @@ import pc from 'picocolors';
 import { abortIfNonInteractive, withInteractiveTimeout } from '../../utilities/utils';
 
 const cancelledMessage = 'Schema generation cancelled.';
+const schemaExamples = ['vendure schema --api admin', 'vendure schema --api shop --format json'];
+const schemaInteractiveTimeoutOptions = {
+    examples: schemaExamples,
+    helpCommands: ['vendure schema --help'],
+};
 
 export interface SchemaOptions {
     api: 'admin' | 'shop';
@@ -35,23 +40,16 @@ async function handleNonInteractiveMode(options: SchemaOptions) {
         process.env.VENDURE_RUNNING_IN_CLI = 'true';
         const { generateSchema } = await import('./generate-schema/generate-schema');
         await generateSchema(options);
-        process.env.VENDURE_RUNNING_IN_CLI = undefined;
-    } catch (e: any) {
-        log.error(e.message as string);
-        if (e.stack) {
-            log.error(e.stack);
-        }
+    } catch (e: unknown) {
+        logError(e);
         process.exit(1);
+    } finally {
+        delete process.env.VENDURE_RUNNING_IN_CLI;
     }
 }
 
 async function handleInteractiveMode(configFile?: string) {
-    if (
-        abortIfNonInteractive('vendure schema', [
-            'vendure schema --api admin',
-            'vendure schema --api shop --format json',
-        ])
-    ) {
+    if (abortIfNonInteractive('vendure schema', schemaExamples)) {
         return;
     }
 
@@ -67,7 +65,7 @@ async function handleInteractiveMode(configFile?: string) {
                 { value: 'shop', label: 'Shop API' },
             ],
         });
-    });
+    }, schemaInteractiveTimeoutOptions);
 
     if (isCancel(apiType)) {
         cancel(cancelledMessage);
@@ -82,7 +80,7 @@ async function handleInteractiveMode(configFile?: string) {
                 { value: 'json', label: 'JSON introspection query result' },
             ],
         });
-    });
+    }, schemaInteractiveTimeoutOptions);
 
     if (isCancel(format)) {
         cancel(cancelledMessage);
@@ -93,7 +91,7 @@ async function handleInteractiveMode(configFile?: string) {
             message: 'Output directory:',
             initialValue: process.cwd(),
         });
-    });
+    }, schemaInteractiveTimeoutOptions);
     if (isCancel(outputDir)) {
         cancel(cancelledMessage);
         process.exit(0);
@@ -105,7 +103,7 @@ async function handleInteractiveMode(configFile?: string) {
             message: 'File name:',
             initialValue: format === 'sdl' ? `${defaultBase}.graphql` : `${defaultBase}.json`,
         });
-    });
+    }, schemaInteractiveTimeoutOptions);
 
     if (isCancel(fileName)) {
         cancel(cancelledMessage);
@@ -122,11 +120,16 @@ async function handleInteractiveMode(configFile?: string) {
             config: configFile,
         });
         outro('✅ Done!');
-        process.env.VENDURE_RUNNING_IN_CLI = undefined;
-    } catch (e: any) {
-        log.error(e.message as string);
-        if (e.stack) {
-            log.error(e.stack);
-        }
+    } catch (e: unknown) {
+        logError(e);
+    } finally {
+        delete process.env.VENDURE_RUNNING_IN_CLI;
+    }
+}
+
+function logError(error: unknown) {
+    log.error(error instanceof Error ? error.message : String(error));
+    if (error instanceof Error && error.stack) {
+        log.error(error.stack);
     }
 }

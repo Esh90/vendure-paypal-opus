@@ -139,4 +139,20 @@ describe('migrateCommand()', () => {
         expect(log.success).toHaveBeenCalledWith('reverted');
         expect(process.env.VENDURE_RUNNING_IN_CLI).toBeUndefined();
     });
+
+    it('cleans up the CLI env var when a non-interactive operation throws', async () => {
+        vi.mocked(runMigrationsOperation).mockRejectedValueOnce(new Error('migration failed'));
+        const exitSpy = vi.spyOn(process, 'exit').mockImplementation(((code?: number) => {
+            throw new Error(`process.exit ${String(code)}`);
+        }) as never);
+
+        try {
+            await expect(migrateCommand({ run: true })).rejects.toThrow('process.exit 1');
+        } finally {
+            exitSpy.mockRestore();
+        }
+
+        expect(log.error).toHaveBeenCalledWith('migration failed');
+        expect(process.env.VENDURE_RUNNING_IN_CLI).toBeUndefined();
+    });
 });

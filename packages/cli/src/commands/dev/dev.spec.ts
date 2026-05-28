@@ -1,14 +1,16 @@
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import {
     discoverDashboardExtensionDirectories,
     getDevProcessDefinitions,
+    ManagedDevProcess,
     normalizeDevTarget,
     resolveVendureProjectDirectory,
     shouldRestartOnFileChange,
+    waitForDevProcesses,
 } from './dev';
 
 function createTempDir() {
@@ -152,6 +154,27 @@ describe('dev command', () => {
                 rmSync(dir, { recursive: true, force: true });
             }
         });
+
+        it('finds a Vendure package in a monorepo root when @vendure/core is a devDependency', () => {
+            const dir = createTempDir();
+            const serverDir = path.join(dir, 'apps', 'server');
+            try {
+                mkdirSync(serverDir, { recursive: true });
+                writePackageJson(dir, {
+                    private: true,
+                    workspaces: ['apps/*'],
+                });
+                writePackageJson(serverDir, {
+                    devDependencies: {
+                        '@vendure/core': '3.6.0',
+                    },
+                });
+
+                expect(resolveVendureProjectDirectory(dir)).toBe(serverDir);
+            } finally {
+                rmSync(dir, { recursive: true, force: true });
+            }
+        });
     });
 
     describe('reload file filtering', () => {
@@ -256,6 +279,40 @@ describe('dev command', () => {
             } finally {
                 rmSync(dir, { recursive: true, force: true });
             }
+        });
+    });
+
+    describe('waitForDevProcesses()', () => {
+        it('resolves SIGINT shutdowns with the canonical signal exit code', async () => {
+            const stopFirst = vi.fn();
+            const stopSecond = vi.fn();
+            const firstChild = new ManagedDevProcess(stopFirst);
+            const secondChild = new ManagedDevProcess(stopSecond);
+            const sigintListenerCount = process.listenerCount('SIGINT');
+            const sigtermListenerCount = process.listenerCount('SIGTERM');
+            const promise = waitForDevProcesses([firstChild, secondChild]);
+
+            process.emit('SIGINT');
+
+            expect(stopFirst).toHaveBeenCalledWith('SIGINT');
+            expect(stopSecond).toHaveBeenCalledWith('SIGINT');
+            firstChild.emitClose(null, 'SIGINT');
+            secondChild.emitClose(0, null);
+            await expect(promise).resolves.toBe(130);
+            expect(process.listenerCount('SIGINT')).toBe(sigintListenerCount);
+            expect(process.listenerCount('SIGTERM')).toBe(sigtermListenerCount);
+        });
+
+        it('resolves SIGTERM shutdowns with the canonical signal exit code', async () => {
+            const firstChild = new ManagedDevProcess(vi.fn());
+            const secondChild = new ManagedDevProcess(vi.fn());
+            const promise = waitForDevProcesses([firstChild, secondChild]);
+
+            process.emit('SIGTERM');
+
+            firstChild.emitClose(0, null);
+            secondChild.emitClose(null, 'SIGTERM');
+            await expect(promise).resolves.toBe(143);
         });
     });
 });

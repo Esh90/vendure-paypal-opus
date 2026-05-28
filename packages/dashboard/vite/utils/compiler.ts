@@ -53,6 +53,8 @@ export async function compile(options: CompilerOptions): Promise<CompileResult> 
 }
 
 async function withCompileLock<T>(key: string, fn: () => Promise<T>): Promise<T> {
+    // Serialize every compile for the same output path; callers that need
+    // last-one-wins behavior should debounce before calling compile().
     const previous = compileLocks.get(key) ?? Promise.resolve();
     let release!: () => void;
     const current = new Promise<void>(resolve => {

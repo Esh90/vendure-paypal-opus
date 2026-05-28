@@ -547,7 +547,7 @@ describe('build command', () => {
             try {
                 writeFileSync(path.join(dir, 'tsconfig.json'), '{ invalid json');
 
-                expect(() => validateTsConfig(dir)).toThrow();
+                expect(() => validateTsConfig(dir)).toThrow(/TS1005/);
             } finally {
                 rmSync(dir, { recursive: true, force: true });
             }

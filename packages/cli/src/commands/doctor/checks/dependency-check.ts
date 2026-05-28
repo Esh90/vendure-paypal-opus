@@ -209,7 +209,11 @@ function findNestedPackageVersions(modulesDir: string, targetPkg: string): strin
     }
 
     for (const entry of entries) {
-        // Skip the target package itself and hidden directories
+        // Skip the target package itself and hidden directories (.pnpm, .cache, etc.).
+        // pnpm's content-addressable store (.pnpm) doesn't need direct scanning because
+        // pnpm symlinks packages into standard node_modules locations, and Node's fs
+        // operations follow symlinks transparently. Scanning .pnpm directly would produce
+        // false positives since every package appears there by design.
         if (entry === targetPkg || entry.startsWith('.')) continue;
 
         const entryPath = path.join(modulesDir, entry);

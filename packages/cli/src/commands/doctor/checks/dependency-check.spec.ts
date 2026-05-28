@@ -44,7 +44,7 @@ describe('dependency-check', () => {
         expect(result.details?.some(d => d.includes('All @vendure/* packages at 3.6.3'))).toBe(true);
     });
 
-    it('returns fail when @vendure/* versions are mismatched', async () => {
+    it('returns warn when @vendure/* patch versions are mismatched', async () => {
         vi.mocked(fs.existsSync).mockReturnValue(true);
         vi.mocked(fs.readdirSync).mockReturnValue([]);
         vi.mocked(fs.readFileSync).mockReturnValue('');
@@ -52,7 +52,7 @@ describe('dependency-check', () => {
         let callCount = 0;
         vi.mocked(fs.readJsonSync).mockImplementation(() => {
             callCount++;
-            // Return different version for one package
+            // Return different patch version for one package
             if (callCount === 3) {
                 return { version: '3.6.2' };
             }
@@ -61,8 +61,29 @@ describe('dependency-check', () => {
 
         const result = await runDependencyCheck('/fake/node_modules');
 
+        expect(result.status).toBe('warn');
+        expect(result.details?.some(d => d.includes('Mismatched') && d.includes('patch'))).toBe(true);
+    });
+
+    it('returns fail when @vendure/* minor versions are mismatched', async () => {
+        vi.mocked(fs.existsSync).mockReturnValue(true);
+        vi.mocked(fs.readdirSync).mockReturnValue([]);
+        vi.mocked(fs.readFileSync).mockReturnValue('');
+
+        let callCount = 0;
+        vi.mocked(fs.readJsonSync).mockImplementation(() => {
+            callCount++;
+            // Return different minor version for one package
+            if (callCount === 3) {
+                return { version: '3.7.0' };
+            }
+            return { version: '3.6.3' };
+        });
+
+        const result = await runDependencyCheck('/fake/node_modules');
+
         expect(result.status).toBe('fail');
-        expect(result.details?.some(d => d.includes('Mismatched'))).toBe(true);
+        expect(result.details?.some(d => d.includes('Mismatched') && d.includes('minor/major'))).toBe(true);
     });
 
     it('detects duplicate singleton packages', async () => {

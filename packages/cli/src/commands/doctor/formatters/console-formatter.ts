@@ -10,6 +10,8 @@ const STATUS_LABELS: Record<CheckStatus, string> = {
     skip: pc.dim('skip'),
 };
 
+const PADDING = '                  ';
+
 /**
  * Formats the doctor report for terminal output using @clack/prompts and picocolors.
  */
@@ -25,7 +27,7 @@ export function formatConsoleReport(report: DoctorReport): void {
 
         if (check.details?.length) {
             for (const detail of check.details) {
-                log.info(pc.dim(`                  ${detail}`));
+                log.info(`${PADDING}${colorizeDetail(detail)}`);
             }
         }
     }
@@ -45,4 +47,34 @@ export function formatConsoleReport(report: DoctorReport): void {
             : `Result: ${pc.green('passed')}`;
         log.success(msg);
     }
+}
+
+/**
+ * Applies color to a detail line based on its content.
+ * - Lines indicating errors/failures are red
+ * - Lines indicating warnings are yellow
+ * - Informational lines are dimmed
+ */
+function colorizeDetail(detail: string): string {
+    // Failure indicators
+    if (
+        detail.startsWith('FAIL:') ||
+        detail.startsWith('Error:') ||
+        detail.includes('failed:') ||
+        detail.includes('incompatible') ||
+        detail.startsWith('Mismatched')
+    ) {
+        return pc.red(detail);
+    }
+    // Warning indicators
+    if (
+        detail.startsWith('WARN:') ||
+        detail.startsWith('Warning:') ||
+        detail.includes('Multiple') ||
+        detail.includes('no compatibility range')
+    ) {
+        return pc.yellow(detail);
+    }
+    // Informational
+    return pc.dim(detail);
 }

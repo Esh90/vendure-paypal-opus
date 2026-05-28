@@ -76,9 +76,20 @@ export async function runDependencyCheck(nodeModulesPath?: string): Promise<Chec
     if (vendureVersions.size > 0) {
         const versions = new Set(vendureVersions.values());
         if (versions.size > 1) {
-            worstStatus = 'fail';
             const grouped = groupByVersion(vendureVersions);
-            details.push('Mismatched @vendure/* package versions:');
+            // Check if it's only a patch mismatch (e.g. 3.6.3 vs 3.6.2) or a
+            // minor/major mismatch (e.g. 3.7.0 vs 3.6.3). Patch mismatches are
+            // unlikely to cause issues; minor/major mismatches can break things.
+            const majorMinors = new Set(
+                [...versions].map(v => v.split('.').slice(0, 2).join('.')),
+            );
+            if (majorMinors.size > 1) {
+                worstStatus = 'fail';
+                details.push('Mismatched @vendure/* package versions (minor/major):');
+            } else {
+                if (worstStatus === 'pass') worstStatus = 'warn';
+                details.push('Mismatched @vendure/* package versions (patch):');
+            }
             for (const [version, pkgs] of grouped) {
                 details.push(`  ${version}: ${pkgs.join(', ')}`);
             }

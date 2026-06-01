@@ -32,4 +32,18 @@ describe('getInitialConfigArgValue', () => {
         expect(getInitialConfigArgValue(argDef({ defaultValue: 1 }))).toBe('1');
         expect(getInitialConfigArgValue(argDef({ type: 'string' }))).toBe('');
     });
+
+    // The `!= null` guard must treat falsy-but-defined defaults (0, false, '') as
+    // real values rather than absent. A naive truthy check (`if (arg.defaultValue)`)
+    // would drop these and fall through to the type-based fallbacks.
+    it('should preserve falsy-but-defined scalar defaults', () => {
+        expect(getInitialConfigArgValue(argDef({ type: 'int', defaultValue: 0 }))).toBe('0');
+        expect(getInitialConfigArgValue(argDef({ type: 'boolean', defaultValue: false }))).toBe('false');
+        expect(getInitialConfigArgValue(argDef({ type: 'string', defaultValue: '' }))).toBe('');
+    });
+
+    it('should wrap falsy-but-defined list defaults in a JSON array', () => {
+        expect(getInitialConfigArgValue(argDef({ list: true, defaultValue: 0 }))).toBe('[0]');
+        expect(getInitialConfigArgValue(argDef({ list: true, defaultValue: false }))).toBe('[false]');
+    });
 });

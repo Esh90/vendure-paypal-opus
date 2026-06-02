@@ -119,10 +119,12 @@ export function AssetPreview({
     };
 
     const updateFocalPointMutation = useMutation({
-        // Stamp the mutation variable with the asset id captured at click time
-        // so that, if the user navigates to another asset before the request
-        // resolves, we can ignore the late response and avoid writing the new
-        // focal point onto the wrong asset's UI.
+        // Stamp the mutation variable with the asset id captured at click time.
+        // The parent is always notified (it keys the update by id, so recording
+        // the now-saved focal point for that asset is correct even if the user
+        // has navigated away). The *local* override, however, is only applied
+        // when the response still matches the asset on screen, so a late
+        // response can't paint one asset's focal point onto another's view.
         mutationFn: ({ assetId, focalPoint }: { assetId: string; focalPoint: Point }) =>
             api.mutate(updateAssetFocalPointDocument, {
                 input: { id: assetId, focalPoint },
@@ -209,6 +211,12 @@ export function AssetPreview({
                     className={cn('relative', centered && 'flex items-center justify-center')}
                 >
                     <AssetFocalPointEditor
+                        // Remount on asset / edit-session change so the editor's
+                        // internal drag state is re-seeded from the active
+                        // asset's focal point. Without this, navigating between
+                        // assets (or re-opening edit after a cancel) could submit
+                        // the previous asset's stale coordinates.
+                        key={`${activeAsset.id}:${settingFocalPoint ? 'edit' : 'view'}`}
                         width={width}
                         height={height}
                         settingFocalPoint={settingFocalPoint}

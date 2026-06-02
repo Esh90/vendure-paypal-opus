@@ -40,6 +40,7 @@ class E2eAssetStorageStrategy implements AssetStorageStrategy {
     writeFileFromStream(fileName: string, data: Stream) {
         return new Promise<string>((resolve, reject) => {
             const w = new Writable({ write: (_c, _e, cb) => cb() });
+            data.on('error', reject);
             data.pipe(w);
             w.on('finish', () => resolve(`test-assets/${fileName}`));
             w.on('error', reject);

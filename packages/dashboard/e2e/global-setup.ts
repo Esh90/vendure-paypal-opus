@@ -1,3 +1,4 @@
+import type { AssetStorageStrategy } from '@vendure/core';
 import { mergeConfig } from '@vendure/core';
 import {
     createTestEnvironment,
@@ -5,8 +6,9 @@ import {
     registerInitializer,
     SqljsInitializer,
 } from '@vendure/testing';
-import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
+import { Readable, Stream, Writable } from 'node:stream';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 import { VENDURE_PORT } from './constants.js';
@@ -16,6 +18,48 @@ import { initialData } from './fixtures/initial-data.js';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 registerInitializer('sqljs', new SqljsInitializer(path.join(__dirname, '__data__')));
+
+/**
+ * Minimal in-memory storage strategy used only by the dashboard e2e suite.
+ * Emits a parseable absolute URL so VendureImage's `new URL(asset.preview)`
+ * does not throw on assets created during tests. No bytes are persisted and
+ * no real HTTP server (and no AssetServerPlugin) is required.
+ *
+ * This duplicates a little of `TestingAssetStorageStrategy` rather than
+ * subclassing it because that class is not part of `@vendure/testing`'s public
+ * API — the only behaviour we need to change is `toAbsoluteUrl` returning a
+ * URL that `new URL(...)` can parse.
+ */
+class E2eAssetStorageStrategy implements AssetStorageStrategy {
+    toAbsoluteUrl(_req: unknown, identifier: string) {
+        return `http://test-asset.local/${identifier}`;
+    }
+    writeFileFromBuffer(fileName: string) {
+        return Promise.resolve(`test-assets/${fileName}`);
+    }
+    writeFileFromStream(fileName: string, data: Stream) {
+        return new Promise<string>((resolve, reject) => {
+            const w = new Writable({ write: (_c, _e, cb) => cb() });
+            data.pipe(w);
+            w.on('finish', () => resolve(`test-assets/${fileName}`));
+            w.on('error', reject);
+        });
+    }
+    readFileToBuffer() {
+        return Promise.resolve(Buffer.alloc(0));
+    }
+    readFileToStream() {
+        const s = new Readable();
+        s.push(null);
+        return Promise.resolve(s);
+    }
+    fileExists() {
+        return Promise.resolve(false);
+    }
+    deleteFile() {
+        return Promise.resolve();
+    }
+}
 
 /**
  * Compiles a TypeScript fixture with SWC so that NestJS parameter decorators
@@ -48,21 +92,6 @@ export default async function globalSetup() {
         CustomHistoryEntryPlugin: new () => unknown;
     }>(path.join(__dirname, 'fixtures', 'custom-history-entry-plugin.ts'));
 
-    // AssetServerPlugin uses NestJS decorators and class-extends-from-core
-    // patterns that Playwright's static-ESM import path cannot resolve
-    // (hashed-asset-naming-strategy extends a base class from @vendure/core
-    // that ends up `undefined` under Babel transform). Pull it in via Node's
-    // native loader at runtime to side-step the transform path.
-    const { AssetServerPlugin } =
-        (await import('@vendure/asset-server-plugin')) as typeof import('@vendure/asset-server-plugin');
-
-    // Assets uploaded via createAssets during tests are written here. Wipe on
-    // each setup so reruns start from a clean directory; the suite assumes
-    // no asset state survives between full test runs.
-    const assetUploadDir = path.join(__dirname, '__data__/assets');
-    rmSync(assetUploadDir, { recursive: true, force: true });
-    mkdirSync(assetUploadDir, { recursive: true });
-
     const config = mergeConfig(defaultTestConfig, {
         apiOptions: {
             port: VENDURE_PORT,
@@ -70,18 +99,23 @@ export default async function globalSetup() {
         paymentOptions: {
             paymentMethodHandlers: e2ePaymentMethodHandlers,
         },
-        // AssetServerPlugin is required so that uploaded assets resolve to a
-        // proper http URL (the default test-asset storage strategy emits a
+        // The default test-asset storage strategy emits a non-parseable
         // `test-url/test-assets/...` placeholder that `VendureImage` cannot
-        // parse with `new URL(...)`). Tests that exercise the asset preview
-        // dialog need this to render.
-        plugins: [
-            CustomHistoryEntryPlugin,
-            // Cast to any — the dynamic-import return type cannot satisfy the
-            // mergeConfig `DeepPartial<plugin>` shape that includes nestjs
-            // DynamicModule, but the runtime value is correct.
-            AssetServerPlugin.init({ route: 'assets', assetUploadDir }) as any,
-        ],
+        // parse with `new URL(...)`, which crashes any page showing a real
+        // asset. The minimal strategy below emits a parseable absolute URL —
+        // all the asset-preview tests actually require — without pulling in
+        // AssetServerPlugin (not in the dashboard-e2e build scope on CI).
+        assetOptions: {
+            assetStorageStrategy: new E2eAssetStorageStrategy(),
+        },
+        // Point the CSV asset importer at the core e2e fixture images so the
+        // seeded products (e.g. "Laptop") get a real featured asset. This lets
+        // asset-dependent tests use a seeded product directly instead of
+        // uploading one at runtime.
+        importExportOptions: {
+            importAssetsDir: path.join(__dirname, '../../core/e2e/fixtures/assets'),
+        },
+        plugins: [CustomHistoryEntryPlugin],
         customFields: e2eCustomFields,
     });
 

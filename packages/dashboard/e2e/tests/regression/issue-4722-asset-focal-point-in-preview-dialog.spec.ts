@@ -7,22 +7,28 @@ import { VENDURE_PORT } from '../../constants.js';
 // therefore the dialog used by Product / Variant detail pages), with a
 // callback up to `EntityAssets` so re-opening the dialog after a save shows
 // the new value rather than the stale one from the parent detail query.
+//
+// Setup: the seeded "Laptop" product already has a featured asset (imported
+// from the core e2e fixtures via `importAssetsDir` in global-setup), so the
+// test reads its id and drives the UI — no runtime asset upload or product
+// creation. `beforeEach` resets the asset's focal point to null so every run
+// (including a Playwright retry, which reuses the global-setup DB) starts from
+// the deterministic "Not set" state the assertions below rely on.
+//
+// Coverage note: this exercises the featured-asset path. The multi-asset
+// gallery / prev-next sync that `onAssetUpdated` also feeds is not covered here
+// because the seeded product has a single asset; adding it would require
+// re-introducing the runtime multi-asset seeding this rework removed.
 test.describe('Issue 4722 — focal point editor in shared asset preview dialog', () => {
-    interface SetupResult {
-        productId: string;
-        assetId: string;
-        originalFocalPoint: { x: number; y: number } | null;
-    }
-
-    let setup: SetupResult;
+    let productId: string;
 
     test.beforeEach(async ({ page }) => {
         await page.goto('/');
-        setup = await page.evaluate(async vendurePort => {
+        productId = await page.evaluate(async vendurePort => {
             const apiUrl = `http://localhost:${vendurePort}/admin-api`;
             const sessionToken = localStorage.getItem('vendure-session-token');
             if (!sessionToken) throw new Error('No vendure-session-token');
-            const post = async (query: string, variables: Record<string, unknown>) => {
+            const post = async (query: string, variables?: Record<string, unknown>) => {
                 const res = await fetch(apiUrl, {
                     method: 'POST',
                     credentials: 'include',
@@ -37,101 +43,26 @@ test.describe('Issue 4722 — focal point editor in shared asset preview dialog'
                 return json.data;
             };
 
-            // The e2e populate seeds products but not assets, so upload a
-            // 1×1 transparent PNG via the multipart `createAssets` mutation.
-            const png1x1Base64 =
-                'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
-            const binary = atob(png1x1Base64);
-            const bytes = new Uint8Array(binary.length);
-            for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-            const formData = new FormData();
-            formData.append(
-                'operations',
-                JSON.stringify({
-                    query: `mutation($input: [CreateAssetInput!]!) {
-                        createAssets(input: $input) {
-                            ...on Asset { id name focalPoint { x y } }
-                            ...on MimeTypeError { message }
-                        }
-                    }`,
-                    variables: { input: [{ file: null }] },
-                }),
-            );
-            formData.append('map', JSON.stringify({ '0': ['variables.input.0.file'] }));
-            formData.append('0', new Blob([bytes], { type: 'image/png' }), `oss-530-${Date.now()}.png`);
-            const uploadRes = await fetch(apiUrl, {
-                method: 'POST',
-                credentials: 'include',
-                headers: { authorization: `Bearer ${sessionToken}` },
-                body: formData,
+            const { product } = await post(`{ product(slug: "laptop") { id featuredAsset { id } } }`);
+            if (!product?.featuredAsset) {
+                // The featured asset comes from the "Laptop" row of
+                // core/e2e/fixtures/e2e-products-full.csv being imported via
+                // `importExportOptions.importAssetsDir` in global-setup. If this
+                // throws, that CSV row lost its asset, the fixture image is gone,
+                // or e2e/__data__ holds a stale pre-import DB (delete it to reseed).
+                throw new Error(
+                    'Seeded "laptop" product has no featured asset — check core e2e CSV / importAssetsDir / stale __data__ DB',
+                );
+            }
+
+            // Reset to a clean "Not set" state so the assertions start from a
+            // known baseline regardless of any previous (retried) run.
+            await post(`mutation($input: UpdateAssetInput!) { updateAsset(input: $input) { id } }`, {
+                input: { id: product.featuredAsset.id, focalPoint: null },
             });
-            const uploadJson = await uploadRes.json();
-            if (uploadJson.errors?.length) {
-                throw new Error(`Asset upload: ${JSON.stringify(uploadJson.errors)}`);
-            }
-            const seedAsset = uploadJson.data.createAssets.find((a: any) => a.id);
-            if (!seedAsset) {
-                throw new Error(`Asset upload returned no Asset: ${JSON.stringify(uploadJson.data)}`);
-            }
 
-            // Spin up a dedicated product so the test is isolated from
-            // anything else mutating the seed products.
-            const ts = Date.now();
-            const product = await post(
-                `mutation($input: CreateProductInput!) { createProduct(input: $input) { id } }`,
-                {
-                    input: {
-                        featuredAssetId: seedAsset.id,
-                        assetIds: [seedAsset.id],
-                        translations: [
-                            {
-                                languageCode: 'en',
-                                name: `OSS-530 Test Product ${ts}`,
-                                slug: `oss-530-${ts}`,
-                                description: '',
-                            },
-                        ],
-                    },
-                },
-            );
-
-            return {
-                productId: product.createProduct.id as string,
-                assetId: seedAsset.id as string,
-                originalFocalPoint: seedAsset.focalPoint ?? null,
-            };
+            return product.id as string;
         }, VENDURE_PORT);
-    });
-
-    test.afterEach(async ({ page }) => {
-        // Reset the asset back to its original focal point so the seed isn't
-        // polluted across runs in the (rare) case that the playwright config
-        // reuses the global setup DB.
-        await page.evaluate(
-            async args => {
-                const { vendurePort, assetId, originalFocalPoint } = args;
-                const apiUrl = `http://localhost:${vendurePort}/admin-api`;
-                const sessionToken = localStorage.getItem('vendure-session-token');
-                if (!sessionToken) return;
-                await fetch(apiUrl, {
-                    method: 'POST',
-                    credentials: 'include',
-                    headers: {
-                        'content-type': 'application/json',
-                        authorization: `Bearer ${sessionToken}`,
-                    },
-                    body: JSON.stringify({
-                        query: `mutation($input: UpdateAssetInput!) { updateAsset(input: $input) { id } }`,
-                        variables: { input: { id: assetId, focalPoint: originalFocalPoint } },
-                    }),
-                });
-            },
-            {
-                vendurePort: VENDURE_PORT,
-                assetId: setup.assetId,
-                originalFocalPoint: setup.originalFocalPoint,
-            },
-        );
     });
 
     test('should let the user set a focal point from the preview dialog and persist across re-open', async ({
@@ -139,12 +70,11 @@ test.describe('Issue 4722 — focal point editor in shared asset preview dialog'
     }) => {
         test.setTimeout(45_000);
 
-        await page.goto(`/products/${setup.productId}`);
+        await page.goto(`/products/${productId}`);
 
         // The Assets PageBlock in EntityAssets renders the featured asset
         // inside a `<div data-testid="entity-assets-featured">` wrapper. Target
-        // its <img> directly so the test doesn't depend on the asset server's
-        // URL scheme.
+        // its <img> directly so the test doesn't depend on the asset URL scheme.
         const featuredImage = page.getByTestId('entity-assets-featured').locator('img');
         await expect(featuredImage).toBeVisible({ timeout: 15_000 });
         await featuredImage.click();
@@ -153,9 +83,18 @@ test.describe('Issue 4722 — focal point editor in shared asset preview dialog'
         const setFocalPointTrigger = page.getByTestId('asset-preview-set-focal-point');
         await expect(setFocalPointTrigger).toBeVisible({ timeout: 5_000 });
 
+        // Baseline: the asset has no focal point, so the readout shows "Not set".
+        // This makes the transition below a real state change rather than an
+        // assertion that could pass against a pre-existing value.
         const focalPointValue = page.getByTestId('asset-preview-focal-point-value');
-        // Activate the focal-point editor and confirm with the default centre
+        await expect(focalPointValue).toContainText('Not set');
+
+        // Activate the focal-point editor and confirm at the default centre
         // position the editor renders for an asset without a saved focal point.
+        // (The exact dragged coordinate is not asserted: the editor's drag math
+        // is screen-pixels / natural-image-pixels, so a pixel-precise Playwright
+        // drag would be fragile. The Not-set → set → persist transition is the
+        // load-bearing regression signal.)
         await setFocalPointTrigger.click();
         await page.getByTestId('asset-focal-point-editor-confirm').click();
 
@@ -168,7 +107,7 @@ test.describe('Issue 4722 — focal point editor in shared asset preview dialog'
         // show the saved coords, not regress to the stale parent value.
         // Before the parent-sync fix, EntityAssets' local `assets` array would
         // still hold the pre-save focal point, so the re-opened dialog would
-        // misreport "Not set" or stale coords.
+        // misreport "Not set".
         await page.keyboard.press('Escape');
         await expect(page.getByRole('dialog')).toBeHidden({ timeout: 5_000 });
 

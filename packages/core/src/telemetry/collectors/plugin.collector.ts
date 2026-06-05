@@ -138,24 +138,31 @@ export class PluginCollector {
                     continue;
                 }
                 visited.add(pkgPath);
-                try {
-                    const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'));
-                    const depNames = [
-                        ...Object.keys(pkg.dependencies ?? {}),
-                        ...Object.keys(pkg.optionalDependencies ?? {}),
-                    ];
-                    for (const name of depNames) {
-                        if (isVendurePluginPackage(name)) {
-                            found.add(name);
-                        }
-                    }
-                } catch {
-                    // Ignore unreadable/malformed manifests and continue
+                for (const name of this.readVendurePackagesFromManifest(pkgPath)) {
+                    found.add(name);
                 }
             }
         }
 
         return Array.from(found);
+    }
+
+    /**
+     * Parses a single `package.json` and returns the Vendure ecosystem package
+     * names declared in its runtime dependency sections. Returns an empty array
+     * if the manifest cannot be read or parsed.
+     */
+    private readVendurePackagesFromManifest(pkgPath: string): string[] {
+        try {
+            const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'));
+            const depNames = [
+                ...Object.keys(pkg.dependencies ?? {}),
+                ...Object.keys(pkg.optionalDependencies ?? {}),
+            ];
+            return depNames.filter(isVendurePluginPackage);
+        } catch {
+            return [];
+        }
     }
 
     /**
@@ -166,7 +173,7 @@ export class PluginCollector {
      */
     private getManifestSearchDirs(): string[] {
         const dirs = new Set<string>([process.cwd()]);
-        const mainFile = typeof require !== 'undefined' ? require.main?.filename : undefined;
+        const mainFile = typeof require === 'undefined' ? undefined : require.main?.filename;
         const entryFile = mainFile ?? process.argv[1];
         if (entryFile) {
             dirs.add(path.dirname(entryFile));

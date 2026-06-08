@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/ban-types */
-import { vi, Mock } from 'vitest';
+import { Mock, vi } from 'vitest';
 
-import { VendureEntity } from '../entity/base/base.entity';
 import { MockClass } from '../testing/testing-types';
 
 import { ConfigService } from './config.service';
-import { EntityIdStrategy, PrimaryKeyType } from './entity/entity-id-strategy';
+import { EntityIdStrategy } from './entity/entity-id-strategy';
+import { DefaultOrderLineDiscountDistributionStrategy } from './order/default-order-line-discount-distribution-strategy';
 
 export class MockConfigService implements MockClass<ConfigService> {
     apiOptions = {
@@ -44,7 +44,9 @@ export class MockConfigService implements MockClass<ConfigService> {
     taxOptions: {};
     emailOptions: {};
     importExportOptions: {};
-    orderOptions = {};
+    orderOptions = {
+        orderLineDiscountDistributionStrategy: new DefaultOrderLineDiscountDistributionStrategy(),
+    };
     customFields = {};
 
     plugins = [];

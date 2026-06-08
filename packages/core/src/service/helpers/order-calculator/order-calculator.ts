@@ -243,8 +243,9 @@ export class OrderCalculator {
                     const adjustment = await promotion.apply(ctx, { order }, state);
                     if (adjustment && adjustment.amount !== 0) {
                         const amount = adjustment.amount;
+                        const { orderLineDiscountDistributionStrategy } = this.configService.orderOptions;
                         const weights = order.lines.map(l =>
-                            l.quantity !== 0 ? l.proratedLinePriceWithTax : 0,
+                            orderLineDiscountDistributionStrategy.getWeight(ctx, l, order),
                         );
                         const distribution = prorate(weights, amount);
                         order.lines.forEach((line, i) => {

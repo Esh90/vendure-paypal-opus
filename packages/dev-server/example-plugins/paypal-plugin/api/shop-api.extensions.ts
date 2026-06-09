@@ -14,6 +14,10 @@ export const shopApiExtensions = gql`
     }
 
     extend type Mutation {
+        """UC1 — Create a PayPal order with immediate-capture intent."""
         createPayPalOrder: PayPalOrderResult!
+
+        """UC2 — Create a PayPal order with authorize intent (funds reserved, not yet moved)."""
+        createPayPalOrderForAuthorization: PayPalOrderResult!
     }
 `;

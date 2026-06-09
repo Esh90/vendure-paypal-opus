@@ -1,10 +1,11 @@
-import { Client, Environment, OrdersController } from '@paypal/paypal-server-sdk';
+import { Client, Environment, OrdersController, PaymentsController } from '@paypal/paypal-server-sdk';
 import { Logger } from '@vendure/core';
 
 const loggerCtx = 'PayPalClient';
 
 let _client: Client | null = null;
 let _ordersController: OrdersController | null = null;
+let _paymentsController: PaymentsController | null = null;
 
 function createClient(): Client {
     const clientId = process.env.PAYPAL_CLIENT_ID;
@@ -46,4 +47,11 @@ export function getOrdersController(): OrdersController {
         _ordersController = new OrdersController(getClient());
     }
     return _ordersController;
+}
+
+export function getPaymentsController(): PaymentsController {
+    if (!_paymentsController) {
+        _paymentsController = new PaymentsController(getClient());
+    }
+    return _paymentsController;
 }

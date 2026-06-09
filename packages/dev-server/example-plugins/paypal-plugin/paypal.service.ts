@@ -11,10 +11,28 @@ export class PayPalService {
     constructor(private readonly orderService: OrderService) {}
 
     /**
-     * Creates a PayPal order for the caller's active Vendure order.
+     * UC1 — Creates a PayPal order with CAPTURE intent.
      * Returns the PayPal order ID and the buyer-approval URL.
      */
     async createPayPalOrder(ctx: RequestContext): Promise<{ paypalOrderId: string; approvalUrl: string }> {
+        return this.buildPayPalOrder(ctx, CheckoutPaymentIntent.Capture);
+    }
+
+    /**
+     * UC2 — Creates a PayPal order with AUTHORIZE intent.
+     * Funds are reserved but not moved until the merchant explicitly captures.
+     * Returns the PayPal order ID and the buyer-approval URL.
+     */
+    async createPayPalOrderForAuthorization(
+        ctx: RequestContext,
+    ): Promise<{ paypalOrderId: string; approvalUrl: string }> {
+        return this.buildPayPalOrder(ctx, CheckoutPaymentIntent.Authorize);
+    }
+
+    private async buildPayPalOrder(
+        ctx: RequestContext,
+        intent: CheckoutPaymentIntent,
+    ): Promise<{ paypalOrderId: string; approvalUrl: string }> {
         const activeOrderId = ctx.session?.activeOrderId;
         if (!activeOrderId) {
             throw new UserInputError('No active order found. Add items to your cart first.');
@@ -29,7 +47,7 @@ export class PayPalService {
         const value = toPayPalAmount(order.totalWithTax, currencyCode);
 
         Logger.info(
-            `Creating PayPal order for Vendure order ${order.code}: ${currencyCode} ${value}`,
+            `Creating PayPal order (intent: ${intent}) for Vendure order ${order.code}: ${currencyCode} ${value}`,
             loggerCtx,
         );
 
@@ -40,7 +58,7 @@ export class PayPalService {
 
         const response = await ordersController.createOrder({
             body: {
-                intent: CheckoutPaymentIntent.Capture,
+                intent,
                 purchaseUnits: [
                     {
                         referenceId: order.code,
@@ -50,8 +68,6 @@ export class PayPalService {
                         },
                     },
                 ],
-                // paymentSource drives the redirect flow: PayPal uses experienceContext
-                // to know where to send the buyer after approval or cancellation.
                 paymentSource: {
                     paypal: {
                         experienceContext: {
@@ -71,8 +87,6 @@ export class PayPalService {
             throw new Error('PayPal did not return an order ID.');
         }
 
-        // The approval link allows the buyer to authorise the payment.
-        // PayPal returns it as rel='payer-action' (newer) or rel='approve' (legacy).
         const approvalLink = paypalOrder.links?.find(
             link => link.rel === 'payer-action' || link.rel === 'approve',
         );
@@ -82,7 +96,7 @@ export class PayPalService {
         }
 
         Logger.info(
-            `PayPal order created. Order ID: ${paypalOrder.id}, Vendure order: ${order.code}`,
+            `PayPal order created (intent: ${intent}). Order ID: ${paypalOrder.id}, Vendure order: ${order.code}`,
             loggerCtx,
         );
 

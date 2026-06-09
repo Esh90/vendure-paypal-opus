@@ -24,9 +24,9 @@ const loggerCtx = 'PayPalPaymentHandler';
  *   Admin calls `cancelPayment` on an Authorized payment → voids the PayPal
  *   authorization and releases reserved funds back to the buyer.
  *
- * UC4 — Full Refund:
- *   Admin calls `refundOrder` on a Settled payment. No amount body is sent to
- *   PayPal so it refunds the entire captured amount automatically.
+ * UC4 — Full Refund / UC5 — Partial Refund:
+ *   Admin calls `refundOrder` on a Settled payment. For a full refund no amount
+ *   body is sent; for a partial refund the specific amount is included.
  */
 export const paypalPaymentHandler = new PaymentMethodHandler({
     code: PAYPAL_HANDLER_CODE,
@@ -289,12 +289,17 @@ export const paypalPaymentHandler = new PaymentMethodHandler({
     },
 
     /**
-     * UC4 — Full Refund.
+     * UC4 — Full Refund / UC5 — Partial Refund.
      * Called by Vendure when the admin issues a refund via `refundOrder`.
-     * No amount body is sent to PayPal — it automatically refunds the entire
-     * captured amount. The optional reason is forwarded as noteToPayer.
+     *
+     * UC4 (full):    `amount` equals the total payment amount → no amount body sent,
+     *                PayPal refunds the entire capture automatically.
+     * UC5 (partial): `amount` is less than the total payment amount → the specific
+     *                amount is sent in the request body.
+     *
+     * The optional refund reason is forwarded to the buyer as noteToPayer.
      */
-    createRefund: async (_ctx, input, _amount, _order, payment) => {
+    createRefund: async (_ctx, input, amount, order, payment) => {
         const captureId = payment.metadata.captureId as string | undefined;
 
         if (!captureId) {
@@ -311,22 +316,32 @@ export const paypalPaymentHandler = new PaymentMethodHandler({
             };
         }
 
+        const isPartialRefund = amount < payment.amount;
+        const currencyCode = String(order.currencyCode);
+
         try {
             const paymentsController = getPaymentsController();
             const response = await paymentsController.refundCapturedPayment({
                 captureId,
                 prefer: 'return=representation',
-                // No amount body → PayPal refunds the full captured amount (UC4)
-                body: input.reason
-                    ? { noteToPayer: input.reason.substring(0, 255) }
-                    : undefined,
+                body: {
+                    // UC5: pass the specific amount; UC4: omit it so PayPal refunds in full
+                    ...(isPartialRefund && {
+                        amount: {
+                            currencyCode,
+                            value: toPayPalAmount(amount, currencyCode),
+                        },
+                    }),
+                    ...(input.reason && { noteToPayer: input.reason.substring(0, 255) }),
+                },
             });
 
             const refund = response.result;
 
             if (refund?.status === 'COMPLETED') {
+                const refundType = isPartialRefund ? 'partial' : 'full';
                 Logger.info(
-                    `PayPal full refund completed. Capture ID: ${captureId}, Refund ID: ${refund.id}`,
+                    `PayPal ${refundType} refund completed. Capture ID: ${captureId}, Refund ID: ${refund.id}`,
                     loggerCtx,
                 );
                 return {

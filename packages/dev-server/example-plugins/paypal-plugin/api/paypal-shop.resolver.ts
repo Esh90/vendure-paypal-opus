@@ -19,4 +19,16 @@ export class PayPalShopResolver {
     createPayPalOrder(@Ctx() ctx: RequestContext) {
         return this.paypalService.createPayPalOrder(ctx);
     }
+
+    /**
+     * UC2 — Creates a PayPal order with AUTHORIZE intent.
+     * After buyer approval, call `addPaymentToOrder` with
+     * `metadata: { paypalOrderId, intent: 'AUTHORIZE' }`.
+     * The payment will be in 'Authorized' state until the merchant captures it.
+     */
+    @Mutation()
+    @Allow(Permission.Owner)
+    createPayPalOrderForAuthorization(@Ctx() ctx: RequestContext) {
+        return this.paypalService.createPayPalOrderForAuthorization(ctx);
+    }
 }

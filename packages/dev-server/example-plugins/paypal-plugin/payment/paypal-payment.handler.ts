@@ -1,6 +1,6 @@
 import { LanguageCode, Logger, PaymentMethodHandler } from '@vendure/core';
 import { PAYPAL_HANDLER_CODE } from '../constants';
-import { getOrdersController } from '../paypal-client';
+import { getOrdersController, getPaymentsController } from '../paypal-client';
 
 const loggerCtx = 'PayPalPaymentHandler';
 
@@ -8,11 +8,16 @@ const loggerCtx = 'PayPalPaymentHandler';
  * PaymentMethodHandler for PayPal.
  *
  * UC1 — Standard Checkout (Immediate Capture):
- *   The storefront first calls the `createPayPalOrder` Shop API mutation to create a PayPal
- *   order and obtain the buyer-approval URL. After the buyer approves on PayPal, the storefront
- *   calls `addPaymentToOrder` with `metadata: { paypalOrderId: '<approved-order-id>' }`.
- *   `createPayment` immediately captures the approved order, transitioning Vendure payment to
- *   'Settled'.  `settlePayment` is a no-op because the capture already occurred.
+ *   Storefront calls `createPayPalOrder`, buyer approves, then calls
+ *   `addPaymentToOrder` with `metadata: { paypalOrderId }`.
+ *   `createPayment` captures immediately → state: 'Settled'.
+ *
+ * UC2 — Authorize-then-Capture:
+ *   Storefront calls `createPayPalOrderForAuthorization`, buyer approves, then calls
+ *   `addPaymentToOrder` with `metadata: { paypalOrderId, intent: 'AUTHORIZE' }`.
+ *   `createPayment` authorizes → state: 'Authorized'.
+ *   When merchant is ready (e.g. before shipment), admin calls `settlePayment`
+ *   which captures the held funds → state: 'Settled'.
  */
 export const paypalPaymentHandler = new PaymentMethodHandler({
     code: PAYPAL_HANDLER_CODE,
@@ -21,6 +26,7 @@ export const paypalPaymentHandler = new PaymentMethodHandler({
 
     createPayment: async (_ctx, _order, amount, _args, metadata) => {
         const paypalOrderId = metadata.paypalOrderId as string | undefined;
+        const intent = metadata.intent as string | undefined;
 
         if (!paypalOrderId) {
             return {
@@ -31,6 +37,70 @@ export const paypalPaymentHandler = new PaymentMethodHandler({
             };
         }
 
+        // ── UC2: Authorize ────────────────────────────────────────────────────
+        if (intent === 'AUTHORIZE') {
+            try {
+                const ordersController = getOrdersController();
+                const response = await ordersController.authorizeOrder({
+                    id: paypalOrderId,
+                    prefer: 'return=representation',
+                });
+
+                const auth =
+                    response.result?.purchaseUnits?.[0]?.payments?.authorizations?.[0];
+
+                if (!auth?.id) {
+                    Logger.error(
+                        `PayPal authorizeOrder returned no authorization ID. Order ID: ${paypalOrderId}`,
+                        loggerCtx,
+                    );
+                    return {
+                        amount,
+                        state: 'Declined' as const,
+                        errorMessage: 'PayPal authorization returned no authorization ID.',
+                        metadata: { paypalOrderId },
+                    };
+                }
+
+                // CREATED = funds are reserved; DENIED / PENDING are failure paths
+                if (auth.status === 'DENIED') {
+                    return {
+                        amount,
+                        state: 'Declined' as const,
+                        errorMessage: 'PayPal authorization was denied.',
+                        metadata: { paypalOrderId, authorizationId: auth.id, authorizationStatus: auth.status },
+                    };
+                }
+
+                Logger.info(
+                    `PayPal authorization created. Order ID: ${paypalOrderId}, Auth ID: ${auth.id}`,
+                    loggerCtx,
+                );
+
+                return {
+                    amount,
+                    state: 'Authorized' as const,
+                    transactionId: auth.id,
+                    metadata: {
+                        paypalOrderId,
+                        authorizationId: auth.id,
+                        authorizationStatus: auth.status,
+                        intent: 'AUTHORIZE',
+                    },
+                };
+            } catch (err: unknown) {
+                const message = err instanceof Error ? err.message : String(err);
+                Logger.error(`PayPal authorizeOrder failed: ${message}`, loggerCtx);
+                return {
+                    amount,
+                    state: 'Error' as const,
+                    errorMessage: message,
+                    metadata: { paypalOrderId, errorMessage: message },
+                };
+            }
+        }
+
+        // ── UC1: Immediate Capture ────────────────────────────────────────────
         try {
             const ordersController = getOrdersController();
             const response = await ordersController.captureOrder({
@@ -38,13 +108,11 @@ export const paypalPaymentHandler = new PaymentMethodHandler({
                 prefer: 'return=representation',
             });
 
-            const capturedOrder = response.result;
-            const capture = capturedOrder?.purchaseUnits?.[0]?.payments?.captures?.[0];
+            const capture = response.result?.purchaseUnits?.[0]?.payments?.captures?.[0];
 
             if (!capture?.id) {
                 Logger.error(
-                    `PayPal captureOrder succeeded but returned no capture ID. ` +
-                        `Order ID: ${paypalOrderId}`,
+                    `PayPal captureOrder returned no capture ID. Order ID: ${paypalOrderId}`,
                     loggerCtx,
                 );
                 return {
@@ -65,16 +133,12 @@ export const paypalPaymentHandler = new PaymentMethodHandler({
                     amount,
                     state: 'Declined' as const,
                     errorMessage: `PayPal capture status: ${capture.status}`,
-                    metadata: {
-                        paypalOrderId,
-                        captureId: capture.id,
-                        captureStatus: capture.status,
-                    },
+                    metadata: { paypalOrderId, captureId: capture.id, captureStatus: capture.status },
                 };
             }
 
             Logger.info(
-                `PayPal payment captured successfully. Order ID: ${paypalOrderId}, Capture ID: ${capture.id}`,
+                `PayPal payment captured. Order ID: ${paypalOrderId}, Capture ID: ${capture.id}`,
                 loggerCtx,
             );
 
@@ -101,9 +165,68 @@ export const paypalPaymentHandler = new PaymentMethodHandler({
     },
 
     /**
-     * The payment is already captured (Settled) during `createPayment`, so nothing to
-     * do here.  This method is only invoked when transitioning from 'Authorized' →
-     * 'Settled', which does not happen in the UC1 immediate-capture flow.
+     * UC1: payment is already Settled from createPayment — nothing to do.
+     * UC2: payment is in Authorized state; capture the held funds now.
      */
-    settlePayment: async () => ({ success: true as const }),
+    settlePayment: async (_ctx, _order, payment) => {
+        const authorizationId = payment.metadata.authorizationId as string | undefined;
+
+        // UC1 path — already captured during createPayment
+        if (!authorizationId) {
+            return { success: true as const };
+        }
+
+        // UC2 path — capture the authorization
+        try {
+            const paymentsController = getPaymentsController();
+            const response = await paymentsController.captureAuthorizedPayment({
+                authorizationId,
+                prefer: 'return=representation',
+            });
+
+            const capture = response.result;
+
+            if (capture?.status !== 'COMPLETED') {
+                const msg = `PayPal capture status: ${capture?.status ?? 'unknown'}`;
+                Logger.warn(
+                    `${msg}. Authorization ID: ${authorizationId}`,
+                    loggerCtx,
+                );
+                return {
+                    success: false as const,
+                    errorMessage: msg,
+                    metadata: {
+                        ...payment.metadata,
+                        captureId: capture?.id,
+                        captureStatus: capture?.status,
+                    },
+                };
+            }
+
+            Logger.info(
+                `PayPal authorized payment captured. Auth ID: ${authorizationId}, Capture ID: ${capture.id}`,
+                loggerCtx,
+            );
+
+            return {
+                success: true as const,
+                metadata: {
+                    ...payment.metadata,
+                    captureId: capture.id,
+                    captureStatus: capture.status,
+                },
+            };
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : String(err);
+            Logger.error(
+                `PayPal captureAuthorizedPayment failed: ${message}. Auth ID: ${authorizationId}`,
+                loggerCtx,
+            );
+            return {
+                success: false as const,
+                errorMessage: message,
+                metadata: { ...payment.metadata, errorMessage: message },
+            };
+        }
+    },
 });

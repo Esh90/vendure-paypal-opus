@@ -18,6 +18,7 @@ import {
 import { PayPalReportingAdminResolver } from './reporting/paypal-reporting.admin-resolver';
 import { PayPalReportingService } from './reporting/paypal-reporting.service';
 import { adminApiExtensions as reportingAdminApiExtensions } from './reporting/reporting-api-extensions';
+import { PayPalFulfillmentService } from './fulfillment/paypal-fulfillment.service';
 import { PayPalEnvironment, PayPalPluginOptions } from './types';
 
 /**
@@ -84,6 +85,7 @@ import { PayPalEnvironment, PayPalPluginOptions } from './types';
         PayPalService,
         PayPalSubscriptionService,
         PayPalReportingService,
+        PayPalFulfillmentService,
     ],
     configuration: config => {
         config.paymentOptions.paymentMethodHandlers.push(paypalPaymentMethodHandler);

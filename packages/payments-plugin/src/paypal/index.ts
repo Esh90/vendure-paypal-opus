@@ -27,3 +27,4 @@ export {
     PayPalReportingService,
     PayPalTransactionReport,
 } from './reporting/paypal-reporting.service';
+export { PayPalFulfillmentService } from './fulfillment/paypal-fulfillment.service';

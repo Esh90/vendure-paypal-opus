@@ -10,3 +10,4 @@ export { PayPalSubscriptionService } from './subscription/paypal-subscription.se
 export { payPalSubscriptionSyncTask } from './subscription/paypal-subscription-sync-task';
 export { CreatePayPalBillingPlanInput, PayPalBillingInterval, PayPalSubscriptionResult, UpdatePayPalBillingPlanInput, } from './subscription/subscription.types';
 export { PayPalBalanceReport, PayPalBalancesReport, PayPalReportingService, PayPalTransactionReport, } from './reporting/paypal-reporting.service';
+export { PayPalFulfillmentService } from './fulfillment/paypal-fulfillment.service';

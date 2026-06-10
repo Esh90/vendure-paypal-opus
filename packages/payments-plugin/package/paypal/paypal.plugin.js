@@ -24,6 +24,7 @@ const subscription_api_extensions_1 = require("./subscription/subscription-api-e
 const paypal_reporting_admin_resolver_1 = require("./reporting/paypal-reporting.admin-resolver");
 const paypal_reporting_service_1 = require("./reporting/paypal-reporting.service");
 const reporting_api_extensions_1 = require("./reporting/reporting-api-extensions");
+const paypal_fulfillment_service_1 = require("./fulfillment/paypal-fulfillment.service");
 /**
  * @description
  * Plugin to enable payments through [PayPal](https://developer.paypal.com/) using
@@ -112,6 +113,7 @@ exports.PayPalPlugin = PayPalPlugin = PayPalPlugin_1 = __decorate([
             paypal_service_1.PayPalService,
             paypal_subscription_service_1.PayPalSubscriptionService,
             paypal_reporting_service_1.PayPalReportingService,
+            paypal_fulfillment_service_1.PayPalFulfillmentService,
         ],
         configuration: config => {
             config.paymentOptions.paymentMethodHandlers.push(paypal_handler_1.paypalPaymentMethodHandler);

@@ -6,6 +6,7 @@ export {
     CaptureAuthorizationResult,
     CapturePayPalOrderResult,
     CreatePayPalOrderResult,
+    RefundCaptureResult,
     VoidAuthorizationResult,
 } from './paypal.service';
 export * from './types';

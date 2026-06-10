@@ -45,6 +45,13 @@ export interface CaptureAuthorizationResult {
 export interface VoidAuthorizationResult {
     authorizationStatus?: string;
 }
+/**
+ * The result of refunding a captured PayPal payment.
+ */
+export interface RefundCaptureResult {
+    refundId: string;
+    refundStatus: string;
+}
 export declare class PayPalService {
     private options;
     private paymentMethodService;
@@ -96,6 +103,16 @@ export declare class PayPalService {
      * Returns the authorization status when PayPal includes it (e.g. `VOIDED`).
      */
     voidAuthorization(ctx: RequestContext, authorizationId: string): Promise<VoidAuthorizationResult>;
+    /**
+     * Refunds a captured PayPal payment. When `amount` is omitted, the full
+     * captured amount is refunded; when provided, a partial refund of that
+     * amount is issued. Multiple partial refunds can be made against the same
+     * capture, up to the originally-captured total.
+     */
+    refundCapture(ctx: RequestContext, captureId: string, amount?: {
+        value: string;
+        currencyCode: string;
+    }): Promise<RefundCaptureResult>;
     /**
      * Returns the enabled `PaymentMethod` whose handler is the PayPal handler, or
      * throws if none exists.

@@ -216,6 +216,33 @@ let PayPalService = class PayPalService {
         }
     }
     /**
+     * Refunds a captured PayPal payment. When `amount` is omitted, the full
+     * captured amount is refunded; when provided, a partial refund of that
+     * amount is issued. Multiple partial refunds can be made against the same
+     * capture, up to the originally-captured total.
+     */
+    async refundCapture(ctx, captureId, amount) {
+        try {
+            const { result } = await this.getClient().payments.refundCapturedPayment({
+                captureId,
+                prefer: 'return=representation',
+                // Omitting the body issues a full refund; providing an amount
+                // issues a partial refund.
+                body: amount ? { amount } : {},
+            });
+            if (!result.id || !result.status) {
+                throw new core_1.InternalServerError(`PayPal refund of capture ${captureId} did not return a refund result`);
+            }
+            return {
+                refundId: result.id,
+                refundStatus: result.status,
+            };
+        }
+        catch (e) {
+            throw this.handleApiError(e, `Failed to refund PayPal capture ${captureId}`);
+        }
+    }
+    /**
      * Returns the enabled `PaymentMethod` whose handler is the PayPal handler, or
      * throws if none exists.
      */

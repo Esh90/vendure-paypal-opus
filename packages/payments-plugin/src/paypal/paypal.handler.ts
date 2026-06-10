@@ -1,9 +1,15 @@
-import { AuthorizationStatus, CaptureStatus, CheckoutPaymentIntent } from '@paypal/paypal-server-sdk';
+import {
+    AuthorizationStatus,
+    CaptureStatus,
+    CheckoutPaymentIntent,
+    RefundStatus,
+} from '@paypal/paypal-server-sdk';
 import {
     CancelPaymentErrorResult,
     CancelPaymentResult,
     CreatePaymentErrorResult,
     CreatePaymentResult,
+    CreateRefundResult,
     Injector,
     LanguageCode,
     Logger,
@@ -14,6 +20,7 @@ import {
 } from '@vendure/core';
 
 import { loggerCtx } from './constants';
+import { toPayPalAmount } from './paypal-utils';
 import { PayPalService } from './paypal.service';
 
 let paypalService: PayPalService;
@@ -185,6 +192,62 @@ export const paypalPaymentMethodHandler = new PaymentMethodHandler({
             return {
                 success: false,
                 errorMessage,
+            };
+        }
+    },
+
+    async createRefund(ctx, _input, amount, order, payment): Promise<CreateRefundResult> {
+        const captureId = payment.metadata?.captureId;
+        if (typeof captureId !== 'string' || captureId.length === 0) {
+            Logger.warn(
+                `Cannot refund payment ${payment.id} for order ${order.code}: missing captureId in metadata`,
+                loggerCtx,
+            );
+            return {
+                state: 'Failed',
+                metadata: {
+                    errorMessage: 'Cannot refund PayPal payment: missing captureId in payment metadata',
+                },
+            };
+        }
+
+        // A refund for the full payment amount is issued without an amount (full
+        // refund); a smaller amount issues a partial refund of the captured payment.
+        const isFullRefund = amount >= payment.amount;
+        const refundAmount = isFullRefund
+            ? undefined
+            : { value: toPayPalAmount(amount, order.currencyCode), currencyCode: order.currencyCode };
+
+        try {
+            const refund = await paypalService.refundCapture(ctx, captureId, refundAmount);
+            const metadata = {
+                refundId: refund.refundId,
+                refundStatus: refund.refundStatus,
+                fullRefund: isFullRefund,
+            };
+
+            if (refund.refundStatus === RefundStatus.Completed) {
+                return { state: 'Settled', transactionId: refund.refundId, metadata };
+            }
+            if (refund.refundStatus === RefundStatus.Pending) {
+                return { state: 'Pending', transactionId: refund.refundId, metadata };
+            }
+
+            Logger.warn(
+                `PayPal refund ${refund.refundId} for order ${order.code} returned status "${refund.refundStatus}"`,
+                loggerCtx,
+            );
+            return {
+                state: 'Failed',
+                transactionId: refund.refundId,
+                metadata: { ...metadata, errorMessage: `PayPal refund status: ${refund.refundStatus}` },
+            };
+        } catch (e) {
+            // e.g. capture already fully refunded (HTTP 422). Record a failed
+            // refund rather than failing the whole mutation.
+            return {
+                state: 'Failed',
+                metadata: { errorMessage: e instanceof Error ? e.message : String(e) },
             };
         }
     },

@@ -77,6 +77,14 @@ export interface VoidAuthorizationResult {
     authorizationStatus?: string;
 }
 
+/**
+ * The result of refunding a captured PayPal payment.
+ */
+export interface RefundCaptureResult {
+    refundId: string;
+    refundStatus: string;
+}
+
 @Injectable()
 export class PayPalService {
     private client: PayPalClient | undefined;
@@ -309,6 +317,40 @@ export class PayPalService {
                 e,
                 `Failed to void PayPal authorization ${authorizationId}`,
             );
+        }
+    }
+
+    /**
+     * Refunds a captured PayPal payment. When `amount` is omitted, the full
+     * captured amount is refunded; when provided, a partial refund of that
+     * amount is issued. Multiple partial refunds can be made against the same
+     * capture, up to the originally-captured total.
+     */
+    async refundCapture(
+        ctx: RequestContext,
+        captureId: string,
+        amount?: { value: string; currencyCode: string },
+    ): Promise<RefundCaptureResult> {
+        try {
+            const { result } = await this.getClient().payments.refundCapturedPayment({
+                captureId,
+                prefer: 'return=representation',
+                // Omitting the body issues a full refund; providing an amount
+                // issues a partial refund.
+                body: amount ? { amount } : {},
+            });
+
+            if (!result.id || !result.status) {
+                throw new InternalServerError(
+                    `PayPal refund of capture ${captureId} did not return a refund result`,
+                );
+            }
+            return {
+                refundId: result.id,
+                refundStatus: result.status,
+            };
+        } catch (e) {
+            throw this.handleApiError(e, `Failed to refund PayPal capture ${captureId}`);
         }
     }
 

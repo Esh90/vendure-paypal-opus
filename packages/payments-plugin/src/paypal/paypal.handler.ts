@@ -1,5 +1,7 @@
 import { AuthorizationStatus, CaptureStatus, CheckoutPaymentIntent } from '@paypal/paypal-server-sdk';
 import {
+    CancelPaymentErrorResult,
+    CancelPaymentResult,
     CreatePaymentErrorResult,
     CreatePaymentResult,
     Injector,
@@ -143,6 +145,48 @@ export const paypalPaymentMethodHandler = new PaymentMethodHandler({
                 captureStatus: capture.captureStatus,
             },
         };
+    },
+
+    async cancelPayment(
+        ctx,
+        order,
+        payment,
+    ): Promise<CancelPaymentResult | CancelPaymentErrorResult> {
+        const authorizationId = payment.metadata?.authorizationId;
+        if (typeof authorizationId !== 'string' || authorizationId.length === 0) {
+            // Only authorized (not-yet-captured) PayPal payments can be voided.
+            // A captured/settled payment must be refunded instead.
+            return {
+                success: false,
+                errorMessage:
+                    'Cannot void PayPal payment: missing authorizationId in payment metadata ' +
+                    '(only authorized, uncaptured payments can be cancelled)',
+            };
+        }
+
+        try {
+            const result = await paypalService.voidAuthorization(ctx, authorizationId);
+            Logger.verbose(
+                `Voided PayPal authorization ${authorizationId} for order ${order.code}`,
+                loggerCtx,
+            );
+            return {
+                success: true,
+                metadata: {
+                    voided: true,
+                    authorizationId,
+                    authorizationStatus: result.authorizationStatus ?? AuthorizationStatus.Voided,
+                },
+            };
+        } catch (e) {
+            // PayPal rejects voiding an already-captured authorization (HTTP 422);
+            // surface a clean error and leave the payment in its current state.
+            const errorMessage = e instanceof Error ? e.message : String(e);
+            return {
+                success: false,
+                errorMessage,
+            };
+        }
     },
 });
 

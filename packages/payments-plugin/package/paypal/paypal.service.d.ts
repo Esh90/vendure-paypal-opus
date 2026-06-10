@@ -38,6 +38,13 @@ export interface CaptureAuthorizationResult {
     captureId: string;
     captureStatus: string;
 }
+/**
+ * The result of voiding a previously-authorized PayPal payment. The status may be
+ * absent when PayPal returns an empty body for the void.
+ */
+export interface VoidAuthorizationResult {
+    authorizationStatus?: string;
+}
 export declare class PayPalService {
     private options;
     private paymentMethodService;
@@ -79,6 +86,16 @@ export declare class PayPalService {
      * authorization.
      */
     captureAuthorization(ctx: RequestContext, authorizationId: string): Promise<CaptureAuthorizationResult>;
+    /**
+     * Voids (cancels) a previously-authorized PayPal payment, releasing the
+     * reserved funds back to the buyer. This is only possible for authorizations
+     * that have not been fully captured; PayPal returns an error otherwise.
+     *
+     * A successful void may return an empty (HTTP 204) body, so success is
+     * inferred from the absence of an error rather than the returned status.
+     * Returns the authorization status when PayPal includes it (e.g. `VOIDED`).
+     */
+    voidAuthorization(ctx: RequestContext, authorizationId: string): Promise<VoidAuthorizationResult>;
     /**
      * Returns the enabled `PaymentMethod` whose handler is the PayPal handler, or
      * throws if none exists.

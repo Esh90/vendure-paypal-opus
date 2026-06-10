@@ -69,6 +69,14 @@ export interface CaptureAuthorizationResult {
     captureStatus: string;
 }
 
+/**
+ * The result of voiding a previously-authorized PayPal payment. The status may be
+ * absent when PayPal returns an empty body for the void.
+ */
+export interface VoidAuthorizationResult {
+    authorizationStatus?: string;
+}
+
 @Injectable()
 export class PayPalService {
     private client: PayPalClient | undefined;
@@ -273,6 +281,33 @@ export class PayPalService {
             throw this.handleApiError(
                 e,
                 `Failed to capture PayPal authorization ${authorizationId}`,
+            );
+        }
+    }
+
+    /**
+     * Voids (cancels) a previously-authorized PayPal payment, releasing the
+     * reserved funds back to the buyer. This is only possible for authorizations
+     * that have not been fully captured; PayPal returns an error otherwise.
+     *
+     * A successful void may return an empty (HTTP 204) body, so success is
+     * inferred from the absence of an error rather than the returned status.
+     * Returns the authorization status when PayPal includes it (e.g. `VOIDED`).
+     */
+    async voidAuthorization(
+        ctx: RequestContext,
+        authorizationId: string,
+    ): Promise<VoidAuthorizationResult> {
+        try {
+            const { result } = await this.getClient().payments.voidPayment({
+                authorizationId,
+                prefer: 'return=representation',
+            });
+            return { authorizationStatus: result?.status };
+        } catch (e) {
+            throw this.handleApiError(
+                e,
+                `Failed to void PayPal authorization ${authorizationId}`,
             );
         }
     }

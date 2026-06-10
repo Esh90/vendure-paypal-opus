@@ -6,6 +6,7 @@ export {
     CaptureAuthorizationResult,
     CapturePayPalOrderResult,
     CreatePayPalOrderResult,
+    VoidAuthorizationResult,
 } from './paypal.service';
 export * from './types';
 export { PAYPAL_PAYMENT_METHOD_CODE } from './constants';

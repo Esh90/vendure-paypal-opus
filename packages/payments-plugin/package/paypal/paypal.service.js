@@ -195,6 +195,27 @@ let PayPalService = class PayPalService {
         }
     }
     /**
+     * Voids (cancels) a previously-authorized PayPal payment, releasing the
+     * reserved funds back to the buyer. This is only possible for authorizations
+     * that have not been fully captured; PayPal returns an error otherwise.
+     *
+     * A successful void may return an empty (HTTP 204) body, so success is
+     * inferred from the absence of an error rather than the returned status.
+     * Returns the authorization status when PayPal includes it (e.g. `VOIDED`).
+     */
+    async voidAuthorization(ctx, authorizationId) {
+        try {
+            const { result } = await this.getClient().payments.voidPayment({
+                authorizationId,
+                prefer: 'return=representation',
+            });
+            return { authorizationStatus: result === null || result === void 0 ? void 0 : result.status };
+        }
+        catch (e) {
+            throw this.handleApiError(e, `Failed to void PayPal authorization ${authorizationId}`);
+        }
+    }
+    /**
      * Returns the enabled `PaymentMethod` whose handler is the PayPal handler, or
      * throws if none exists.
      */

@@ -110,6 +110,40 @@ exports.paypalPaymentMethodHandler = new core_1.PaymentMethodHandler({
             },
         };
     },
+    async cancelPayment(ctx, order, payment) {
+        var _a, _b;
+        const authorizationId = (_a = payment.metadata) === null || _a === void 0 ? void 0 : _a.authorizationId;
+        if (typeof authorizationId !== 'string' || authorizationId.length === 0) {
+            // Only authorized (not-yet-captured) PayPal payments can be voided.
+            // A captured/settled payment must be refunded instead.
+            return {
+                success: false,
+                errorMessage: 'Cannot void PayPal payment: missing authorizationId in payment metadata ' +
+                    '(only authorized, uncaptured payments can be cancelled)',
+            };
+        }
+        try {
+            const result = await paypalService.voidAuthorization(ctx, authorizationId);
+            core_1.Logger.verbose(`Voided PayPal authorization ${authorizationId} for order ${order.code}`, constants_1.loggerCtx);
+            return {
+                success: true,
+                metadata: {
+                    voided: true,
+                    authorizationId,
+                    authorizationStatus: (_b = result.authorizationStatus) !== null && _b !== void 0 ? _b : paypal_server_sdk_1.AuthorizationStatus.Voided,
+                },
+            };
+        }
+        catch (e) {
+            // PayPal rejects voiding an already-captured authorization (HTTP 422);
+            // surface a clean error and leave the payment in its current state.
+            const errorMessage = e instanceof Error ? e.message : String(e);
+            return {
+                success: false,
+                errorMessage,
+            };
+        }
+    },
 });
 /**
  * Immediate-capture flow (standard checkout): captures the approved PayPal order

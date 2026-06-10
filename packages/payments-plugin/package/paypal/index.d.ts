@@ -9,3 +9,4 @@ export { PayPalSubscription } from './subscription/paypal-subscription.entity';
 export { PayPalSubscriptionService } from './subscription/paypal-subscription.service';
 export { payPalSubscriptionSyncTask } from './subscription/paypal-subscription-sync-task';
 export { CreatePayPalBillingPlanInput, PayPalBillingInterval, PayPalSubscriptionResult, UpdatePayPalBillingPlanInput, } from './subscription/subscription.types';
+export { PayPalBalanceReport, PayPalBalancesReport, PayPalReportingService, PayPalTransactionReport, } from './reporting/paypal-reporting.service';

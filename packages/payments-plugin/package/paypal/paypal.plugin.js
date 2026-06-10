@@ -21,6 +21,9 @@ const paypal_subscription_service_1 = require("./subscription/paypal-subscriptio
 const paypal_subscription_shop_resolver_1 = require("./subscription/paypal-subscription.shop-resolver");
 const paypal_subscription_sync_task_1 = require("./subscription/paypal-subscription-sync-task");
 const subscription_api_extensions_1 = require("./subscription/subscription-api-extensions");
+const paypal_reporting_admin_resolver_1 = require("./reporting/paypal-reporting.admin-resolver");
+const paypal_reporting_service_1 = require("./reporting/paypal-reporting.service");
+const reporting_api_extensions_1 = require("./reporting/reporting-api-extensions");
 /**
  * @description
  * Plugin to enable payments through [PayPal](https://developer.paypal.com/) using
@@ -108,6 +111,7 @@ exports.PayPalPlugin = PayPalPlugin = PayPalPlugin_1 = __decorate([
             },
             paypal_service_1.PayPalService,
             paypal_subscription_service_1.PayPalSubscriptionService,
+            paypal_reporting_service_1.PayPalReportingService,
         ],
         configuration: config => {
             config.paymentOptions.paymentMethodHandlers.push(paypal_handler_1.paypalPaymentMethodHandler);
@@ -115,8 +119,11 @@ exports.PayPalPlugin = PayPalPlugin = PayPalPlugin_1 = __decorate([
             return config;
         },
         adminApiExtensions: {
-            schema: subscription_api_extensions_1.adminApiExtensions,
-            resolvers: [paypal_subscription_admin_resolver_1.PayPalSubscriptionAdminResolver],
+            schema: (0, graphql_tag_1.gql) `
+            ${subscription_api_extensions_1.adminApiExtensions}
+            ${reporting_api_extensions_1.adminApiExtensions}
+        `,
+            resolvers: [paypal_subscription_admin_resolver_1.PayPalSubscriptionAdminResolver, paypal_reporting_admin_resolver_1.PayPalReportingAdminResolver],
         },
         shopApiExtensions: {
             schema: (0, graphql_tag_1.gql) `

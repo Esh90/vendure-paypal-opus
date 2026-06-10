@@ -21,3 +21,9 @@ export {
     PayPalSubscriptionResult,
     UpdatePayPalBillingPlanInput,
 } from './subscription/subscription.types';
+export {
+    PayPalBalanceReport,
+    PayPalBalancesReport,
+    PayPalReportingService,
+    PayPalTransactionReport,
+} from './reporting/paypal-reporting.service';

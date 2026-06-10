@@ -14,7 +14,7 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
     for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.payPalSubscriptionSyncTask = exports.PayPalSubscriptionService = exports.PayPalSubscription = exports.PayPalBillingPlan = exports.PAYPAL_PAYMENT_METHOD_CODE = exports.PayPalService = exports.paypalPaymentMethodHandler = exports.PayPalPlugin = void 0;
+exports.PayPalReportingService = exports.payPalSubscriptionSyncTask = exports.PayPalSubscriptionService = exports.PayPalSubscription = exports.PayPalBillingPlan = exports.PAYPAL_PAYMENT_METHOD_CODE = exports.PayPalService = exports.paypalPaymentMethodHandler = exports.PayPalPlugin = void 0;
 var paypal_plugin_1 = require("./paypal.plugin");
 Object.defineProperty(exports, "PayPalPlugin", { enumerable: true, get: function () { return paypal_plugin_1.PayPalPlugin; } });
 var paypal_handler_1 = require("./paypal.handler");
@@ -32,4 +32,6 @@ var paypal_subscription_service_1 = require("./subscription/paypal-subscription.
 Object.defineProperty(exports, "PayPalSubscriptionService", { enumerable: true, get: function () { return paypal_subscription_service_1.PayPalSubscriptionService; } });
 var paypal_subscription_sync_task_1 = require("./subscription/paypal-subscription-sync-task");
 Object.defineProperty(exports, "payPalSubscriptionSyncTask", { enumerable: true, get: function () { return paypal_subscription_sync_task_1.payPalSubscriptionSyncTask; } });
+var paypal_reporting_service_1 = require("./reporting/paypal-reporting.service");
+Object.defineProperty(exports, "PayPalReportingService", { enumerable: true, get: function () { return paypal_reporting_service_1.PayPalReportingService; } });
 //# sourceMappingURL=index.js.map

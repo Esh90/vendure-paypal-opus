@@ -15,6 +15,9 @@ import {
     adminApiExtensions as subscriptionAdminApiExtensions,
     shopApiExtensions as subscriptionShopApiExtensions,
 } from './subscription/subscription-api-extensions';
+import { PayPalReportingAdminResolver } from './reporting/paypal-reporting.admin-resolver';
+import { PayPalReportingService } from './reporting/paypal-reporting.service';
+import { adminApiExtensions as reportingAdminApiExtensions } from './reporting/reporting-api-extensions';
 import { PayPalEnvironment, PayPalPluginOptions } from './types';
 
 /**
@@ -80,6 +83,7 @@ import { PayPalEnvironment, PayPalPluginOptions } from './types';
         },
         PayPalService,
         PayPalSubscriptionService,
+        PayPalReportingService,
     ],
     configuration: config => {
         config.paymentOptions.paymentMethodHandlers.push(paypalPaymentMethodHandler);
@@ -87,8 +91,11 @@ import { PayPalEnvironment, PayPalPluginOptions } from './types';
         return config;
     },
     adminApiExtensions: {
-        schema: subscriptionAdminApiExtensions,
-        resolvers: [PayPalSubscriptionAdminResolver],
+        schema: gql`
+            ${subscriptionAdminApiExtensions}
+            ${reportingAdminApiExtensions}
+        `,
+        resolvers: [PayPalSubscriptionAdminResolver, PayPalReportingAdminResolver],
     },
     shopApiExtensions: {
         schema: gql`

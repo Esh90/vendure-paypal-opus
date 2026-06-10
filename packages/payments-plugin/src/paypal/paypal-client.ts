@@ -5,6 +5,7 @@ import {
     OrdersController,
     PaymentsController,
     SubscriptionsController,
+    TransactionSearchController,
 } from '@paypal/paypal-server-sdk';
 
 import { PayPalPluginOptions } from './types';
@@ -21,6 +22,7 @@ export class PayPalClient {
     readonly orders: OrdersController;
     readonly payments: PaymentsController;
     readonly subscriptions: SubscriptionsController;
+    readonly transactionSearch: TransactionSearchController;
 
     constructor(options: PayPalPluginOptions) {
         const client = new Client({
@@ -40,5 +42,6 @@ export class PayPalClient {
         this.orders = new OrdersController(client);
         this.payments = new PaymentsController(client);
         this.subscriptions = new SubscriptionsController(client);
+        this.transactionSearch = new TransactionSearchController(client);
     }
 }

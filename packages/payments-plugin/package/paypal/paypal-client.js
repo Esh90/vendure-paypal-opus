@@ -28,6 +28,7 @@ class PayPalClient {
         this.orders = new paypal_server_sdk_1.OrdersController(client);
         this.payments = new paypal_server_sdk_1.PaymentsController(client);
         this.subscriptions = new paypal_server_sdk_1.SubscriptionsController(client);
+        this.transactionSearch = new paypal_server_sdk_1.TransactionSearchController(client);
     }
 }
 exports.PayPalClient = PayPalClient;

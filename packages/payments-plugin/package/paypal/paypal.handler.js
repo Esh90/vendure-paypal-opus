@@ -1,30 +1,19 @@
-import { AuthorizationStatus, CaptureStatus, CheckoutPaymentIntent } from '@paypal/paypal-server-sdk';
-import {
-    CreatePaymentErrorResult,
-    CreatePaymentResult,
-    Injector,
-    LanguageCode,
-    Logger,
-    PaymentMethodHandler,
-    RequestContext,
-    SettlePaymentErrorResult,
-    SettlePaymentResult,
-} from '@vendure/core';
-
-import { loggerCtx } from './constants';
-import { PayPalService } from './paypal.service';
-
-let paypalService: PayPalService;
-
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.paypalPaymentMethodHandler = void 0;
+const paypal_server_sdk_1 = require("@paypal/paypal-server-sdk");
+const core_1 = require("@vendure/core");
+const constants_1 = require("./constants");
+const paypal_service_1 = require("./paypal.service");
+let paypalService;
 /**
  * Reads the `paypalOrderId` (set by the storefront in the `addPaymentToOrder`
  * metadata) and validates it is a non-empty string.
  */
-function getPayPalOrderId(metadata: Record<string, any>): string | undefined {
+function getPayPalOrderId(metadata) {
     const value = metadata.paypalOrderId;
     return typeof value === 'string' && value.length > 0 ? value : undefined;
 }
-
 /**
  * The handler for PayPal payments. A single handler supports both checkout flows,
  * selected via the `intent` argument on the payment method:
@@ -39,48 +28,37 @@ function getPayPalOrderId(metadata: Record<string, any>): string | undefined {
  * `createPayPalOrder` mutation; the storefront then calls `addPaymentToOrder`
  * passing the approved PayPal order id in `metadata.paypalOrderId`.
  */
-export const paypalPaymentMethodHandler = new PaymentMethodHandler({
+exports.paypalPaymentMethodHandler = new core_1.PaymentMethodHandler({
     code: 'paypal',
-
-    description: [{ languageCode: LanguageCode.en, value: 'PayPal payments' }],
-
+    description: [{ languageCode: core_1.LanguageCode.en, value: 'PayPal payments' }],
     args: {
         intent: {
             type: 'string',
             defaultValue: 'capture',
-            label: [{ languageCode: LanguageCode.en, value: 'Payment intent' }],
+            label: [{ languageCode: core_1.LanguageCode.en, value: 'Payment intent' }],
             description: [
                 {
-                    languageCode: LanguageCode.en,
-                    value:
-                        'Whether funds are captured immediately ("capture") or only reserved and ' +
+                    languageCode: core_1.LanguageCode.en,
+                    value: 'Whether funds are captured immediately ("capture") or only reserved and ' +
                         'captured later on fulfilment ("authorize").',
                 },
             ],
             ui: {
                 component: 'select-form-input',
                 options: [
-                    { value: 'capture', label: [{ languageCode: LanguageCode.en, value: 'Capture (immediate)' }] },
+                    { value: 'capture', label: [{ languageCode: core_1.LanguageCode.en, value: 'Capture (immediate)' }] },
                     {
                         value: 'authorize',
-                        label: [{ languageCode: LanguageCode.en, value: 'Authorize (capture on fulfilment)' }],
+                        label: [{ languageCode: core_1.LanguageCode.en, value: 'Authorize (capture on fulfilment)' }],
                     },
                 ],
             },
         },
     },
-
-    init(injector: Injector) {
-        paypalService = injector.get(PayPalService);
+    init(injector) {
+        paypalService = injector.get(paypal_service_1.PayPalService);
     },
-
-    async createPayment(
-        ctx,
-        order,
-        amount,
-        _args,
-        metadata,
-    ): Promise<CreatePaymentResult | CreatePaymentErrorResult> {
+    async createPayment(ctx, order, amount, _args, metadata) {
         const paypalOrderId = getPayPalOrderId(metadata);
         if (!paypalOrderId) {
             return {
@@ -89,25 +67,19 @@ export const paypalPaymentMethodHandler = new PaymentMethodHandler({
                 errorMessage: 'Missing required metadata field "paypalOrderId"',
             };
         }
-
         // The action (capture vs authorize) is driven by the PayPal order's actual
         // intent rather than the payment method config, guaranteeing the action
         // always matches how the order was created (avoids HTTP 422
         // ACTION_DOES_NOT_MATCH_INTENT).
         const intent = await paypalService.getOrderIntent(ctx, paypalOrderId);
-        if (intent === CheckoutPaymentIntent.Authorize) {
+        if (intent === paypal_server_sdk_1.CheckoutPaymentIntent.Authorize) {
             return createAuthorizedPayment(ctx, order.code, amount, paypalOrderId);
         }
         return createCapturedPayment(ctx, order.code, amount, paypalOrderId);
     },
-
-    async settlePayment(
-        ctx,
-        order,
-        payment,
-        _args,
-    ): Promise<SettlePaymentResult | SettlePaymentErrorResult> {
-        const authorizationId = payment.metadata?.authorizationId;
+    async settlePayment(ctx, order, payment, _args) {
+        var _a;
+        const authorizationId = (_a = payment.metadata) === null || _a === void 0 ? void 0 : _a.authorizationId;
         if (typeof authorizationId !== 'string' || authorizationId.length === 0) {
             // A payment reaching settlePayment is an authorized (two-step) payment
             // and must carry an authorizationId. Capture-flow payments are created
@@ -115,13 +87,11 @@ export const paypalPaymentMethodHandler = new PaymentMethodHandler({
             // rather than marking the payment Settled without capturing funds.
             return {
                 success: false,
-                errorMessage:
-                    'Cannot settle PayPal payment: missing authorizationId in payment metadata',
+                errorMessage: 'Cannot settle PayPal payment: missing authorizationId in payment metadata',
             };
         }
-
         const capture = await paypalService.captureAuthorization(ctx, authorizationId);
-        if (capture.captureStatus === CaptureStatus.Completed) {
+        if (capture.captureStatus === paypal_server_sdk_1.CaptureStatus.Completed) {
             return {
                 success: true,
                 metadata: {
@@ -130,11 +100,7 @@ export const paypalPaymentMethodHandler = new PaymentMethodHandler({
                 },
             };
         }
-
-        Logger.warn(
-            `PayPal capture ${capture.captureId} for order ${order.code} returned status "${capture.captureStatus}"`,
-            loggerCtx,
-        );
+        core_1.Logger.warn(`PayPal capture ${capture.captureId} for order ${order.code} returned status "${capture.captureStatus}"`, constants_1.loggerCtx);
         return {
             success: false,
             errorMessage: `PayPal capture was not completed (status: ${capture.captureStatus})`,
@@ -145,17 +111,11 @@ export const paypalPaymentMethodHandler = new PaymentMethodHandler({
         };
     },
 });
-
 /**
  * Immediate-capture flow (standard checkout): captures the approved PayPal order
  * and settles the payment in one step.
  */
-async function createCapturedPayment(
-    ctx: RequestContext,
-    orderCode: string,
-    amount: number,
-    paypalOrderId: string,
-): Promise<CreatePaymentResult | CreatePaymentErrorResult> {
+async function createCapturedPayment(ctx, orderCode, amount, paypalOrderId) {
     const capture = await paypalService.captureOrder(ctx, paypalOrderId);
     const paymentMetadata = {
         paypalOrderId,
@@ -163,8 +123,7 @@ async function createCapturedPayment(
         captureStatus: capture.captureStatus,
         orderStatus: capture.orderStatus,
     };
-
-    if (capture.captureStatus === CaptureStatus.Completed) {
+    if (capture.captureStatus === paypal_server_sdk_1.CaptureStatus.Completed) {
         return {
             amount: capture.amount,
             state: 'Settled',
@@ -172,11 +131,7 @@ async function createCapturedPayment(
             metadata: paymentMetadata,
         };
     }
-
-    Logger.warn(
-        `PayPal capture ${capture.captureId} for order ${orderCode} returned status "${capture.captureStatus}"`,
-        loggerCtx,
-    );
+    core_1.Logger.warn(`PayPal capture ${capture.captureId} for order ${orderCode} returned status "${capture.captureStatus}"`, constants_1.loggerCtx);
     return {
         amount: capture.amount,
         state: 'Declined',
@@ -185,17 +140,11 @@ async function createCapturedPayment(
         metadata: paymentMetadata,
     };
 }
-
 /**
  * Authorize-then-capture flow: authorizes (reserves) the funds for the approved
  * PayPal order, leaving the payment in the `Authorized` state for later capture.
  */
-async function createAuthorizedPayment(
-    ctx: RequestContext,
-    orderCode: string,
-    amount: number,
-    paypalOrderId: string,
-): Promise<CreatePaymentResult | CreatePaymentErrorResult> {
+async function createAuthorizedPayment(ctx, orderCode, amount, paypalOrderId) {
     const authorization = await paypalService.authorizeOrder(ctx, paypalOrderId);
     const paymentMetadata = {
         paypalOrderId,
@@ -203,8 +152,7 @@ async function createAuthorizedPayment(
         authorizationStatus: authorization.authorizationStatus,
         orderStatus: authorization.orderStatus,
     };
-
-    if (authorization.authorizationStatus === AuthorizationStatus.Created) {
+    if (authorization.authorizationStatus === paypal_server_sdk_1.AuthorizationStatus.Created) {
         return {
             amount,
             state: 'Authorized',
@@ -212,11 +160,7 @@ async function createAuthorizedPayment(
             metadata: paymentMetadata,
         };
     }
-
-    Logger.warn(
-        `PayPal authorization ${authorization.authorizationId} for order ${orderCode} returned status "${authorization.authorizationStatus}"`,
-        loggerCtx,
-    );
+    core_1.Logger.warn(`PayPal authorization ${authorization.authorizationId} for order ${orderCode} returned status "${authorization.authorizationStatus}"`, constants_1.loggerCtx);
     return {
         amount,
         state: 'Declined',
@@ -225,3 +169,4 @@ async function createAuthorizedPayment(
         metadata: paymentMetadata,
     };
 }
+//# sourceMappingURL=paypal.handler.js.map

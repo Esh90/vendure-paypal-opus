@@ -21,7 +21,6 @@ import { DashboardPlugin } from '@vendure/dashboard/plugin';
 import { defaultEmailHandlers, EmailPlugin, FileBasedTemplateLoader } from '@vendure/email-plugin';
 import { GraphiqlPlugin } from '@vendure/graphiql-plugin';
 import { PayPalPlugin } from '@vendure/payments-plugin/package/paypal';
-import { SentryPlugin } from '@vendure/sentry-plugin';
 import { TelemetryPlugin } from '@vendure/telemetry-plugin';
 import 'dotenv/config';
 import path from 'path';
@@ -84,7 +83,7 @@ export const devConfig: VendureConfig = {
     },
     authOptions: {
         disableAuth: false,
-        tokenMethod: ['bearer', 'cookie', 'api-key'] as const,
+        tokenMethod: ['bearer', 'cookie'] as const,
         requireVerification: true,
         customPermissions: [],
         cookieOptions: {

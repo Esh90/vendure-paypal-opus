@@ -5,6 +5,7 @@ import {
     Order as PayPalOrder,
     OrderApplicationContextShippingPreference,
     OrderApplicationContextUserAction,
+    OrderAuthorizeResponse,
 } from '@paypal/paypal-server-sdk';
 import {
     InternalServerError,
@@ -25,7 +26,7 @@ import {
 import { PayPalClient } from './paypal-client';
 import { paypalPaymentMethodHandler } from './paypal.handler';
 import { fromPayPalAmount, toPayPalAmount } from './paypal-utils';
-import { PayPalPluginOptions } from './types';
+import { PayPalPaymentIntent, PayPalPluginOptions } from './types';
 
 /**
  * The result of creating a PayPal order, returned to the storefront so it can
@@ -50,6 +51,24 @@ export interface CapturePayPalOrderResult {
     currencyCode: string;
 }
 
+/**
+ * The result of authorizing a PayPal order, used by the payment handler to record
+ * an authorized (not yet captured) payment against the Vendure order.
+ */
+export interface AuthorizePayPalOrderResult {
+    orderStatus: string;
+    authorizationId: string;
+    authorizationStatus: string;
+}
+
+/**
+ * The result of capturing a previously-authorized PayPal payment.
+ */
+export interface CaptureAuthorizationResult {
+    captureId: string;
+    captureStatus: string;
+}
+
 @Injectable()
 export class PayPalService {
     private client: PayPalClient | undefined;
@@ -61,12 +80,15 @@ export class PayPalService {
     ) {}
 
     /**
-     * Creates a PayPal order with `CAPTURE` intent for the given Vendure order.
-     * The returned order is in the `CREATED` state and must be approved by the
-     * buyer before it can be captured.
+     * Creates a PayPal order for the given Vendure order. The order's intent
+     * (`CAPTURE` or `AUTHORIZE`) is taken from the configured PayPal payment
+     * method. The returned order is in the `CREATED` state and must be approved
+     * by the buyer before it can be captured or authorized.
      */
     async createOrder(ctx: RequestContext, order: Order): Promise<CreatePayPalOrderResult> {
-        await this.assertPaymentMethodEligible(ctx, order);
+        const method = await this.getPaymentMethod(ctx);
+        await this.assertPaymentMethodEligible(ctx, order, method);
+        const intent = this.getConfiguredIntent(method);
 
         const currencyCode = order.currencyCode;
         const value = toPayPalAmount(order.totalWithTax, currencyCode);
@@ -75,7 +97,7 @@ export class PayPalService {
         try {
             const { result } = await this.getClient().orders.createOrder({
                 body: {
-                    intent: CheckoutPaymentIntent.Capture,
+                    intent,
                     purchaseUnits: [
                         {
                             referenceId: 'default',
@@ -98,9 +120,9 @@ export class PayPalService {
                     },
                 },
                 prefer: 'return=representation',
-                // Idempotency key: the same cart total yields the same PayPal order,
-                // preventing duplicate orders if the storefront retries the call.
-                paypalRequestId: `create-${order.code}-${currencyCode}-${value}`,
+                // Idempotency key: the same cart total + intent yields the same PayPal
+                // order, preventing duplicate orders if the storefront retries the call.
+                paypalRequestId: `create-${order.code}-${intent}-${currencyCode}-${value}`,
             });
 
             if (!result.id) {
@@ -123,6 +145,24 @@ export class PayPalService {
             };
         } catch (e) {
             throw this.handleApiError(e, `Failed to create PayPal order for order ${order.code}`);
+        }
+    }
+
+    /**
+     * Retrieves the intent (`CAPTURE` or `AUTHORIZE`) that a PayPal order was
+     * created with. This is the authoritative source of truth for how an
+     * approved order must be processed, ensuring the capture/authorize action
+     * always matches the order and avoiding `ACTION_DOES_NOT_MATCH_INTENT`
+     * (HTTP 422) errors.
+     */
+    async getOrderIntent(ctx: RequestContext, paypalOrderId: string): Promise<CheckoutPaymentIntent> {
+        try {
+            const { result } = await this.getClient().orders.getOrder({ id: paypalOrderId });
+            return result.intent === CheckoutPaymentIntent.Authorize
+                ? CheckoutPaymentIntent.Authorize
+                : CheckoutPaymentIntent.Capture;
+        } catch (e) {
+            throw this.handleApiError(e, `Failed to retrieve PayPal order ${paypalOrderId}`);
         }
     }
 
@@ -166,6 +206,78 @@ export class PayPalService {
     }
 
     /**
+     * Authorizes a previously-approved PayPal order, reserving the funds without
+     * capturing them. The returned authorization can later be captured (on
+     * fulfilment) via {@link captureAuthorization} or voided via
+     * {@link voidAuthorization}.
+     */
+    async authorizeOrder(ctx: RequestContext, paypalOrderId: string): Promise<AuthorizePayPalOrderResult> {
+        try {
+            const { result } = await this.getClient().orders.authorizeOrder({
+                id: paypalOrderId,
+                prefer: 'return=representation',
+            });
+
+            return this.extractAuthorizeResult(result, paypalOrderId);
+        } catch (e) {
+            throw this.handleApiError(e, `Failed to authorize PayPal order ${paypalOrderId}`);
+        }
+    }
+
+    private extractAuthorizeResult(
+        result: OrderAuthorizeResponse,
+        paypalOrderId: string,
+    ): AuthorizePayPalOrderResult {
+        const authorization = result.purchaseUnits?.[0]?.payments?.authorizations?.[0];
+        if (!authorization?.id || !authorization.status) {
+            throw new InternalServerError(
+                `PayPal authorization for order ${paypalOrderId} did not return an authorization result`,
+            );
+        }
+        return {
+            orderStatus: result.status ?? 'unknown',
+            authorizationId: authorization.id,
+            authorizationStatus: authorization.status,
+        };
+    }
+
+    /**
+     * Captures the full amount of a previously-authorized PayPal payment. This is
+     * a final capture, meaning no further captures can be made against the
+     * authorization.
+     */
+    async captureAuthorization(
+        ctx: RequestContext,
+        authorizationId: string,
+    ): Promise<CaptureAuthorizationResult> {
+        try {
+            const { result } = await this.getClient().payments.captureAuthorizedPayment({
+                authorizationId,
+                prefer: 'return=representation',
+                // Omitting `amount` captures the full authorized amount.
+                body: {
+                    finalCapture: true,
+                },
+            });
+
+            if (!result.id || !result.status) {
+                throw new InternalServerError(
+                    `PayPal capture of authorization ${authorizationId} did not return a capture result`,
+                );
+            }
+            return {
+                captureId: result.id,
+                captureStatus: result.status,
+            };
+        } catch (e) {
+            throw this.handleApiError(
+                e,
+                `Failed to capture PayPal authorization ${authorizationId}`,
+            );
+        }
+    }
+
+    /**
      * Returns the enabled `PaymentMethod` whose handler is the PayPal handler, or
      * throws if none exists.
      */
@@ -180,20 +292,31 @@ export class PayPalService {
     }
 
     /**
-     * Ensures that an enabled PayPal payment method exists and is eligible for the
-     * given order before a PayPal order is created.
+     * Ensures that the given PayPal payment method is eligible for the order
+     * before a PayPal order is created.
      */
-    private async assertPaymentMethodEligible(ctx: RequestContext, order: Order): Promise<void> {
-        const [paypalMethod, eligibleMethods] = await Promise.all([
-            this.getPaymentMethod(ctx),
-            this.paymentMethodService.getEligiblePaymentMethods(ctx, order),
-        ]);
+    private async assertPaymentMethodEligible(
+        ctx: RequestContext,
+        order: Order,
+        paypalMethod: PaymentMethod,
+    ): Promise<void> {
+        const eligibleMethods = await this.paymentMethodService.getEligiblePaymentMethods(ctx, order);
         const isEligible = eligibleMethods.some(pm => pm.code === paypalMethod.code);
         if (!isEligible) {
             throw new UserInputError(
                 `PayPal payment method is not eligible for order ${order.code}`,
             );
         }
+    }
+
+    /**
+     * Reads the configured checkout intent (`capture` or `authorize`) from the
+     * PayPal payment method's handler arguments, defaulting to `capture`.
+     */
+    private getConfiguredIntent(method: PaymentMethod): CheckoutPaymentIntent {
+        const value = method.handler.args.find(arg => arg.name === 'intent')?.value;
+        const intent: PayPalPaymentIntent = value === 'authorize' ? 'authorize' : 'capture';
+        return intent === 'authorize' ? CheckoutPaymentIntent.Authorize : CheckoutPaymentIntent.Capture;
     }
 
     /**

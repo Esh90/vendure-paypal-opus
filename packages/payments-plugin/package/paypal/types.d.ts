@@ -7,7 +7,6 @@
  * @docsPage PayPalPlugin
  */
 export type PayPalEnvironment = 'sandbox' | 'production';
-
 /**
  * @description
  * The checkout intent configured on the PayPal payment method, which determines
@@ -22,7 +21,6 @@ export type PayPalEnvironment = 'sandbox' | 'production';
  * @docsPage PayPalPlugin
  */
 export type PayPalPaymentIntent = 'capture' | 'authorize';
-
 /**
  * @description
  * Configuration options for the {@link PayPalPlugin}.

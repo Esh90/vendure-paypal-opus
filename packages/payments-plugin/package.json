@@ -29,6 +29,7 @@
     },
     "peerDependencies": {
         "@mollie/api-client": "4.x",
+        "@paypal/paypal-server-sdk": "1.x || 2.x",
         "braintree": "3.x",
         "stripe": "13.x"
     },
@@ -37,6 +38,9 @@
     },
     "peerDependenciesMeta": {
         "@mollie/api-client": {
+            "optional": true
+        },
+        "@paypal/paypal-server-sdk": {
             "optional": true
         },
         "braintree": {
@@ -48,6 +52,7 @@
     },
     "devDependencies": {
         "@mollie/api-client": "^4.3.3",
+        "@paypal/paypal-server-sdk": "^2.4.0",
         "@types/braintree": "^3.3.11",
         "@types/localtunnel": "2.0.4",
         "@vendure/common": "3.5.5",

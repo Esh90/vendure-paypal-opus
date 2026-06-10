@@ -15,6 +15,7 @@ import {
 import { DashboardPlugin } from '@vendure/dashboard/plugin';
 import { defaultEmailHandlers, EmailPlugin, FileBasedTemplateLoader } from '@vendure/email-plugin';
 import { GraphiqlPlugin } from '@vendure/graphiql-plugin';
+import { PayPalPlugin } from '@vendure/payments-plugin/package/paypal';
 import { SentryPlugin } from '@vendure/sentry-plugin';
 import { TelemetryPlugin } from '@vendure/telemetry-plugin';
 import 'dotenv/config';
@@ -113,6 +114,15 @@ export const devConfig: VendureConfig = {
                 changeEmailAddressUrl: 'http://localhost:4201/change-email-address',
             },
         }),
+        ...(process.env.PAYPAL_CLIENT_ID && process.env.PAYPAL_CLIENT_SECRET
+            ? [
+                  PayPalPlugin.init({
+                      environment: 'sandbox',
+                      returnUrl: 'http://localhost:3000/checkout/paypal/return',
+                      cancelUrl: 'http://localhost:3000/checkout/paypal/cancel',
+                  }),
+              ]
+            : []),
         ...(IS_INSTRUMENTED ? [TelemetryPlugin.init({})] : []),
         ...(process.env.ENABLE_SENTRY === 'true' && process.env.SENTRY_DSN
             ? [

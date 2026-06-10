@@ -416,7 +416,12 @@ export class PayPalService {
         return { returnUrl, cancelUrl };
     }
 
-    private getClient(): PayPalClient {
+    /**
+     * Returns the shared, lazily-instantiated PayPal client. The underlying SDK
+     * manages the OAuth token lifecycle, so a single instance is reused across
+     * the payment and subscription modules.
+     */
+    getClient(): PayPalClient {
         if (!this.client) {
             this.client = new PayPalClient(this.options);
         }

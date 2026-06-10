@@ -291,6 +291,11 @@ let PayPalService = class PayPalService {
         }
         return { returnUrl, cancelUrl };
     }
+    /**
+     * Returns the shared, lazily-instantiated PayPal client. The underlying SDK
+     * manages the OAuth token lifecycle, so a single instance is reused across
+     * the payment and subscription modules.
+     */
     getClient() {
         if (!this.client) {
             this.client = new paypal_client_1.PayPalClient(this.options);

@@ -1,4 +1,4 @@
-import { OrdersController, PaymentsController } from '@paypal/paypal-server-sdk';
+import { OrdersController, PaymentsController, SubscriptionsController } from '@paypal/paypal-server-sdk';
 import { PayPalPluginOptions } from './types';
 /**
  * A thin wrapper around the PayPal Server SDK {@link Client} that pre-instantiates
@@ -9,5 +9,6 @@ import { PayPalPluginOptions } from './types';
 export declare class PayPalClient {
     readonly orders: OrdersController;
     readonly payments: PaymentsController;
+    readonly subscriptions: SubscriptionsController;
     constructor(options: PayPalPluginOptions);
 }

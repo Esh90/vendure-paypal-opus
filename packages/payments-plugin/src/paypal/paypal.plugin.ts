@@ -5,6 +5,16 @@ import { PAYPAL_PLUGIN_OPTIONS } from './constants';
 import { paypalPaymentMethodHandler } from './paypal.handler';
 import { PayPalShopResolver } from './paypal.resolver';
 import { PayPalService } from './paypal.service';
+import { PayPalBillingPlan } from './subscription/paypal-billing-plan.entity';
+import { PayPalSubscription } from './subscription/paypal-subscription.entity';
+import { PayPalSubscriptionAdminResolver } from './subscription/paypal-subscription.admin-resolver';
+import { PayPalSubscriptionService } from './subscription/paypal-subscription.service';
+import { PayPalSubscriptionShopResolver } from './subscription/paypal-subscription.shop-resolver';
+import { payPalSubscriptionSyncTask } from './subscription/paypal-subscription-sync-task';
+import {
+    adminApiExtensions as subscriptionAdminApiExtensions,
+    shopApiExtensions as subscriptionShopApiExtensions,
+} from './subscription/subscription-api-extensions';
 import { PayPalEnvironment, PayPalPluginOptions } from './types';
 
 /**
@@ -62,19 +72,27 @@ import { PayPalEnvironment, PayPalPluginOptions } from './types';
  */
 @VendurePlugin({
     imports: [PluginCommonModule],
+    entities: [PayPalBillingPlan, PayPalSubscription],
     providers: [
         {
             provide: PAYPAL_PLUGIN_OPTIONS,
             useFactory: (): PayPalPluginOptions => PayPalPlugin.options,
         },
         PayPalService,
+        PayPalSubscriptionService,
     ],
     configuration: config => {
         config.paymentOptions.paymentMethodHandlers.push(paypalPaymentMethodHandler);
+        config.schedulerOptions.tasks.push(payPalSubscriptionSyncTask);
         return config;
+    },
+    adminApiExtensions: {
+        schema: subscriptionAdminApiExtensions,
+        resolvers: [PayPalSubscriptionAdminResolver],
     },
     shopApiExtensions: {
         schema: gql`
+            ${subscriptionShopApiExtensions}
             type PayPalOrderResult {
                 id: String!
                 status: String!
@@ -84,9 +102,9 @@ import { PayPalEnvironment, PayPalPluginOptions } from './types';
                 createPayPalOrder: PayPalOrderResult!
             }
         `,
-        resolvers: [PayPalShopResolver],
+        resolvers: [PayPalShopResolver, PayPalSubscriptionShopResolver],
     },
-    exports: [PayPalService],
+    exports: [PayPalService, PayPalSubscriptionService],
     compatibility: '^3.0.0',
 })
 export class PayPalPlugin {

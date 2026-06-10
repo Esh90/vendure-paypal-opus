@@ -4,6 +4,7 @@ import {
     LogLevel,
     OrdersController,
     PaymentsController,
+    SubscriptionsController,
 } from '@paypal/paypal-server-sdk';
 
 import { PayPalPluginOptions } from './types';
@@ -19,6 +20,7 @@ const DEFAULT_API_TIMEOUT = 30_000;
 export class PayPalClient {
     readonly orders: OrdersController;
     readonly payments: PaymentsController;
+    readonly subscriptions: SubscriptionsController;
 
     constructor(options: PayPalPluginOptions) {
         const client = new Client({
@@ -37,5 +39,6 @@ export class PayPalClient {
         });
         this.orders = new OrdersController(client);
         this.payments = new PaymentsController(client);
+        this.subscriptions = new SubscriptionsController(client);
     }
 }

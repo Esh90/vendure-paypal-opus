@@ -1,5 +1,6 @@
 import { CheckoutPaymentIntent } from '@paypal/paypal-server-sdk';
 import { Order, PaymentMethod, PaymentMethodService, RequestContext } from '@vendure/core';
+import { PayPalClient } from './paypal-client';
 import { PayPalPluginOptions } from './types';
 /**
  * The result of creating a PayPal order, returned to the storefront so it can
@@ -135,7 +136,12 @@ export declare class PayPalService {
      * storefront URLs should be configured for production.
      */
     private resolveRedirectUrls;
-    private getClient;
+    /**
+     * Returns the shared, lazily-instantiated PayPal client. The underlying SDK
+     * manages the OAuth token lifecycle, so a single instance is reused across
+     * the payment and subscription modules.
+     */
+    getClient(): PayPalClient;
     /**
      * Normalises errors thrown by the PayPal SDK into a logged Vendure error. The
      * original PayPal error body is logged for troubleshooting, while a concise

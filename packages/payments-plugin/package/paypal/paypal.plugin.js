@@ -14,6 +14,13 @@ const constants_1 = require("./constants");
 const paypal_handler_1 = require("./paypal.handler");
 const paypal_resolver_1 = require("./paypal.resolver");
 const paypal_service_1 = require("./paypal.service");
+const paypal_billing_plan_entity_1 = require("./subscription/paypal-billing-plan.entity");
+const paypal_subscription_entity_1 = require("./subscription/paypal-subscription.entity");
+const paypal_subscription_admin_resolver_1 = require("./subscription/paypal-subscription.admin-resolver");
+const paypal_subscription_service_1 = require("./subscription/paypal-subscription.service");
+const paypal_subscription_shop_resolver_1 = require("./subscription/paypal-subscription.shop-resolver");
+const paypal_subscription_sync_task_1 = require("./subscription/paypal-subscription-sync-task");
+const subscription_api_extensions_1 = require("./subscription/subscription-api-extensions");
 /**
  * @description
  * Plugin to enable payments through [PayPal](https://developer.paypal.com/) using
@@ -93,19 +100,27 @@ exports.PayPalPlugin = PayPalPlugin;
 exports.PayPalPlugin = PayPalPlugin = PayPalPlugin_1 = __decorate([
     (0, core_1.VendurePlugin)({
         imports: [core_1.PluginCommonModule],
+        entities: [paypal_billing_plan_entity_1.PayPalBillingPlan, paypal_subscription_entity_1.PayPalSubscription],
         providers: [
             {
                 provide: constants_1.PAYPAL_PLUGIN_OPTIONS,
                 useFactory: () => PayPalPlugin.options,
             },
             paypal_service_1.PayPalService,
+            paypal_subscription_service_1.PayPalSubscriptionService,
         ],
         configuration: config => {
             config.paymentOptions.paymentMethodHandlers.push(paypal_handler_1.paypalPaymentMethodHandler);
+            config.schedulerOptions.tasks.push(paypal_subscription_sync_task_1.payPalSubscriptionSyncTask);
             return config;
+        },
+        adminApiExtensions: {
+            schema: subscription_api_extensions_1.adminApiExtensions,
+            resolvers: [paypal_subscription_admin_resolver_1.PayPalSubscriptionAdminResolver],
         },
         shopApiExtensions: {
             schema: (0, graphql_tag_1.gql) `
+            ${subscription_api_extensions_1.shopApiExtensions}
             type PayPalOrderResult {
                 id: String!
                 status: String!
@@ -115,9 +130,9 @@ exports.PayPalPlugin = PayPalPlugin = PayPalPlugin_1 = __decorate([
                 createPayPalOrder: PayPalOrderResult!
             }
         `,
-            resolvers: [paypal_resolver_1.PayPalShopResolver],
+            resolvers: [paypal_resolver_1.PayPalShopResolver, paypal_subscription_shop_resolver_1.PayPalSubscriptionShopResolver],
         },
-        exports: [paypal_service_1.PayPalService],
+        exports: [paypal_service_1.PayPalService, paypal_subscription_service_1.PayPalSubscriptionService],
         compatibility: '^3.0.0',
     })
 ], PayPalPlugin);
